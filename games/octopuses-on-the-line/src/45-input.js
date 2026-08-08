@@ -111,11 +111,18 @@
     KeyW: 1, KeyA: 1, KeyS: 1, KeyD: 1, F1: 1, Tab: 1
   };
 
+  // Pointer lock is unavailable in some embedded contexts (sandboxed iframes),
+  // where requesting it can throw. Dragging with the left button held is the
+  // fallback and is handled in the mousemove listener above.
   Input.prototype.requestLock = function () {
-    if (this.canvas.requestPointerLock) this.canvas.requestPointerLock();
+    try {
+      if (this.canvas.requestPointerLock) this.canvas.requestPointerLock();
+    } catch (e) { /* drag-to-look still works */ }
   };
   Input.prototype.exitLock = function () {
-    if (document.exitPointerLock) document.exitPointerLock();
+    try {
+      if (document.exitPointerLock) document.exitPointerLock();
+    } catch (e) { /* nothing was locked */ }
   };
 
   Input.prototype._anyDown = function (codes) {

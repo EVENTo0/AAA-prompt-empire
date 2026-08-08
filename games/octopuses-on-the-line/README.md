@@ -212,3 +212,19 @@ GAME.stepFrames(60)      // advance deterministically
 
 Part of the **AAA+ Engineering Empire** repository. This project adds only new
 files under `games/octopuses-on-the-line/` and changes nothing elsewhere.
+
+---
+
+## Single-file build
+
+```bash
+node tools/build-standalone.js
+```
+
+Inlines all thirteen scripts into `dist/octopuses-on-the-line.html` — one
+354 KB file with no external references at all. Email it, drop it on a USB
+stick, or double-click it. `dist/embed.html` is the same page as a body
+fragment for hosts that supply their own document shell.
+
+The multi-file layout under `src/` stays the source of truth; this is a
+distribution step, not a build step the game depends on.
