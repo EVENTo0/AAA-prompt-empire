@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<!--
+  Engine smoke page. Renders a fixed test scene that exercises the atlas,
+  every geometry primitive, shadows, point lights and the post chain.
+  Driven by tools/verify.js; also openable by hand for eyeballing.
+  SMOKE.setOnly('name') isolates one geometry group for bisecting.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Octopuses on the Line — engine smoke test</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;width:100vw;height:100vh}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="../src/00-core.js"></script>
+<script src="../src/10-gl.js"></script>
+<script src="../src/20-texgen.js"></script>
+<script src="../src/30-geo.js"></script>
+<script>
+(function () {
+  var O = window.OCTO, CELL = O.CELL;
+  window.SMOKE = { ready: false, errors: [] };
+  window.addEventListener('error', function (e) { window.SMOKE.errors.push(String(e.message)); });
+  try {
+    var canvas = document.getElementById('c');
+    var r = new O.gl.Renderer(canvas, { preserveDrawingBuffer: true });
+    r.resize(window.innerWidth, window.innerHeight, 1);
+    r.setAtlas(O.buildAtlas(256, 7));
+
+    var groups = {};
+    function group(name, fn) {
+      var mb = new O.MeshBuilder();
+      fn(mb);
+      groups[name] = { mesh: mb.toMesh(r), model: O.M4.create(), name: name };
+    }
+
+    group('ground', function (mb) {
+      mb.mat({ cell: CELL.SAND, color: [1, 1, 1], roughness: 1, uvScale: 0.09 });
+      mb.plane(140, 140, 8);
+    });
+
+    group('cells', function (mb) {
+      var cells = [CELL.ADOBE, CELL.TILE, CELL.STONE, CELL.WOOD, CELL.CARPET, CELL.BARK,
+                   CELL.FROND, CELL.MOSAIC, CELL.NEON, CELL.METAL, CELL.HOLO, CELL.GLASS,
+                   CELL.BRASS, CELL.ROPE, CELL.MASHRABIYA];
+      for (var i = 0; i < cells.length; i++) {
+        mb.mat({ cell: cells[i], color: [1, 1, 1], roughness: 0.8, uvScale: 0.5,
+                 emissive: (cells[i] === CELL.NEON || cells[i] === CELL.HOLO) ? 0.8 : 0 });
+        mb.push().translate((i - cells.length / 2) * 3.2, 0, -8).boxUp(2.6, 3.2, 2.6).pop();
+      }
+    });
+
+    group('arch', function (mb) {
+      mb.mat({ cell: CELL.ADOBE, color: [1, 1, 1], roughness: 0.95, uvScale: 0.35, emissive: 0 });
+      mb.push().translate(-10, 0, 4).archWall(9, 7, 1.2, 4.2, 5.2).pop();
+      mb.push().translate(-10, 7, 4).parapet(9, 1.2, 0.9, 0.5).pop();
+    });
+
+    group('dome', function (mb) {
+      mb.mat({ cell: CELL.MOSAIC, color: [1, 1, 1], roughness: 0.4, uvScale: 0.5, emissive: 0 });
+      mb.push().translate(2, 6, 4).dome(3.4, 5.0, 22, 14).pop();
+    });
+
+    group('building', function (mb) {
+      mb.mat({ cell: CELL.ADOBE, color: [1, 1, 1], roughness: 0.95, uvScale: 0.35, emissive: 0 });
+      mb.push().translate(2, 0, 4).boxUp(7, 6, 7).pop();
+    });
+
+    group('mashrabiya', function (mb) {
+      mb.mat({ cell: CELL.ADOBE, color: [1, 1, 1], roughness: 0.95, uvScale: 0.35, emissive: 0 });
+      mb.push().translate(2, 2.4, 7.55).mashrabiya(2.6, 2.4, 0.9).pop();
+    });
+
+    group('palms', function (mb) {
+      var rng = new O.Rng(11);
+      mb.push().translate(12, 0, 2).palm(9, rng).pop();
+      mb.push().translate(15, 0, 8).palm(7.5, rng).pop();
+    });
+
+    group('lantern', function (mb) {
+      mb.push().translate(-18, 3.2, 0).lantern(1.4).pop();
+    });
+
+    group('rope', function (mb) {
+      var pts = [];
+      for (var k = 0; k <= 24; k++) {
+        var t = k / 24;
+        pts.push({ x: -16 + t * 32, y: 8 - Math.sin(t * Math.PI) * 2.4, z: 12 });
+      }
+      mb.mat({ cell: CELL.ROPE, color: [1, 1, 1], roughness: 0.9, uvScale: 1, emissive: 0 });
+      mb.tube(pts, 0.10, 6, { vScale: 24 });
+    });
+
+    var only = null;
+    function items() {
+      var out = [];
+      for (var k in groups) {
+        if (only && k !== only) continue;
+        out.push(groups[k]);
+      }
+      return out;
+    }
+
+    var scene = {
+      items: items(),
+      water: [],
+      lights: [
+        { pos: { x: -18, y: 3.2, z: 0 }, color: [1.0, 0.66, 0.28], radius: 16, intensity: 3.2 },
+        { pos: { x: 8, y: 4, z: -8 }, color: [0.3, 0.9, 1.0], radius: 20, intensity: 2.4 }
+      ]
+    };
+
+    var camera = {
+      pos: { x: 14, y: 9, z: 26 }, target: { x: 0, y: 4, z: 0 },
+      up: { x: 0, y: 1, z: 0 }, fov: 60 * O.DEG, near: 0.1, far: 600
+    };
+
+    window.SMOKE.setOnly = function (name) { only = name; scene.items = items(); };
+    window.SMOKE.groups = Object.keys(groups);
+    window.SMOKE.render = function (mode) {
+      if (mode === 'night') {
+        r.env.sunDir = { x: -0.3, y: 0.16, z: -0.6 };
+        r.env.sunCol = [0.26, 0.22, 0.38];
+        r.env.zenith = [0.02, 0.03, 0.10];
+        r.env.horizon = [0.14, 0.09, 0.18];
+        r.env.skyCol = [0.05, 0.07, 0.14];
+        r.env.groundCol = [0.02, 0.02, 0.05];
+        r.env.fogCol = [0.06, 0.06, 0.12];
+        r.env.stars = 1;
+        r.env.exposure = 1.30;
+      }
+      r.render(camera, scene, 0.016);
+      return { err: r.gl.getError(), draws: r.stats.draws, tris: r.stats.tris };
+    };
+    window.SMOKE.info = { floatColor: r.floatColor, aniso: !!r.aniso, groups: Object.keys(groups) };
+    window.SMOKE.render('day');
+    window.SMOKE.ready = true;
+  } catch (e) {
+    window.SMOKE.errors.push(String(e && e.stack || e));
+    window.SMOKE.ready = true;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 99-main.js
+ * Boot, main loop, resize handling, and the automation hooks that
+ * tools/verify.js drives in headless Chromium.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+  var clamp = OCTO.util.clamp;
+
+  var STEP = 1 / 60;
+  var MAX_STEP = 1 / 15;
+
+  function query() {
+    var q = {};
+    var s = (root.location && root.location.search || '').replace(/^\?/, '');
+    s.split('&').forEach(function (kv) {
+      if (!kv) return;
+      var p = kv.split('=');
+      q[decodeURIComponent(p[0])] = p.length > 1 ? decodeURIComponent(p[1]) : '1';
+    });
+    return q;
+  }
+
+  function detectQuality() {
+    var mem = root.navigator && root.navigator.deviceMemory;
+    var touch = ('ontouchstart' in root) || (root.navigator && root.navigator.maxTouchPoints > 0);
+    var wide = Math.max(root.innerWidth || 0, root.innerHeight || 0);
+    if (touch && wide < 1000) return 'low';
+    if (touch) return 'medium';
+    if (mem && mem <= 4) return 'medium';
+    return 'high';
+  }
+
+  function fatal(container, message, detail) {
+    var box = document.createElement('div');
+    box.className = 'octo-fatal';
+    box.innerHTML =
+      '<h2>Octopuses on the Line</h2>' +
+      '<p>' + message + '</p>' +
+      (detail ? '<pre>' + String(detail).replace(/[<>&]/g, function (c) {
+        return { '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c];
+      }) + '</pre>' : '');
+    container.appendChild(box);
+  }
+
+  function boot() {
+    var q = query();
+    var container = document.getElementById('octo-root');
+    var canvas = document.getElementById('octo-canvas');
+    var testMode = !!q.test;
+
+    var api = root.GAME = {
+      booted: false,
+      error: null,
+      version: OCTO.VERSION
+    };
+
+    var renderer;
+    try {
+      renderer = new OCTO.gl.Renderer(canvas, { preserveDrawingBuffer: testMode });
+    } catch (e) {
+      api.error = String(e && e.message || e);
+      fatal(container, 'This browser could not start WebGL 2, which the game needs.', e && e.stack);
+      api.booted = true;
+      return;
+    }
+
+    var game = new OCTO.Game(renderer, canvas, {
+      quality: q.quality || (testMode ? 'high' : detectQuality()),
+      // Mid-morning: the souq reads clearly, and normal play drifts into the
+      // golden hour and then the neon night on its own.
+      hour: q.hour ? parseFloat(q.hour) : 10.0,
+      deterministic: testMode
+    });
+    if (game.save.quality && !q.quality && !testMode) {
+      game.qualityName = game.save.quality;
+      game.quality = OCTO.QUALITY[game.qualityName] || game.quality;
+    }
+
+    var input = new OCTO.Input(canvas, {});
+    var ui = new OCTO.Ui(game, input, container);
+    if (game.save.lang) ui.setLang(game.save.lang);
+    game.ui = ui;
+
+    var audio = new OCTO.Audio();
+    game.audio = audio;
+
+    var pixelRatio = clamp(root.devicePixelRatio || 1, 1, 2);
+    game.pixelRatio = pixelRatio;
+
+    function resize() {
+      var w = container.clientWidth || root.innerWidth || 1280;
+      var h = container.clientHeight || root.innerHeight || 720;
+      renderer.resize(w, h, pixelRatio);
+    }
+    root.addEventListener('resize', resize);
+    resize();
+
+    // --- staged build so the loading bar actually animates
+    var stages = [
+      ['Weaving textures…', 'ننسج المواد…', function () {
+        renderer.setAtlas(OCTO.buildAtlas(q.atlas ? parseInt(q.atlas, 10) : 512, 1337));
+      }],
+      ['Raising the old town…', 'نبني البلدة القديمة…', function () {
+        game.build({ seed: q.seed ? parseInt(q.seed, 10) : 20260807 });
+      }],
+      ['Stringing the lines…', 'نمد الخيوط…', function () {
+        // first rope settle so nothing snaps into place on frame one
+        for (var i = 0; i < 24; i++) {
+          for (var r = 0; r < game.ropes.length; r++) game.ropes[r].update(STEP, 0, i * STEP);
+        }
+      }],
+      ['Waking the octopuses…', 'نوقظ الأخطبوطات…', function () {
+        if (!ui.isTouchDevice()) return;
+        input.attachTouch(container, [
+          { action: 'jump', label: '⤒', aria: 'Jump' },
+          { action: 'grab', label: 'E', aria: 'Grab' },
+          { action: 'grip', label: 'Q', aria: 'Grip' },
+          { action: 'dash', label: 'F', aria: 'Dash' },
+          { action: 'sprint', label: '»', aria: 'Sprint' },
+          { action: 'wobble', label: 'R', aria: 'Wobble' }
+        ]);
+        container.classList.add('octo-touch-mode');
+      }]
+    ];
+
+    var stage = 0;
+    function nextStage() {
+      if (stage >= stages.length) return finish();
+      var s = stages[stage];
+      ui.setProgress(stage / stages.length, ui.lang === 'ar' ? s[1] : s[0]);
+      stage++;
+      // let the browser paint the progress bar before the heavy call
+      root.setTimeout(function () {
+        try {
+          s[2]();
+        } catch (e) {
+          api.error = String(e && e.stack || e);
+          fatal(container, 'The world failed to build.', e && e.stack);
+          api.booted = true;
+          return;
+        }
+        nextStage();
+      }, testMode ? 0 : 16);
+    }
+
+    function finish() {
+      ui.setProgress(1, '');
+      resize();
+      if (testMode) {
+        ui.startGame();
+        game.timeFrozen = true;
+      } else {
+        ui.showTitle();
+      }
+      installApi();
+      api.booted = true;
+      last = now();
+      if (!testMode) requestAnimationFrame(loop);
+      else render(0);
+    }
+
+    /* -------------------------------------------------------------- loop */
+
+    function now() { return (root.performance || Date).now(); }
+    var last = now();
+    var acc = 0;
+
+    function step(dt) {
+      input.poll();
+      game.update(dt, input);
+      ui.update(dt);
+    }
+
+    function render(dt) {
+      game.render(dt);
+    }
+
+    function loop() {
+      var t = now();
+      var dt = (t - last) / 1000;
+      last = t;
+      if (dt > MAX_STEP) dt = MAX_STEP;
+
+      game._fpsAcc += dt; game._fpsCount++;
+      if (game._fpsAcc >= 0.35) {
+        game.fps = game._fpsCount / game._fpsAcc;
+        game._fpsAcc = 0; game._fpsCount = 0;
+      }
+
+      // fixed-step simulation keeps the verlet solvers stable
+      acc += dt;
+      var steps = 0;
+      while (acc >= STEP && steps < 5) { step(STEP); acc -= STEP; steps++; }
+      if (steps === 0) { input.endFrame(); }
+      render(dt);
+      requestAnimationFrame(loop);
+    }
+
+    canvas.addEventListener('click', function () {
+      if (ui.screen === 'game' && !ui.isTouchDevice() && !input.mouse.locked) input.requestLock();
+      audio.init();
+      audio.resume();
+    });
+
+    /* ------------------------------------------------------- test hooks */
+
+    function installApi() {
+      api.game = game;
+      api.ui = ui;
+      api.renderer = renderer;
+      api.input = input;
+
+      api.report = function () { return game.report(); };
+
+      /** Advance the simulation deterministically, then draw. */
+      api.stepFrames = function (n) {
+        n = n || 1;
+        for (var i = 0; i < n; i++) step(STEP);
+        render(STEP);
+        return game.report();
+      };
+
+      api.teleport = function (d) {
+        var ok = game.teleportTo(d);
+        api.stepFrames(2);
+        return ok;
+      };
+
+      api.setTime = function (hour) {
+        game.hour = hour;
+        game.timeFrozen = true;
+        game._updateEnvironment();
+        return game.hour;
+      };
+
+      api.openMap = function () { ui.openPanel('map'); return true; };
+      api.closeMap = function () { ui.closePanel(); return true; };
+      api.setQuality = function (name) { game.setQuality(name); resize(); return game.qualityName; };
+      api.press = function (code, frames) {
+        input.down[code] = true; input.pressed[code] = true;
+        api.stepFrames(frames || 1);
+        input.down[code] = false;
+      };
+      api.hold = function (codes, frames) {
+        codes.forEach(function (c) { input.down[c] = true; input.pressed[c] = true; });
+        api.stepFrames(frames || 1);
+        codes.forEach(function (c) { input.down[c] = false; });
+      };
+
+      api.selfTest = function () {
+        // The suite drives the simulation directly, so make sure no open
+        // panel has it paused.
+        ui.closePanel();
+        ui.betaOpen = false;
+        game.paused = false;
+        return selfTest(game, api);
+      };
+    }
+
+    nextStage();
+  }
+
+  /* ---------------------------------------------------------- self test */
+
+  function selfTest(game, api) {
+    var results = [];
+    function check(name, fn) {
+      try {
+        var r = fn();
+        results.push({ name: name, pass: r === true, detail: r === true ? '' : String(r) });
+      } catch (e) {
+        results.push({ name: name, pass: false, detail: String(e && e.message || e) });
+      }
+    }
+    function finite(v) { return typeof v === 'number' && isFinite(v); }
+
+    check('world has geometry chunks', function () {
+      return game.world.items.length > 8 || 'only ' + game.world.items.length;
+    });
+    check('world has colliders', function () {
+      return game.world.physics.boxes.length > 80 || 'only ' + game.world.physics.boxes.length;
+    });
+    check('rope network built', function () {
+      return game.ropes.length >= 20 || 'only ' + game.ropes.length;
+    });
+    check('every rope has finite points', function () {
+      for (var i = 0; i < game.ropes.length; i++) {
+        var p = game.ropes[i].points();
+        for (var j = 0; j < p.length; j++) {
+          if (!finite(p[j].x) || !finite(p[j].y) || !finite(p[j].z)) return 'rope ' + i + ' point ' + j + ' is not finite';
+        }
+      }
+      return true;
+    });
+    check('40 pearls placed', function () {
+      return game.pearls.length === 40 || 'got ' + game.pearls.length;
+    });
+    check('npcs populated', function () {
+      return game.npcs.length >= 15 || 'only ' + game.npcs.length;
+    });
+
+    check('octopus falls and lands on solid ground', function () {
+      // Drop over the middle of the tower plate: open deck, no rope overhead.
+      // (Dropping over the souq plaza lands on a washing line — correct
+      // behaviour, but it tests the auto-grab rather than ground collision.)
+      var tc = game.world.districts.towers.center;
+      var p = game.player;
+      p.teleport(tc.x, 30, tc.z, 0);
+      api.stepFrames(240);
+      if (!finite(p.pos.y)) return 'position went non-finite';
+      if (p.pos.y < -5) return 'fell through the world to y=' + p.pos.y.toFixed(2);
+      if (p.state !== 'ground' && p.state !== 'ragdoll') return 'ended in state ' + p.state;
+      return true;
+    });
+
+    check('falling onto a line catches it', function () {
+      var rope = null;
+      for (var i = 0; i < game.ropes.length; i++) {
+        if (game.ropes[i].district === 'souq') { rope = game.ropes[i]; break; }
+      }
+      if (!rope) return 'no souq rope found';
+      var mid = rope.sample(0.5, {});
+      var p = game.player;
+      p.teleport(mid.x, mid.y + 5, mid.z, 0);
+      p.lineCooldown = 0;
+      for (var k = 0; k < 90 && p.state !== 'line'; k++) api.stepFrames(1);
+      return p.state === 'line' || 'dropped past the line, ended in ' + p.state;
+    });
+
+    check('octopus can stand on a line and it sags', function () {
+      var rope = null;
+      for (var i = 0; i < game.ropes.length; i++) {
+        if (game.ropes[i].district === 'souq') { rope = game.ropes[i]; break; }
+      }
+      if (!rope) return 'no souq rope found';
+      var mid = rope.sample(0.5, {});
+      var beforeY = mid.y;
+      var p = game.player;
+      p.teleport(mid.x, mid.y + 0.4, mid.z, 0);
+      p.attachLine(rope, rope.nearest({ x: mid.x, y: mid.y, z: mid.z }, {}));
+      if (p.state !== 'line') return 'did not enter line state';
+      for (var k = 0; k < 40; k++) api.stepFrames(1);
+      var after = rope.sample(0.5, {}).y;
+      if (!finite(p.pos.y)) return 'player position went non-finite on the line';
+      if (after >= beforeY - 0.005) return 'rope did not sag (' + beforeY.toFixed(3) + ' -> ' + after.toFixed(3) + ')';
+      return true;
+    });
+
+    check('balance tips the octopus off an unattended line', function () {
+      var rope = game.ropes[0];
+      var mid = rope.sample(0.5, {});
+      var p = game.player;
+      p.teleport(mid.x, mid.y + 0.4, mid.z, 0);
+      p.attachLine(rope, rope.nearest({ x: mid.x, y: mid.y, z: mid.z }, {}));
+      p.tilt = 1.0; p.tiltVel = 2.5;
+      for (var i = 0; i < 60 && p.state === 'line'; i++) api.stepFrames(1);
+      return p.state !== 'line' || 'still balanced after a hard push';
+    });
+
+    check('missions start and complete', function () {
+      var m = game.missionById('lanterns');
+      game.startMission(m);
+      if (m.state !== 'active') return 'did not activate';
+      for (var i = 0; i < game.lanternTargets.length; i++) {
+        game.interact({ kind: 'lantern', obj: game.lanternTargets[i], index: i });
+      }
+      return m.state === 'complete' || 'state is ' + m.state;
+    });
+
+    check('economy and shop transact', function () {
+      var before = game.dirhams;
+      game.addDirhams(1000);
+      var res = game.buy('hat_tarbush');
+      if (!res.ok) return 'purchase failed: ' + res.reason;
+      if (game.player.skin.hat !== 'tarbush') return 'cosmetic not equipped';
+      if (game.dirhams !== before + 1000 - 120) return 'balance wrong: ' + game.dirhams;
+      return true;
+    });
+
+    check('teleport reaches every district', function () {
+      var ids = Object.keys(game.world.districts);
+      for (var i = 0; i < ids.length; i++) {
+        if (!game.teleportTo(ids[i])) return 'no anchor for ' + ids[i];
+        api.stepFrames(2);
+        var p = game.player.pos;
+        if (!finite(p.x) || !finite(p.y) || !finite(p.z)) return 'non-finite position after ' + ids[i];
+      }
+      return true;
+    });
+
+    check('day/night keyframes stay finite', function () {
+      for (var h = 0; h < 24; h += 0.25) {
+        var e = OCTO.sampleTime(h);
+        if (!finite(e.exposure) || !finite(e.stars)) return 'bad env at hour ' + h;
+        for (var i = 0; i < 3; i++) {
+          if (!finite(e.sunCol[i]) || !finite(e.zenith[i])) return 'bad colour at hour ' + h;
+        }
+      }
+      return true;
+    });
+
+    check('renderer reports no GL error', function () {
+      var err = game.renderer.gl.getError();
+      return err === 0 || 'gl error 0x' + err.toString(16);
+    });
+
+    check('frames draw geometry', function () {
+      api.stepFrames(2);
+      return game.renderer.stats.draws > 3 || 'only ' + game.renderer.stats.draws + ' draws';
+    });
+
+    var failed = results.filter(function (r) { return !r.pass; });
+    return {
+      total: results.length,
+      passed: results.length - failed.length,
+      failed: failed.length,
+      failures: failed,
+      results: results
+    };
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+})(typeof window !== 'undefined' ? window : globalThis);
