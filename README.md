@@ -1,71 +1,88 @@
-# AAA+ Engineering Empire v2.1
+# AAA+ Engineering Empire v2.2
 
-**Repository-first operating system for Codex + Claude Code to build, repair, verify, preview, deploy, and operate software, websites, mobile/native apps, games, AI systems, automations, data platforms, and XR experiences.**
+**Repository-first, mobile-first, evaluated multi-agent engineering control plane for Codex + Claude Code.**
 
-Status: **v2.1 hardening candidate**  
+Status: **v2.2 evaluated-governance candidate**  
 Owner: **EVENTo0**  
 Default branch: `main`
 
-## Prime objective
+## What Empire is
 
-Turn ambitious requests into the smallest complete, production-grade, verifiable outcomes. Empire optimizes for evidence, maintainability, security, portability, and fast feedback—especially a phone-accessible feedback loop—rather than impressive scaffolding or claims.
+Empire coordinates complex software, web, mobile/native, backend/data, AI, game/XR, automation, and release work through canonical skills, executable specialist agents, evidence gates, and a phone-accessible control plane.
 
-## Start here
+It is intentionally broader than `EVENTo0/AAA-prompt` Core. Proven broadly useful improvements may later be backported to Core; specialist behavior stays in Empire.
 
-1. Read `AGENTS.md`.
-2. Claude Code also reads `CLAUDE.md`.
-3. Audit the repository and current product state before editing.
-4. Activate only the skills/agents relevant to the task.
-5. Build a vertical slice.
-6. Verify independently.
-7. Produce a preview/build/test path.
-8. Record evidence and release/rollback status.
+## v2.2 control plane
 
-## Executable control plane
+- `AGENTS.md` — evaluated, registry-governed operating contract.
+- `.agents/skills/` — 15 canonical Agent Skills.
+- `.codex/agents/` — 14 Codex specialist agents.
+- `.claude/agents/` — 14 Claude Code specialist agents.
+- `.claude/skills/` — Claude adapters to canonical skills.
+- `registry/skills.json` — skill identity, dependency, platform and permission contracts.
+- `registry/agents.json` — executable agent posture, skill and permission contracts.
+- `registry/routing.json` — deterministic baseline routing contracts.
+- `evals/contract-routing.json` — routing/permission regression cases.
+- `scripts/validate_empire.py` — Empire Guard v2 structural/governance validation.
+- `scripts/run_empire_evals.py` — deterministic routing/permission eval harness.
+- `.github/workflows/empire-guard.yml` — CI gate for governance and evals.
+- `.github/CODEOWNERS` — protected ownership for control-plane assets.
 
-- `.agents/skills/` — canonical repository Agent Skills used by Codex.
-- `.claude/skills/` — Claude Code project adapters to the canonical skills.
-- `.codex/agents/` — project-scoped Codex custom subagents.
-- `.claude/agents/` — project-scoped Claude Code subagents.
-- `.codex/config.toml` — bounded Codex multi-agent configuration.
-- `.github/workflows/empire-guard.yml` — governance/skills/agents validation.
-- `.github/CODEOWNERS` — ownership for protected review flows.
-- `scripts/validate_empire.py` — standard-library validator.
+## Mobile Control Plane
 
-## Core skills
+`apps/mobile-control-plane` is the phone-first operator PWA. It aggregates allowlisted GitHub repositories/PRs/Actions, Vercel deployments/previews, Supabase project health, EVENTO catalog data, and controlled build/retry actions.
 
-Empire v2.1 includes 15 focused skills covering orchestration, intake/audit, architecture/stack routing, vertical slices, web, mobile, Android/iOS native delivery, backend/data/cloud, AI agents, game/XR/simulation, security/privacy, QA/release readiness, performance/accessibility, phone/cloud previews, and dependency upgrade/debugging.
+Security defaults:
+- provider credentials remain server-side;
+- repository/workflow scopes are allowlisted;
+- write actions are disabled by default;
+- authenticated API state is never cached by the service worker;
+- production should add a stronger upstream identity boundary before broad exposure.
 
-## Executable agents
+## Operating lifecycle
 
-Empire v2.1 defines 14 specialist subagents in both Codex and Claude Code: repository mapping, solution architecture, product/UX, web, mobile, native platforms, backend/data, AI, game/simulation, security review, QA verification, performance/reliability, release engineering, and red-team review.
+1. audit real repository state;
+2. define measurable outcome and acceptance evidence;
+3. route the smallest qualified skill/agent set;
+4. build a coherent vertical slice;
+5. verify independently by risk;
+6. return a source-linked preview/build/test path;
+7. update docs, registries/evals and evidence when behavior changes;
+8. release only what current evidence supports;
+9. turn repeated defects/improvements into regression cases before changing Empire behavior.
 
-These are actual project-scoped agent definitions, not merely role names in a prompt.
+## Evaluation model
 
-## Mobile-first operator model
+Empire v2.2 adds machine-readable contracts and deterministic regressions for:
+- skill and agent registry parity;
+- Claude adapter drift from canonical skills;
+- dependency graph validity and cycle detection;
+- read-only/write/deploy permission boundaries;
+- no agent self-approval;
+- routing references and specialist coverage;
+- fail-closed behavior for unknown task tags;
+- basic secret hygiene.
 
-The phone is treated as a primary operator console and feedback device. Where feasible, projects should return a responsive preview URL, installable development/internal build, device-streaming session, or other source-linked artifact that can be inspected from a phone.
+These controls validate the operating system. They do not replace project-specific behavioral, device, security, performance, deployment, or AI evaluations.
 
-Empire does not pretend a phone replaces Xcode, Android Studio, GPU profilers, or heavy engine tooling when those are genuinely required. It routes such work to suitable cloud/remote/native environments and returns evidence to the phone.
+See `docs/architecture/EVALUATED_AGENT_SYSTEM.md`.
 
-See `docs/mobile/MOBILE_FIRST_OPERATING_MODEL.md`.
+## Repository protection
 
-## Security and change control
+Routine work belongs on focused branches and PRs. `main` should require owner review and `Empire Guard / governance-and-skills`, with force-push/deletion blocked and production operations protected separately.
 
-Routine Empire changes belong on branches and pull requests. `main` should be protected with owner review and the Empire Guard check. Repository visibility and branch/ruleset enforcement are GitHub settings; see `docs/security/REPOSITORY_LOCKDOWN.md`.
+Repository visibility and rulesets are GitHub settings and cannot be enforced by repository files alone. See `docs/security/REPOSITORY_LOCKDOWN.md`.
 
-Never commit reusable approval codes, credentials, private keys, certificates, tokens, production secrets, or personal data.
+## Technology policy
 
-## Evergreen technology policy
-
-Empire does not permanently pin “the latest” framework/model/SDK into its governing prompt. Fast-moving choices are re-verified from primary documentation at project start or upgrade time, and material choices are recorded in ADRs.
+Empire does not freeze “latest” models/frameworks/SDKs into permanent instructions. Verify fast-moving choices from current primary documentation and add version pins only where reproducibility/security needs them.
 
 See `docs/architecture/TECHNOLOGY_RADAR.md`.
 
 ## Definition of done
 
-A feature/project is complete only when applicable acceptance criteria, tests, security/privacy, accessibility, performance/reliability, deployment/recovery, documentation, and evidence gates are satisfied. A successful compile, screenshot, mockup, generated codebase, or agent confidence alone is not completion proof.
+A compile, screenshot, mock, generated codebase, or agent claim is not completion. Applicable acceptance, tests/evals, security/privacy, accessibility, performance/reliability, device/browser, AI, deployment/recovery, documentation, and evidence gates must pass or be explicitly reported as blocked/unverified.
 
 ## Version
 
-`AAA+ Engineering Empire v2.1 — Mobile-First Multi-Agent Hardening — 2026.08`
+`AAA+ Engineering Empire v2.2 — Evaluated, Governed & Self-Improving Agent System — 2026.08`
