@@ -22,6 +22,7 @@ test('EVENTO and Empire remain separate tracked systems', async () => {
   const evento = registry.projects.find((project) => project.id === 'evento-core')
   const empire = registry.projects.find((project) => project.id === 'aaa-empire')
   assert.equal(evento.vercelProject, 'evento-empire')
+  assert.equal(evento.supabaseProjectRef, 'jaxhaiaftpegcodkzaus')
   assert.equal(empire.repository, 'EVENTo0/AAA-prompt-empire')
   assert.notEqual(evento.id, empire.id)
 })

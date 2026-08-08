@@ -10,10 +10,10 @@
       "priority": "P0",
       "repository": null,
       "vercelProject": "evento-empire",
-      "supabaseProjectRef": null,
+      "supabaseProjectRef": "jaxhaiaftpegcodkzaus",
       "platforms": ["web", "pwa"],
       "workflows": [],
-      "notes": "Primary legal company platform. Do not overwrite the existing public EVENTO deployment when deploying the Control Plane."
+      "notes": "Primary legal company platform. Verified Supabase backend: Evento project 1. Do not overwrite the existing public EVENTO deployment when deploying the Control Plane."
     },
     {
       "id": "aaa-empire",
