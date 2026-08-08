@@ -294,19 +294,41 @@
     position: absolute; top: 50%; left: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px;
     border-radius: 50%; background: rgba(255,255,255,0.30); border: 1px solid rgba(255,255,255,0.4);
   }
-  .octo-look { position: absolute; inset: 0 0 0 40%; pointer-events: auto; touch-action: none; }
+  /* Leaves the top bar free so it never swallows taps meant for the HUD. */
+  .octo-look { position: absolute; inset: 58px 0 0 40%; pointer-events: auto; touch-action: none; }
   .octo-buttons {
     position: absolute; bottom: 24px; inset-inline-end: 20px;
-    display: grid; grid-template-columns: repeat(3, 60px); gap: 8px; pointer-events: auto;
+    display: grid; grid-template-columns: repeat(3, 68px); gap: 10px; pointer-events: auto;
   }
   .octo-btn {
-    width: 60px; height: 60px; border-radius: 50%; font-size: 19px; font-weight: 800;
-    color: #f4ece0; background: rgba(30,22,14,0.72); border: 1px solid var(--edge);
+    width: 68px; height: 68px; border-radius: 50%; font-size: 21px; font-weight: 800;
+    color: #f4ece0; background: rgba(30,22,14,0.82); border: 2px solid var(--edge);
     font-family: inherit; touch-action: none; -webkit-tap-highlight-color: transparent;
   }
   .octo-btn:active { background: rgba(227,181,88,0.42); }
-  .octo-touch-mode .octo-minimap { bottom: 170px; }
+  .octo-touch-mode .octo-minimap { bottom: 178px; }
   .octo-touch-mode .octo-abilities { display: none; }
+
+  /* ---------------------------------------------------- diagnostics */
+  /* Above the touch overlay (z 15) so its look area cannot intercept taps. */
+  .octo-diag-wrap { position: absolute; inset: 0; z-index: 18; pointer-events: none; }
+  .octo-diag-toggle {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 34px; height: 34px; border-radius: 50%; pointer-events: auto;
+    font-family: inherit; font-size: 15px; font-weight: 800; font-style: italic;
+    color: #cdbfa8; background: rgba(14,10,7,0.62); border: 1px solid var(--edge);
+    -webkit-tap-highlight-color: transparent; cursor: pointer;
+  }
+  .octo-diag-toggle:hover { border-color: var(--gold); color: var(--gold); }
+  .octo-diag {
+    position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+    max-width: min(340px, 88vw); max-height: 60vh; overflow: auto; margin: 0;
+    padding: 12px 14px; border-radius: 12px; pointer-events: auto;
+    background: rgba(8,6,4,0.94); border: 1px solid #79e6a0;
+    color: #dff4ff; font-size: 11px; line-height: 1.65; text-align: start;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    white-space: pre-wrap; direction: ltr;
+  }
 
   /* ---------------------------------------------------------- fatal */
   .octo-fatal {
@@ -3378,7 +3400,14 @@
     this.pressed = Object.create(null);
     this.released = Object.create(null);
     this.mouse = { dx: 0, dy: 0, wheel: 0, locked: false, left: false, right: false };
-    this.touch = { active: false, move: { x: 0, y: 0 }, look: { x: 0, y: 0 }, buttons: Object.create(null) };
+    // `buttons` is the held state; `pressed` is a latched edge that survives
+    // until a simulation step has actually read it. A quick tap can begin and
+    // end inside a single frame — without the latch that press is lost, which
+    // on a low-frame-rate phone means most taps do nothing at all.
+    this.touch = {
+      active: false, move: { x: 0, y: 0 }, look: { x: 0, y: 0 },
+      buttons: Object.create(null), pressed: Object.create(null)
+    };
     this.gamepadIndex = -1;
     this.pad = { lx: 0, ly: 0, rx: 0, ry: 0, buttons: [] };
     this.enabled = true;
@@ -3485,7 +3514,7 @@
   Input.prototype.hit = function (action) {
     var b = this.bindings[action];
     if (b && this._anyPressed(b)) return true;
-    if (this.touch.buttons[action] === 1) return true;
+    if (this.touch.pressed[action]) return true;
     var padMap = PAD_BUTTONS[action];
     if (padMap !== undefined && this.pad.buttons[padMap] === 1) return true;
     return false;
@@ -3531,9 +3560,7 @@
     this.released = Object.create(null);
     this.mouse.dx = 0; this.mouse.dy = 0; this.mouse.wheel = 0;
     this.touch.look.x = 0; this.touch.look.y = 0;
-    for (var k in this.touch.buttons) {
-      if (this.touch.buttons[k] === 1) this.touch.buttons[k] = 2;
-    }
+    this.touch.pressed = Object.create(null);
     for (var i = 0; i < this.pad.buttons.length; i++) {
       if (this.pad.buttons[i] === 1) this.pad.buttons[i] = 2;
     }
@@ -3644,7 +3671,11 @@
       el.textContent = a.label;
       el.setAttribute('aria-label', a.aria || a.label);
       btns.appendChild(el);
-      function on(e) { self.touch.buttons[a.action] = 1; e.preventDefault(); }
+      function on(e) {
+        self.touch.buttons[a.action] = 1;
+        self.touch.pressed[a.action] = true;   // cleared by endFrame, not by release
+        e.preventDefault();
+      }
       function off(e) { self.touch.buttons[a.action] = 0; e.preventDefault(); }
       self._on(el, 'touchstart', on, { passive: false });
       self._on(el, 'touchend', off, { passive: false });
@@ -5625,6 +5656,9 @@
     this.far = 900;
     this.shake = 0;
     this.shakeTime = 0;
+    // A portrait phone sees far less of the world horizontally than a desktop
+    // window; pulling the camera back keeps the octopus and its footing in view.
+    this.aspectBoost = 1;
     this.free = false;
     this.freePos = { x: 0, y: 0, z: 0 };
     this._look = { x: 0, y: 0 };
@@ -5662,7 +5696,7 @@
     this._smoothTarget.y = damp(this._smoothTarget.y, ty, 9, dt);
     this._smoothTarget.z = damp(this._smoothTarget.z, p.pos.z, lag, dt);
 
-    this.distance = damp(this.distance, this.targetDistance, 8, dt);
+    this.distance = damp(this.distance, this.targetDistance * this.aspectBoost, 8, dt);
 
     var cp = Math.cos(this.pitch), sp2 = Math.sin(this.pitch);
     var dirX = Math.sin(this.yaw) * cp, dirY = sp2, dirZ = Math.cos(this.yaw) * cp;
@@ -6430,6 +6464,8 @@
 
     this.player.update(dt, input, this.camera);
     this.player.updateCarry(dt);
+    var aspect = this.renderer.width / Math.max(1, this.renderer.height);
+    this.camera.aspectBoost = aspect < 0.8 ? clamp(1 + (0.8 - aspect) * 1.1, 1, 1.55) : 1;
     this.camera.update(dt, input, this.world.physics);
 
     for (var n = 0; n < this.npcs.length; n++) {
@@ -7775,6 +7811,18 @@
       '<canvas class="octo-minimap" width="180" height="180"></canvas>' +
       '<div class="octo-crosshair"></div>';
     r.appendChild(this.hud);
+
+    // Diagnostics lives outside the HUD: the HUD's own stacking context sits
+    // below the touch overlay, whose look area covers most of the screen and
+    // would swallow every tap aimed at it.
+    this.diagWrap = el('div', 'octo-diag-wrap');
+    this.diagWrap.innerHTML =
+      '<button class="octo-diag-toggle" aria-label="Diagnostics">i</button>' +
+      '<pre class="octo-diag hidden"></pre>';
+    r.appendChild(this.diagWrap);
+    this.diagEl = this.diagWrap.querySelector('.octo-diag');
+    this.diagWrap.querySelector('.octo-diag-toggle')
+      .addEventListener('click', function () { self.toggleDiag(); });
     this.moneyEl = this.hud.querySelector('.octo-money-v');
     this.districtEl = this.hud.querySelector('.octo-district');
     this.clockEl = this.hud.querySelector('.octo-clock');
@@ -8238,6 +8286,24 @@
     this.beta.appendChild(camRow);
   };
 
+  /**
+   * A readable dump of the environment, reachable by tap. This is what a
+   * player on an unfamiliar device can screenshot and send back.
+   */
+  Ui.prototype.toggleDiag = function () {
+    this.diagOpen = !this.diagOpen;
+    this.diagEl.classList.toggle('hidden', !this.diagOpen);
+    if (this.diagOpen) this.updateDiag();
+  };
+
+  Ui.prototype.updateDiag = function () {
+    if (!this.diagOpen || !root.GAME || !root.GAME.diagnostics) return;
+    var d = root.GAME.diagnostics();
+    var lines = [];
+    for (var k in d) lines.push(k.replace(/([A-Z])/g, ' $1').toLowerCase() + '  ' + d[k]);
+    this.diagEl.textContent = lines.join('\n');
+  };
+
   Ui.prototype.togglePhoto = function () {
     var c = this.game.camera;
     c.free = !c.free;
@@ -8328,6 +8394,7 @@
     if ((g.frame % 3) === 0) this.drawMap(this.minimapCtx, this.minimap.width, this.minimap.height, false);
 
     if (this.betaOpen) this.updateBetaStats();
+    if (this.diagOpen && (g.frame % 20) === 0) this.updateDiag();
   };
 
   Ui.prototype.syncToasts = function () {
@@ -8481,18 +8548,35 @@
         }
       }],
       ['Waking the octopuses…', 'نوقظ الأخطبوطات…', function () {
-        if (!ui.isTouchDevice()) return;
-        input.attachTouch(container, [
-          { action: 'jump', label: '⤒', aria: 'Jump' },
-          { action: 'grab', label: 'E', aria: 'Grab' },
-          { action: 'grip', label: 'Q', aria: 'Grip' },
-          { action: 'dash', label: 'F', aria: 'Dash' },
-          { action: 'sprint', label: '»', aria: 'Sprint' },
-          { action: 'wobble', label: 'R', aria: 'Wobble' }
-        ]);
-        container.classList.add('octo-touch-mode');
+        if (ui.isTouchDevice()) ensureTouchControls();
       }]
     ];
+
+    /**
+     * Build the on-screen touch rig. Idempotent, and callable at any time:
+     * boot-time touch detection is not reliable on every device or inside
+     * every embed, so the first real touch also triggers it.
+     */
+    var touchAttached = false;
+    function ensureTouchControls() {
+      if (touchAttached) return false;
+      touchAttached = true;
+      input.attachTouch(container, [
+        { action: 'jump', label: '⤒', aria: 'Jump' },
+        { action: 'grab', label: 'E', aria: 'Grab' },
+        { action: 'grip', label: 'Q', aria: 'Grip' },
+        { action: 'dash', label: 'F', aria: 'Dash' },
+        { action: 'sprint', label: '»', aria: 'Sprint' },
+        { action: 'wobble', label: 'R', aria: 'Wobble' }
+      ]);
+      container.classList.add('octo-touch-mode');
+      return true;
+    }
+    game.ensureTouchControls = ensureTouchControls;
+    game.hasTouchControls = function () { return touchAttached; };
+    root.addEventListener('touchstart', function () {
+      if (ensureTouchControls()) game.toast(ui.lang === 'ar' ? 'تم تفعيل أزرار اللمس' : 'Touch controls enabled', 'info');
+    }, { passive: true });
 
     var stage = 0;
     function nextStage() {
@@ -8536,6 +8620,29 @@
     var last = now();
     var acc = 0;
 
+    /**
+     * Drop a quality step when the frame rate stays unplayable. A phone that
+     * boots into a preset it cannot sustain otherwise looks like a game that
+     * simply does not respond.
+     */
+    var LADDER = ['ultra', 'high', 'medium', 'low'];
+    var slowFor = 0, autoScaled = false;
+    function autoScaleQuality() {
+      if (q.quality || ui.screen !== 'game') return;      // explicit choice wins
+      if (game.fps > 0 && game.fps < 20) slowFor += 0.35; else slowFor = 0;
+      if (slowFor < 3) return;
+      slowFor = 0;
+      var i = LADDER.indexOf(game.qualityName);
+      if (i < 0 || i >= LADDER.length - 1) return;
+      var next = LADDER[i + 1];
+      game.setQuality(next);
+      resize();
+      autoScaled = true;
+      game.toast(
+        (ui.lang === 'ar' ? 'خُفضت الجودة إلى ' : 'Quality lowered to ') + OCTO.QUALITY[next].name,
+        'info');
+    }
+
     function step(dt) {
       input.poll();
       game.update(dt, input);
@@ -8556,13 +8663,15 @@
       if (game._fpsAcc >= 0.35) {
         game.fps = game._fpsCount / game._fpsAcc;
         game._fpsAcc = 0; game._fpsCount = 0;
+        autoScaleQuality(dt);
       }
 
       // fixed-step simulation keeps the verlet solvers stable
       acc += dt;
       var steps = 0;
       while (acc >= STEP && steps < 5) { step(STEP); acc -= STEP; steps++; }
-      if (steps === 0) { input.endFrame(); }
+      // No endFrame when no step ran: clearing input a simulation step never
+      // read is how taps and look deltas get silently dropped.
       render(dt);
       requestAnimationFrame(loop);
     }
@@ -8617,6 +8726,42 @@
         api.stepFrames(frames || 1);
         codes.forEach(function (c) { input.down[c] = false; });
       };
+
+      /**
+       * Everything needed to diagnose "it loaded but I cannot play it"
+       * without physical access to the device.
+       */
+      api.diagnostics = function () {
+        var gl = renderer.gl;
+        var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        return {
+          version: OCTO.VERSION,
+          fps: Math.round(game.fps),
+          quality: game.qualityName,
+          autoScaled: autoScaled,
+          draws: renderer.stats.draws,
+          tris: Math.round(renderer.stats.tris),
+          screen: ui.screen,
+          paused: game.paused,
+          playerState: game.player.state,
+          touchDetected: ui.isTouchDevice(),
+          touchControls: touchAttached,
+          touchPoints: root.navigator ? root.navigator.maxTouchPoints : -1,
+          pointerLocked: input.mouse.locked,
+          inIframe: (function () { try { return root.self !== root.top; } catch (e) { return true; } })(),
+          viewport: (root.innerWidth || 0) + 'x' + (root.innerHeight || 0),
+          buffer: renderer.width + 'x' + renderer.height,
+          dpr: root.devicePixelRatio || 1,
+          gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+          floatColor: renderer.floatColor,
+          storage: (function () {
+            try { root.localStorage.setItem('__o', '1'); root.localStorage.removeItem('__o'); return true; }
+            catch (e) { return false; }
+          })(),
+          audio: game.audio ? (game.audio.ready ? 'ready' : (game.audio.failed ? 'failed' : 'idle')) : 'none'
+        };
+      };
+      api.forceTouchControls = function () { return ensureTouchControls(); };
 
       api.selfTest = function () {
         // The suite drives the simulation directly, so make sure no open

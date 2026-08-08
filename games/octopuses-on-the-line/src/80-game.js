@@ -408,6 +408,8 @@
 
     this.player.update(dt, input, this.camera);
     this.player.updateCarry(dt);
+    var aspect = this.renderer.width / Math.max(1, this.renderer.height);
+    this.camera.aspectBoost = aspect < 0.8 ? clamp(1 + (0.8 - aspect) * 1.1, 1, 1.55) : 1;
     this.camera.update(dt, input, this.world.physics);
 
     for (var n = 0; n < this.npcs.length; n++) {

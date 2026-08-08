@@ -141,6 +141,18 @@
       '<canvas class="octo-minimap" width="180" height="180"></canvas>' +
       '<div class="octo-crosshair"></div>';
     r.appendChild(this.hud);
+
+    // Diagnostics lives outside the HUD: the HUD's own stacking context sits
+    // below the touch overlay, whose look area covers most of the screen and
+    // would swallow every tap aimed at it.
+    this.diagWrap = el('div', 'octo-diag-wrap');
+    this.diagWrap.innerHTML =
+      '<button class="octo-diag-toggle" aria-label="Diagnostics">i</button>' +
+      '<pre class="octo-diag hidden"></pre>';
+    r.appendChild(this.diagWrap);
+    this.diagEl = this.diagWrap.querySelector('.octo-diag');
+    this.diagWrap.querySelector('.octo-diag-toggle')
+      .addEventListener('click', function () { self.toggleDiag(); });
     this.moneyEl = this.hud.querySelector('.octo-money-v');
     this.districtEl = this.hud.querySelector('.octo-district');
     this.clockEl = this.hud.querySelector('.octo-clock');
@@ -604,6 +616,24 @@
     this.beta.appendChild(camRow);
   };
 
+  /**
+   * A readable dump of the environment, reachable by tap. This is what a
+   * player on an unfamiliar device can screenshot and send back.
+   */
+  Ui.prototype.toggleDiag = function () {
+    this.diagOpen = !this.diagOpen;
+    this.diagEl.classList.toggle('hidden', !this.diagOpen);
+    if (this.diagOpen) this.updateDiag();
+  };
+
+  Ui.prototype.updateDiag = function () {
+    if (!this.diagOpen || !root.GAME || !root.GAME.diagnostics) return;
+    var d = root.GAME.diagnostics();
+    var lines = [];
+    for (var k in d) lines.push(k.replace(/([A-Z])/g, ' $1').toLowerCase() + '  ' + d[k]);
+    this.diagEl.textContent = lines.join('\n');
+  };
+
   Ui.prototype.togglePhoto = function () {
     var c = this.game.camera;
     c.free = !c.free;
@@ -694,6 +724,7 @@
     if ((g.frame % 3) === 0) this.drawMap(this.minimapCtx, this.minimap.width, this.minimap.height, false);
 
     if (this.betaOpen) this.updateBetaStats();
+    if (this.diagOpen && (g.frame % 20) === 0) this.updateDiag();
   };
 
   Ui.prototype.syncToasts = function () {

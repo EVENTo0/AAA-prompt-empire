@@ -997,6 +997,9 @@
     this.far = 900;
     this.shake = 0;
     this.shakeTime = 0;
+    // A portrait phone sees far less of the world horizontally than a desktop
+    // window; pulling the camera back keeps the octopus and its footing in view.
+    this.aspectBoost = 1;
     this.free = false;
     this.freePos = { x: 0, y: 0, z: 0 };
     this._look = { x: 0, y: 0 };
@@ -1034,7 +1037,7 @@
     this._smoothTarget.y = damp(this._smoothTarget.y, ty, 9, dt);
     this._smoothTarget.z = damp(this._smoothTarget.z, p.pos.z, lag, dt);
 
-    this.distance = damp(this.distance, this.targetDistance, 8, dt);
+    this.distance = damp(this.distance, this.targetDistance * this.aspectBoost, 8, dt);
 
     var cp = Math.cos(this.pitch), sp2 = Math.sin(this.pitch);
     var dirX = Math.sin(this.yaw) * cp, dirY = sp2, dirZ = Math.cos(this.yaw) * cp;

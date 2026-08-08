@@ -113,18 +113,35 @@
         }
       }],
       ['Waking the octopuses…', 'نوقظ الأخطبوطات…', function () {
-        if (!ui.isTouchDevice()) return;
-        input.attachTouch(container, [
-          { action: 'jump', label: '⤒', aria: 'Jump' },
-          { action: 'grab', label: 'E', aria: 'Grab' },
-          { action: 'grip', label: 'Q', aria: 'Grip' },
-          { action: 'dash', label: 'F', aria: 'Dash' },
-          { action: 'sprint', label: '»', aria: 'Sprint' },
-          { action: 'wobble', label: 'R', aria: 'Wobble' }
-        ]);
-        container.classList.add('octo-touch-mode');
+        if (ui.isTouchDevice()) ensureTouchControls();
       }]
     ];
+
+    /**
+     * Build the on-screen touch rig. Idempotent, and callable at any time:
+     * boot-time touch detection is not reliable on every device or inside
+     * every embed, so the first real touch also triggers it.
+     */
+    var touchAttached = false;
+    function ensureTouchControls() {
+      if (touchAttached) return false;
+      touchAttached = true;
+      input.attachTouch(container, [
+        { action: 'jump', label: '⤒', aria: 'Jump' },
+        { action: 'grab', label: 'E', aria: 'Grab' },
+        { action: 'grip', label: 'Q', aria: 'Grip' },
+        { action: 'dash', label: 'F', aria: 'Dash' },
+        { action: 'sprint', label: '»', aria: 'Sprint' },
+        { action: 'wobble', label: 'R', aria: 'Wobble' }
+      ]);
+      container.classList.add('octo-touch-mode');
+      return true;
+    }
+    game.ensureTouchControls = ensureTouchControls;
+    game.hasTouchControls = function () { return touchAttached; };
+    root.addEventListener('touchstart', function () {
+      if (ensureTouchControls()) game.toast(ui.lang === 'ar' ? 'تم تفعيل أزرار اللمس' : 'Touch controls enabled', 'info');
+    }, { passive: true });
 
     var stage = 0;
     function nextStage() {
@@ -168,6 +185,29 @@
     var last = now();
     var acc = 0;
 
+    /**
+     * Drop a quality step when the frame rate stays unplayable. A phone that
+     * boots into a preset it cannot sustain otherwise looks like a game that
+     * simply does not respond.
+     */
+    var LADDER = ['ultra', 'high', 'medium', 'low'];
+    var slowFor = 0, autoScaled = false;
+    function autoScaleQuality() {
+      if (q.quality || ui.screen !== 'game') return;      // explicit choice wins
+      if (game.fps > 0 && game.fps < 20) slowFor += 0.35; else slowFor = 0;
+      if (slowFor < 3) return;
+      slowFor = 0;
+      var i = LADDER.indexOf(game.qualityName);
+      if (i < 0 || i >= LADDER.length - 1) return;
+      var next = LADDER[i + 1];
+      game.setQuality(next);
+      resize();
+      autoScaled = true;
+      game.toast(
+        (ui.lang === 'ar' ? 'خُفضت الجودة إلى ' : 'Quality lowered to ') + OCTO.QUALITY[next].name,
+        'info');
+    }
+
     function step(dt) {
       input.poll();
       game.update(dt, input);
@@ -188,13 +228,15 @@
       if (game._fpsAcc >= 0.35) {
         game.fps = game._fpsCount / game._fpsAcc;
         game._fpsAcc = 0; game._fpsCount = 0;
+        autoScaleQuality(dt);
       }
 
       // fixed-step simulation keeps the verlet solvers stable
       acc += dt;
       var steps = 0;
       while (acc >= STEP && steps < 5) { step(STEP); acc -= STEP; steps++; }
-      if (steps === 0) { input.endFrame(); }
+      // No endFrame when no step ran: clearing input a simulation step never
+      // read is how taps and look deltas get silently dropped.
       render(dt);
       requestAnimationFrame(loop);
     }
@@ -249,6 +291,42 @@
         api.stepFrames(frames || 1);
         codes.forEach(function (c) { input.down[c] = false; });
       };
+
+      /**
+       * Everything needed to diagnose "it loaded but I cannot play it"
+       * without physical access to the device.
+       */
+      api.diagnostics = function () {
+        var gl = renderer.gl;
+        var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        return {
+          version: OCTO.VERSION,
+          fps: Math.round(game.fps),
+          quality: game.qualityName,
+          autoScaled: autoScaled,
+          draws: renderer.stats.draws,
+          tris: Math.round(renderer.stats.tris),
+          screen: ui.screen,
+          paused: game.paused,
+          playerState: game.player.state,
+          touchDetected: ui.isTouchDevice(),
+          touchControls: touchAttached,
+          touchPoints: root.navigator ? root.navigator.maxTouchPoints : -1,
+          pointerLocked: input.mouse.locked,
+          inIframe: (function () { try { return root.self !== root.top; } catch (e) { return true; } })(),
+          viewport: (root.innerWidth || 0) + 'x' + (root.innerHeight || 0),
+          buffer: renderer.width + 'x' + renderer.height,
+          dpr: root.devicePixelRatio || 1,
+          gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+          floatColor: renderer.floatColor,
+          storage: (function () {
+            try { root.localStorage.setItem('__o', '1'); root.localStorage.removeItem('__o'); return true; }
+            catch (e) { return false; }
+          })(),
+          audio: game.audio ? (game.audio.ready ? 'ready' : (game.audio.failed ? 'failed' : 'idle')) : 'none'
+        };
+      };
+      api.forceTouchControls = function () { return ensureTouchControls(); };
 
       api.selfTest = function () {
         // The suite drives the simulation directly, so make sure no open

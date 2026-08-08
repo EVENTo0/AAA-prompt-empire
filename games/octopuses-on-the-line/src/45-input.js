@@ -40,7 +40,14 @@
     this.pressed = Object.create(null);
     this.released = Object.create(null);
     this.mouse = { dx: 0, dy: 0, wheel: 0, locked: false, left: false, right: false };
-    this.touch = { active: false, move: { x: 0, y: 0 }, look: { x: 0, y: 0 }, buttons: Object.create(null) };
+    // `buttons` is the held state; `pressed` is a latched edge that survives
+    // until a simulation step has actually read it. A quick tap can begin and
+    // end inside a single frame — without the latch that press is lost, which
+    // on a low-frame-rate phone means most taps do nothing at all.
+    this.touch = {
+      active: false, move: { x: 0, y: 0 }, look: { x: 0, y: 0 },
+      buttons: Object.create(null), pressed: Object.create(null)
+    };
     this.gamepadIndex = -1;
     this.pad = { lx: 0, ly: 0, rx: 0, ry: 0, buttons: [] };
     this.enabled = true;
@@ -147,7 +154,7 @@
   Input.prototype.hit = function (action) {
     var b = this.bindings[action];
     if (b && this._anyPressed(b)) return true;
-    if (this.touch.buttons[action] === 1) return true;
+    if (this.touch.pressed[action]) return true;
     var padMap = PAD_BUTTONS[action];
     if (padMap !== undefined && this.pad.buttons[padMap] === 1) return true;
     return false;
@@ -193,9 +200,7 @@
     this.released = Object.create(null);
     this.mouse.dx = 0; this.mouse.dy = 0; this.mouse.wheel = 0;
     this.touch.look.x = 0; this.touch.look.y = 0;
-    for (var k in this.touch.buttons) {
-      if (this.touch.buttons[k] === 1) this.touch.buttons[k] = 2;
-    }
+    this.touch.pressed = Object.create(null);
     for (var i = 0; i < this.pad.buttons.length; i++) {
       if (this.pad.buttons[i] === 1) this.pad.buttons[i] = 2;
     }
@@ -306,7 +311,11 @@
       el.textContent = a.label;
       el.setAttribute('aria-label', a.aria || a.label);
       btns.appendChild(el);
-      function on(e) { self.touch.buttons[a.action] = 1; e.preventDefault(); }
+      function on(e) {
+        self.touch.buttons[a.action] = 1;
+        self.touch.pressed[a.action] = true;   // cleared by endFrame, not by release
+        e.preventDefault();
+      }
       function off(e) { self.touch.buttons[a.action] = 0; e.preventDefault(); }
       self._on(el, 'touchstart', on, { passive: false });
       self._on(el, 'touchend', off, { passive: false });
