@@ -1,60 +1,36 @@
-# Empire Orchestrator Skill
+---
+name: empire-orchestrator
+description: Coordinate complex, multi-domain engineering missions across AAA+ Engineering Empire. Use when work spans multiple studios, has meaningful dependencies or risks, needs parallel specialist review, or requires one integrated and verified delivery plan.
+---
+
+# Empire Orchestrator
 
 ## Purpose
-
-Coordinate complex engineering missions across AAA+ Engineering Empire studios while preserving clear ownership, bounded scope, integration discipline, and verifiable completion.
-
-## Activate when
-
-Use this skill when work spans multiple domains, requires more than one specialist team, contains meaningful dependencies or risks, or needs a coordinated delivery plan.
-
-Do not activate for a small isolated edit that one agent can safely complete and verify directly.
-
-## Inputs
-
-- requested outcome;
-- repository state;
-- constraints and non-goals;
-- acceptance criteria;
-- affected systems and stakeholders;
-- risk level and evidence requirements.
+Coordinate complex engineering missions across AAA+ Engineering Empire while preserving clear ownership, bounded scope, integration discipline, and verifiable completion.
 
 ## Workflow
-
-1. Inspect the repository and governing instructions.
-2. Convert the request into measurable outcomes and explicit non-goals.
+1. Inspect repository state and all applicable `AGENTS.md` instructions.
+2. Convert the request into measurable outcomes, constraints, non-goals, risks, and evidence requirements.
 3. Map affected domains, trust boundaries, dependencies, and integration points.
-4. Assign one accountable lead per workstream.
-5. Define each workstream's inputs, outputs, acceptance criteria, and verification evidence.
-6. Sequence dependent work and parallelize only independent work.
-7. Establish integration checkpoints and stop conditions.
-8. Require specialist reviews based on risk: architecture, security, QA, performance, DevOps, documentation, or release.
-9. Integrate results into one coherent change set.
-10. Run final acceptance verification and publish the completion report.
+4. Route each workstream to the smallest qualified specialist set; use subagents only where work can be safely parallelized.
+5. Give every workstream explicit inputs, outputs, acceptance criteria, and verification evidence.
+6. Sequence dependent work; parallelize only independent work.
+7. Require specialist gates based on risk: architecture, security, QA, performance, accessibility, DevOps, AI evaluation, documentation, or release.
+8. Integrate results into one coherent change set without overwriting unrelated work.
+9. Run final acceptance verification and record evidence.
+10. Report outcome, changed artifacts, verification, limitations, and next action.
 
-## Deliverables
+## Rules
+- Prefer the smallest complete production-grade increment.
+- Never treat agent confidence as evidence.
+- Do not claim deployed, secure, production-ready, or complete without current verification.
+- Stop integration when parallel work conflicts; resolve against requirements and architecture.
+- Record cross-cutting or irreversible choices as ADRs.
+- Never commit secrets, tokens, private keys, production credentials, or personal data.
 
-- mission brief;
-- workstream ownership map;
-- dependency and risk register;
-- implementation artifacts;
-- verification evidence;
-- limitations and follow-up actions.
-
-## Failure modes
-
-- **Unclear outcome:** infer the safest useful outcome from repository context and label assumptions.
-- **Conflicting changes:** stop integration, preserve both work products, and resolve against acceptance criteria and architecture.
-- **Missing evidence:** mark the affected claim `UNVERIFIED`; never upgrade status based on confidence alone.
-- **Blocked dependency:** document the blocker, owner, impact, and the largest safe partial completion.
-- **Scope expansion:** defer unrelated improvements unless required for correctness or safety.
-
-## Quality checklist
-
-- [ ] One accountable lead per workstream
-- [ ] Dependencies and integration points identified
-- [ ] Acceptance criteria measurable
-- [ ] Security and privacy risks reviewed
-- [ ] Testing and verification plan executed
-- [ ] Documentation matches implementation
-- [ ] Completion claims backed by current evidence
+## Completion evidence
+- acceptance criteria mapped to behavior;
+- tests/checks and their results;
+- security/performance/accessibility evidence when applicable;
+- documentation and ADR updates;
+- known limitations and rollback/recovery instructions when applicable.
