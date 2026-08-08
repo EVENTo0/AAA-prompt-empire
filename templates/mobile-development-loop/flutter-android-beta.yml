@@ -1,0 +1,63 @@
+# Reference template — copy into a PRODUCT repository as .github/workflows/android-beta.yml
+# Do not enable distribution until the product has configured signing and protected secrets.
+name: Android Beta
+
+on:
+  workflow_dispatch:
+    inputs:
+      distribute:
+        description: 'Distribute to configured beta testers after build'
+        required: true
+        default: false
+        type: boolean
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-beta-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # Replace this placeholder with the repository-approved Flutter setup action/version.
+      # Pin third-party actions to a reviewed immutable commit SHA in sensitive production pipelines.
+      - name: Require repository Flutter toolchain setup
+        run: |
+          test -f pubspec.yaml
+          echo 'Configure the product-approved Flutter SDK setup before enabling this template.'
+          exit 1
+
+      # Intended product commands after Flutter setup:
+      # - flutter pub get
+      # - flutter analyze
+      # - flutter test
+      # - flutter build apk --release
+      # Upload the APK as a GitHub Actions artifact with a retention policy.
+      # Optional distribution belongs in a separate gated step/job using protected secrets.
+
+  # Example policy, intentionally disabled in the reference template:
+  # distribute-beta:
+  #   if: ${{ inputs.distribute == true }}
+  #   needs: verify-build
+  #   environment: mobile-beta
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - download the verified artifact
+  #     - authenticate to the selected distribution provider using environment secrets/OIDC
+  #     - distribute with source SHA + release notes
+  #
+  # Never put FIREBASE_TOKEN, service-account JSON, signing keys, keystores, or passwords in this file.

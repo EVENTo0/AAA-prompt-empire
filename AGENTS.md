@@ -1,8 +1,8 @@
-# AAA+ Engineering Empire v2.2 — Evaluated Agent Operating Contract
+# AAA+ Engineering Empire v2.3 — Evaluated Agent Operating Contract
 
 **Mode:** repository-first, multi-agent, evidence-driven, mobile-first, registry-governed.
 
-This repository is the engineering control plane for building, upgrading, verifying, previewing, deploying, and operating software, websites, mobile/native apps, games, AI systems, automations, data platforms, and XR experiences.
+This repository is the engineering control plane for building, upgrading, verifying, previewing, deploying, and operating software, websites, mobile/native apps, games, AI systems, automations, data platforms, design/prototype work, creative production, portfolio operations, and XR experiences.
 
 ## 1. Prime directive
 
@@ -16,7 +16,7 @@ Before material changes:
 
 1. Inspect repository state, current branch, manifests/lockfiles, tests, CI/CD, deployments, docs, and recent changes.
 2. Read this file and any nearer `AGENTS.md`.
-3. Read relevant product, architecture, ADR, security, testing, deployment, mobile, AI, and verification evidence.
+3. Read relevant product, architecture, ADR, security, testing, deployment, mobile, AI, design/game, portfolio, and verification evidence.
 4. Identify users, measurable outcome, acceptance criteria, target platforms/devices, non-goals, dependencies, privacy/security needs, cost constraints, risks, and proof required.
 5. Detect and preserve proven project patterns before introducing a new framework/service.
 6. Verify fast-moving SDK/API/platform/store/model assumptions from current primary documentation before release-sensitive decisions.
@@ -37,6 +37,7 @@ Before material changes:
 - `evals/` — regression/evaluation cases.
 - `scripts/validate_empire.py` — Empire Guard v2 structural/governance validator.
 - `scripts/run_empire_evals.py` — routing/permission contract evaluator.
+- `templates/` — reusable, deliberately non-production templates that product repositories must adapt and verify before activation.
 
 No executable skill or agent may exist outside its registry. Registry changes are governance changes.
 
@@ -61,6 +62,8 @@ Empire is agent-neutral and repository-first.
 7. Route definitions may reference only registered skills/agents.
 8. A routing contract is valid only when its selected agents cover all required skills through their declared skills and dependency closure.
 9. Never weaken a guard, rule, permission, test, or approval gate merely to make the current change pass.
+10. Portfolio/creative agents do not gain code-write permission merely because their output influences implementation.
+11. Mobile build/distribution authority is not production-store publication authority.
 
 See `docs/architecture/EVALUATED_AGENT_SYSTEM.md`.
 
@@ -73,17 +76,21 @@ Core specialist responsibilities include:
 - product/UX and architecture;
 - web/PWA;
 - cross-platform mobile;
+- mobile cloud build/prerelease distribution;
 - Android/iOS native delivery;
 - backend/data/cloud;
 - AI/agent engineering;
-- games/XR/simulation;
+- games/XR/simulation runtime;
+- original game narrative/worldbuilding;
+- design/prototype production and implementation handoff;
+- portfolio/project operations;
 - security/privacy;
 - QA/release verification;
 - performance/reliability/accessibility;
 - release/operations;
 - red-team review.
 
-Role names do not prove work occurred. Evidence must exist in code, tests, logs, builds, previews, reviews, or verification records.
+Role names do not prove work occurred. Evidence must exist in code, tests, logs, builds, previews, reviews, design specifications, source-linked project records, or verification records.
 
 ## 7. Stack-routing doctrine
 
@@ -101,7 +108,13 @@ For applicable projects, return the fastest safe feedback loop usable from a pho
 4. remote simulator/emulator;
 5. local/native desktop tooling where genuinely required.
 
-A phone-first workflow does not remove requirements for Xcode, Android Studio, native signing, profilers, or heavy game/3D tooling. Route those tasks to suitable remote/cloud/native infrastructure and return source-linked evidence to the phone.
+For mobile products, prefer a source-linked loop where practical:
+
+`phone request → branch/PR → cloud checks/build → artifact or protected tester distribution → physical-phone acceptance → evidence/feedback`.
+
+Keep instant preview, dev artifact, beta distribution, and production release as separate channels when their risk differs. A phone-first workflow does not remove requirements for Xcode, Android Studio, native signing, profilers, or heavy game/3D tooling. Route those tasks to suitable remote/cloud/native infrastructure and return source-linked evidence to the phone.
+
+See `docs/mobile/MOBILE_DEVELOPMENT_LOOP.md`.
 
 ## 9. Execution lifecycle
 
@@ -111,7 +124,7 @@ A phone-first workflow does not remove requirements for Xcode, Android Studio, n
 4. **Design** — define boundaries, contracts, trust/data flow, failure behavior, migration, observability, rollback.
 5. **Build** — implement the smallest coherent end-to-end vertical slice.
 6. **Verify** — run risk-based static, unit, integration, E2E, security, accessibility, performance, device/browser, migration, and AI evaluation checks as applicable.
-7. **Preview** — produce an inspectable source-linked URL/build/simulation where feasible.
+7. **Preview / Distribute** — produce an inspectable source-linked URL/build/simulation/artifact and, when configured, a protected phone-install/test path.
 8. **Review** — use independent QA/security/red-team review for material releases.
 9. **Document** — update source-of-truth docs, ADRs, registries/evals when behavior changes, and verification evidence.
 10. **Release** — validate build/deploy/signing, migrations, monitoring, rollback/recovery, ownership, and release notes.
@@ -129,6 +142,7 @@ No change is complete until applicable gates pass:
 - Accessibility/localization.
 - Performance/reliability budgets where material.
 - Representative browser/device behavior.
+- Mobile artifact/distribution/install evidence when a mobile beta is claimed.
 - AI evaluations/safety where AI is material.
 - Deployment/migration/rollback/monitoring.
 - Documentation/ADR.
@@ -144,17 +158,17 @@ Use only:
 - `UNVERIFIED` — not exercised or evidence unavailable.
 - `BLOCKED` — cannot proceed; cause, impact, owner/next action named.
 
-Never claim secure, deployed, production-ready, store-ready, or complete without current evidence.
+Never claim secure, deployed, production-ready, store-ready, beta-ready, or complete without current evidence.
 
 ## 12. Repository and security discipline
 
 - Routine substantive work uses focused branches and pull requests, not direct `main`.
 - Preserve unrelated work.
 - Keep dependencies justified and lockfiles consistent.
-- Never commit credentials, tokens, private keys, certificates, provisioning profiles, `.env` secrets, personal data, production secrets, or reusable approval codes.
+- Never commit credentials, tokens, private keys, certificates, provisioning profiles, `.env` secrets, personal data, production secrets, reusable approval codes, tester PII, or signing material.
 - Prefer short-lived credentials/OIDC and protected environment/repository secrets.
 - Use feature flags/staged rollout for high-risk changes.
-- Production deployment, signing, destructive migrations, secret rotation, or irreversible operations require protected approval/gating and rollback/recovery planning.
+- Production deployment, signing, destructive migrations, secret rotation, store publication, or irreversible operations require protected approval/gating and rollback/recovery planning.
 - Governance/skills/agents/registry/evals/CI/security changes require Empire Guard v2 and owner review.
 
 ## 13. Testing and evaluations
@@ -172,7 +186,7 @@ For AI features, treat prompts, models, tools, retrieval, memory, datasets, eval
 
 ## 14. Evergreen technology rule
 
-Do not freeze “latest” into permanent policy. Before adopting/upgrading a fast-moving SDK, model, framework, IDE, OS/store target, cloud service, or API:
+Do not freeze “latest” into permanent policy. Before adopting/upgrading a fast-moving SDK, model, framework, IDE, OS/store target, cloud service, CI action, distribution provider, or API:
 
 1. verify current primary documentation;
 2. identify stable/recommended channels and deprecations;
@@ -187,7 +201,7 @@ Empire is the specialist proving ground. A recurring workflow or defect should f
 
 ## 16. Definition of done
 
-A task is done only when applicable working change, passing checks, tests/evals, documentation/ADR, verification evidence, preview/build/deployment evidence, known limitations, and rollback/recovery or handoff are present.
+A task is done only when applicable working change, passing checks, tests/evals, documentation/ADR, verification evidence, preview/build/distribution/deployment evidence, known limitations, and rollback/recovery or handoff are present.
 
 Report:
 - **Outcome**
@@ -210,4 +224,4 @@ When instructions conflict:
 6. established repository conventions;
 7. agent preference.
 
-**Governing principle:** build deeply, route deliberately, verify independently, learn through regressions, and ship only what the evidence supports.
+**Governing principle:** build deeply, route deliberately, preserve parallel work, verify independently, learn through regressions, and ship only what the evidence supports.
