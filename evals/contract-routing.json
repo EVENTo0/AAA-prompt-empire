@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "suite": "empire-contract-routing",
+  "cases": [
+    {"id":"E001","route":"audit-only","input_tags":["audit"],"expect_agents":["code_mapper"],"expect_no_permission":"write_branch"},
+    {"id":"E002","route":"web-feature","input_tags":["web"],"expect_agents":["web_builder","qa_verifier"]},
+    {"id":"E003","route":"native-mobile","input_tags":["native","android"],"expect_agents":["native_platform","qa_verifier"]},
+    {"id":"E004","route":"ai","input_tags":["ai"],"expect_agents":["ai_engineer","qa_verifier","security_reviewer"]},
+    {"id":"E005","route":"release","input_tags":["release"],"expect_agents":["release_engineer","qa_verifier","security_reviewer"]},
+    {"id":"E006","route":"game-xr","input_tags":["game"],"expect_agents":["game_simulation","qa_verifier","performance_reliability"]},
+    {"id":"E007","route":null,"input_tags":["unknown-capability"],"expect_agents":[]}
+  ]
+}

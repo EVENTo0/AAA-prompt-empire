@@ -27,9 +27,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate Empire
+      - name: Validate Empire v2 governance
         run: python scripts/validate_empire.py
-      - name: Check YAML parseability
+      - name: Run routing and permission contract evals
+        run: python scripts/run_empire_evals.py
+      - name: Check workflow text hygiene
         run: |
           python - <<'PY'
           import pathlib
@@ -64,7 +66,7 @@ jobs:
           from pathlib import Path
           sensitive_prefixes = (
               'AGENTS.md', 'CLAUDE.md', '.agents/', '.claude/', '.codex/',
-              '.github/', 'docs/security/', 'docs/adr/', 'scripts/'
+              '.github/', 'docs/security/', 'docs/adr/', 'scripts/', 'registry/', 'evals/'
           )
           changed = [x.strip() for x in Path('/tmp/changed.txt').read_text().splitlines() if x.strip()]
           hits = [x for x in changed if x == 'AGENTS.md' or x == 'CLAUDE.md' or x.startswith(sensitive_prefixes[2:])]
