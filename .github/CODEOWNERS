@@ -8,6 +8,8 @@
 /.agents/ @EVENTo0
 /.claude/ @EVENTo0
 /.codex/ @EVENTo0
+/registry/ @EVENTo0
+/evals/ @EVENTo0
 /docs/security/ @EVENTo0
 /docs/adr/ @EVENTo0
 /scripts/ @EVENTo0
