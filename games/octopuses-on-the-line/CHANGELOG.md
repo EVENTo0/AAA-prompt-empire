@@ -4,6 +4,34 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] — 2026-08-08 — The actual cause
+
+Third report from the Honor X9d, this time carrying the diagnostics added in
+1.0.2 — which named the bug outright:
+
+```
+fps 60          frames 475          frame errors 474
+last error  SecurityError: Failed to execute 'getGamepads' on 'Navigator':
+            Access to the feature "gamepad" is disallowed by permissions policy.
+            at Input.poll
+```
+
+### Fixed
+
+- **`navigator.getGamepads()` threw on every frame inside the embed.** The
+  gamepad feature is disallowed there by Permissions-Policy, and the call is
+  the first statement of the simulation step — so every step aborted before
+  anything ran. The game rendered one successful frame and then never
+  simulated a single tick, which is why the octopus stayed in the `air` state
+  and no input ever had an effect. Performance was never the problem: the
+  device was running the render loop at a steady 60fps the whole time. The
+  call is now guarded and gamepad polling disables itself permanently after
+  the first refusal.
+
+Verified by reproducing the exact environment — `getGamepads` overridden to
+throw `SecurityError` — where frame errors go from 474 to 0, the player
+transitions from `air` to `ground`, and the jump button moves the octopus.
+
 ## [1.0.2] — 2026-08-08 — Phone playability
 
 Reported from an Honor X9d (Adreno 810) running the embedded build: the game

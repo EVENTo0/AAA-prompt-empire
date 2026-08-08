@@ -3603,8 +3603,20 @@
 
   /** Call at the start of each frame to sample the gamepad. */
   Input.prototype.poll = function () {
-    if (!navigator.getGamepads) return;
-    var pads = navigator.getGamepads();
+    if (this.padBlocked) return;
+    var pads;
+    try {
+      if (!navigator.getGamepads) { this.padBlocked = true; return; }
+      pads = navigator.getGamepads();
+    } catch (e) {
+      // An embedded context can forbid the gamepad feature via
+      // Permissions-Policy, and then this throws on every single call.
+      // Left unguarded it aborts the simulation step before anything runs,
+      // which looks exactly like a frozen game.
+      this.padBlocked = true;
+      this.padError = String((e && e.message) || e);
+      return;
+    }
     var gp = null;
     for (var i = 0; i < pads.length; i++) { if (pads[i] && pads[i].connected) { gp = pads[i]; break; } }
     if (!gp) { this.pad.lx = this.pad.ly = this.pad.rx = this.pad.ry = 0; return; }
