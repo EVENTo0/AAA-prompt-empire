@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "projects": [
+    {
+      "id": "evento-core",
+      "name": "EVENTO Project Development",
+      "kind": "company-platform",
+      "status": "active",
+      "saleStatus": "not-for-sale",
+      "priority": "P0",
+      "repository": null,
+      "vercelProject": "evento-empire",
+      "supabaseProjectRef": null,
+      "platforms": ["web", "pwa"],
+      "workflows": [],
+      "notes": "Primary legal company platform. Do not overwrite the existing public EVENTO deployment when deploying the Control Plane."
+    },
+    {
+      "id": "aaa-empire",
+      "name": "AAA+ Engineering Empire",
+      "kind": "operating-system",
+      "status": "active",
+      "saleStatus": "internal",
+      "priority": "P0",
+      "repository": "EVENTo0/AAA-prompt-empire",
+      "vercelProject": null,
+      "supabaseProjectRef": null,
+      "platforms": ["web", "pwa", "android", "ios"],
+      "workflows": ["mobile-control-plane.yml", "empire-guard.yml"],
+      "notes": "Repository-first engineering control plane and mobile mission control."
+    },
+    {
+      "id": "aaa-prompt",
+      "name": "AAA Prompt",
+      "kind": "prompt-system",
+      "status": "active",
+      "saleStatus": "internal",
+      "priority": "P1",
+      "repository": "EVENTo0/AAA-prompt",
+      "vercelProject": null,
+      "supabaseProjectRef": null,
+      "platforms": ["agent"],
+      "workflows": [],
+      "notes": "Supporting prompt repository."
+    },
+    {
+      "id": "evex-official",
+      "name": "EVEX Official",
+      "kind": "product",
+      "status": "active",
+      "saleStatus": "portfolio",
+      "priority": "P1",
+      "repository": null,
+      "vercelProject": "evex-coach",
+      "supabaseProjectRef": "jzufcawplqjtvgqkibke",
+      "platforms": ["web", "mobile"],
+      "workflows": [],
+      "notes": "Existing active Supabase backend; kept isolated from EVENTO Control Plane data."
+    },
+    {
+      "id": "aithenax",
+      "name": "AithenaX",
+      "kind": "product",
+      "status": "paused",
+      "saleStatus": "portfolio",
+      "priority": "P2",
+      "repository": null,
+      "vercelProject": null,
+      "supabaseProjectRef": "mtkapycfkdqziqvojzll",
+      "platforms": ["web", "mobile"],
+      "workflows": [],
+      "notes": "Supabase project currently inactive; preserve as a tracked portfolio project."
+    }
+  ]
+}
