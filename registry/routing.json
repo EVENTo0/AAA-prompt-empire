@@ -1,13 +1,17 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "routes": [
     {"id":"audit-only","tags":["audit"],"required_skills":["project-intake-audit"],"preferred_agents":["code_mapper"],"forbidden_permissions":["write_branch","deploy_preview"]},
+    {"id":"portfolio-operations","tags":["portfolio","projects","status","priorities","control-plane"],"required_skills":["portfolio-project-operations"],"preferred_agents":["portfolio_operator"],"forbidden_permissions":["write_branch","deploy_preview"]},
+    {"id":"design-prototype","tags":["design","prototype","spatial","visual","concept"],"required_skills":["design-prototype-production"],"preferred_agents":["creative_director"],"forbidden_permissions":["write_branch","deploy_preview"]},
+    {"id":"game-narrative","tags":["narrative","story","worldbuilding","quest","game"],"required_skills":["game-narrative-worldbuilding"],"preferred_agents":["creative_director"],"forbidden_permissions":["write_branch","deploy_preview"]},
     {"id":"web-feature","tags":["web"],"required_skills":["web-delivery","qa-release-readiness"],"preferred_agents":["web_builder","qa_verifier"],"forbidden_permissions":[]},
     {"id":"mobile-cross-platform","tags":["mobile"],"required_skills":["mobile-delivery","qa-release-readiness"],"preferred_agents":["mobile_builder","qa_verifier"],"forbidden_permissions":[]},
+    {"id":"mobile-build-beta","tags":["apk","aab","ipa","beta","distribution","firebase-app-distribution","mobile-build"],"required_skills":["mobile-build-distribution","qa-release-readiness"],"preferred_agents":["build_distribution","qa_verifier"],"forbidden_permissions":[]},
     {"id":"native-mobile","tags":["native","android","ios"],"required_skills":["native-platform-delivery","qa-release-readiness"],"preferred_agents":["native_platform","qa_verifier"],"forbidden_permissions":[]},
     {"id":"backend","tags":["backend"],"required_skills":["backend-data-cloud","qa-release-readiness"],"preferred_agents":["backend_data","qa_verifier"],"forbidden_permissions":[]},
     {"id":"ai","tags":["ai"],"required_skills":["ai-agent-engineering","qa-release-readiness","security-privacy-audit"],"preferred_agents":["ai_engineer","qa_verifier","security_reviewer"],"forbidden_permissions":[]},
-    {"id":"game-xr","tags":["game","xr"],"required_skills":["game-xr-simulation","qa-release-readiness","performance-accessibility"],"preferred_agents":["game_simulation","qa_verifier","performance_reliability"],"forbidden_permissions":[]},
-    {"id":"release","tags":["release"],"required_skills":["qa-release-readiness","security-privacy-audit"],"preferred_agents":["release_engineer","qa_verifier","security_reviewer"],"forbidden_permissions":[]}
+    {"id":"game-xr","tags":["gameplay","xr","simulation","runtime"],"required_skills":["game-xr-simulation","qa-release-readiness","performance-accessibility"],"preferred_agents":["game_simulation","qa_verifier","performance_reliability"],"forbidden_permissions":[]},
+    {"id":"release","tags":["release","production"],"required_skills":["qa-release-readiness","security-privacy-audit"],"preferred_agents":["release_engineer","qa_verifier","security_reviewer"],"forbidden_permissions":[]}
   ]
 }
