@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "suite": "empire-contract-routing",
   "cases": [
     {"id":"E001","route":"audit-only","input_tags":["audit"],"expect_agents":["code_mapper"],"expect_no_permission":"write_branch"},
@@ -7,7 +7,12 @@
     {"id":"E003","route":"native-mobile","input_tags":["native","android"],"expect_agents":["native_platform","qa_verifier"]},
     {"id":"E004","route":"ai","input_tags":["ai"],"expect_agents":["ai_engineer","qa_verifier","security_reviewer"]},
     {"id":"E005","route":"release","input_tags":["release"],"expect_agents":["release_engineer","qa_verifier","security_reviewer"]},
-    {"id":"E006","route":"game-xr","input_tags":["game"],"expect_agents":["game_simulation","qa_verifier","performance_reliability"]},
-    {"id":"E007","route":null,"input_tags":["unknown-capability"],"expect_agents":[]}
+    {"id":"E006","route":"game-xr","input_tags":["gameplay","runtime"],"expect_agents":["game_simulation","qa_verifier","performance_reliability"]},
+    {"id":"E007","route":null,"input_tags":["unknown-capability"],"expect_agents":[]},
+    {"id":"E008","route":"mobile-build-beta","input_tags":["apk","beta"],"expect_agents":["build_distribution","qa_verifier"]},
+    {"id":"E009","route":"game-narrative","input_tags":["game","narrative"],"expect_agents":["creative_director"],"expect_no_permission":"write_branch"},
+    {"id":"E010","route":"design-prototype","input_tags":["design","prototype"],"expect_agents":["creative_director"],"expect_no_permission":"write_branch"},
+    {"id":"E011","route":"portfolio-operations","input_tags":["portfolio","status"],"expect_agents":["portfolio_operator"],"expect_no_permission":"write_branch"},
+    {"id":"E012","route":"mobile-cross-platform","input_tags":["mobile"],"expect_agents":["mobile_builder","qa_verifier"]}
   ]
 }
