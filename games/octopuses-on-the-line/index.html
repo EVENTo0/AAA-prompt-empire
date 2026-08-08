@@ -351,6 +351,128 @@
     white-space: pre-wrap; direction: ltr;
   }
 
+
+  /* ------------------------------------------------------- cinematic */
+  .octo-cine { position: absolute; inset: 0; z-index: 40; }
+  .octo-cine-bar {
+    position: absolute; left: 0; right: 0; height: 11vh; background: #000;
+    pointer-events: none;
+  }
+  .octo-cine-top { top: 0; }
+  .octo-cine-bottom { bottom: 0; }
+  .octo-cine-fade { position: absolute; inset: 0; background: #000; pointer-events: none; }
+  .octo-cine-caption {
+    position: absolute; left: 50%; bottom: 15vh; transform: translateX(-50%);
+    width: min(680px, 88vw); text-align: center; pointer-events: none;
+  }
+  .octo-cine-en {
+    font-size: clamp(17px, 2.6vw, 27px); font-weight: 600; letter-spacing: 0.01em;
+    color: #f6ecd8; text-shadow: 0 2px 18px rgba(0,0,0,0.95);
+  }
+  .octo-cine-ar {
+    margin-top: 8px; font-size: clamp(15px, 2.2vw, 23px); font-weight: 600;
+    color: var(--teal); text-shadow: 0 2px 18px rgba(0,0,0,0.95); direction: rtl;
+  }
+  .octo-cine-title {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    text-align: center; width: min(760px, 92vw); pointer-events: none;
+  }
+  .octo-cine-title-ar {
+    font-size: clamp(30px, 7vw, 66px); font-weight: 800; color: var(--teal);
+    text-shadow: 0 4px 30px rgba(0,0,0,0.9); direction: rtl;
+  }
+  .octo-cine-title-en {
+    margin-top: 6px; font-size: clamp(22px, 4.6vw, 44px); font-weight: 800;
+    background: linear-gradient(180deg, #fff0cf, #d99b3e);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .octo-cine-title-sub {
+    margin-top: 14px; font-size: 11px; letter-spacing: 0.30em; font-weight: 700;
+    color: rgba(246,236,216,0.66); text-transform: uppercase;
+  }
+  .octo-cine-skip {
+    position: absolute; bottom: calc(11vh + 16px); inset-inline-end: 20px;
+    padding: 9px 18px; border-radius: 999px; font-family: inherit;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer;
+    color: #e8dcc6; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.28);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .octo-cine-skip:hover { border-color: var(--gold); color: var(--gold); }
+  .octo-cine-progress {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+    background: rgba(255,255,255,0.10);
+  }
+  .octo-cine-progress i { display: block; height: 100%; width: 0%; background: var(--gold); }
+
+  /* -------------------------------------------------- character select */
+  .octo-select {
+    display: flex; flex-direction: column; justify-content: space-between;
+    align-items: center; padding: 0; z-index: 22;
+    background: linear-gradient(180deg, rgba(8,6,4,0.86) 0%, rgba(8,6,4,0) 34%,
+                                        rgba(8,6,4,0) 46%, rgba(8,6,4,0.92) 78%);
+    pointer-events: none;
+  }
+  .octo-select > * { pointer-events: auto; }
+  .octo-select-head { text-align: center; padding: 20px 16px 0; }
+  .octo-select-eyebrow {
+    font-size: 10px; letter-spacing: 0.28em; font-weight: 700; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 6px;
+  }
+  .octo-select-title {
+    margin: 0; font-size: clamp(20px, 3.6vw, 34px); font-weight: 800;
+    background: linear-gradient(180deg, #fff0cf, #d99b3e);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  /* Sits to one side so the avatar itself stays visible in the middle. */
+  .octo-select-detail {
+    position: absolute; top: 50%; inset-inline-start: 26px; transform: translateY(-50%);
+    width: min(310px, 76vw); padding: 16px 18px; border-radius: 16px;
+    background: rgba(14,10,7,0.86); border: 1px solid var(--edge);
+    box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+  }
+  .octo-sel-name { font-size: 24px; font-weight: 800; color: var(--sand); }
+  .octo-sel-role {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--teal); margin-top: 3px; font-weight: 700;
+  }
+  .octo-sel-line {
+    margin-top: 12px; font-size: 13px; line-height: 1.6; color: #f2e7d3;
+    padding-inline-start: 10px; border-inline-start: 2px solid var(--gold);
+  }
+  .octo-sel-bars { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .octo-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; opacity: 0.85; }
+  .octo-pips { display: flex; gap: 3px; }
+  .octo-pips b { width: 16px; height: 5px; border-radius: 2px; background: rgba(255,255,255,0.14); }
+  .octo-pips b.on { background: linear-gradient(90deg, var(--gold), var(--teal)); }
+  .octo-sel-lore { margin-top: 12px; font-size: 12px; line-height: 1.6; opacity: 0.62; font-style: italic; }
+  .octo-select-foot {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 0 16px 26px; width: 100%;
+  }
+  .octo-class-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .octo-class-chip {
+    display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit;
+    padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    color: #e8dcc6; background: rgba(20,15,10,0.88); border: 1px solid rgba(255,255,255,0.14);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .octo-class-chip i { width: 12px; height: 12px; border-radius: 4px; }
+  .octo-class-chip.active { border-color: var(--gold); color: #fff; background: rgba(227,181,88,0.20); }
+  .octo-select-go {
+    padding: 14px 54px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
+    color: #17110b; background: linear-gradient(90deg, var(--gold), #f2d493);
+    border: none; border-radius: 12px; letter-spacing: 0.04em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (max-width: 760px) {
+    .octo-select-detail {
+      position: static; transform: none; width: min(420px, 92vw); margin: 10px auto 0;
+    }
+    .octo-select { justify-content: flex-start; gap: 8px; overflow-y: auto; }
+    .octo-select-foot { margin-top: auto; }
+    .octo-sel-lore { display: none; }
+  }
+
   /* ---------------------------------------------------------- fatal */
   .octo-fatal {
     position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column;
@@ -389,14 +511,17 @@
 <script src="src/10-gl.js"></script>
 <script src="src/20-texgen.js"></script>
 <script src="src/30-geo.js"></script>
+<script src="src/35-human.js"></script>
 <script src="src/40-physics.js"></script>
 <script src="src/45-input.js"></script>
 <script src="src/50-world.js"></script>
+<script src="src/55-classes.js"></script>
 <script src="src/60-player.js"></script>
 <script src="src/70-npc.js"></script>
 <script src="src/80-game.js"></script>
 <script src="src/85-audio.js"></script>
 <script src="src/90-ui.js"></script>
+<script src="src/95-cinematic.js"></script>
 <script src="src/99-main.js"></script>
 </body>
 </html>

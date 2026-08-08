@@ -351,6 +351,128 @@
     white-space: pre-wrap; direction: ltr;
   }
 
+
+  /* ------------------------------------------------------- cinematic */
+  .octo-cine { position: absolute; inset: 0; z-index: 40; }
+  .octo-cine-bar {
+    position: absolute; left: 0; right: 0; height: 11vh; background: #000;
+    pointer-events: none;
+  }
+  .octo-cine-top { top: 0; }
+  .octo-cine-bottom { bottom: 0; }
+  .octo-cine-fade { position: absolute; inset: 0; background: #000; pointer-events: none; }
+  .octo-cine-caption {
+    position: absolute; left: 50%; bottom: 15vh; transform: translateX(-50%);
+    width: min(680px, 88vw); text-align: center; pointer-events: none;
+  }
+  .octo-cine-en {
+    font-size: clamp(17px, 2.6vw, 27px); font-weight: 600; letter-spacing: 0.01em;
+    color: #f6ecd8; text-shadow: 0 2px 18px rgba(0,0,0,0.95);
+  }
+  .octo-cine-ar {
+    margin-top: 8px; font-size: clamp(15px, 2.2vw, 23px); font-weight: 600;
+    color: var(--teal); text-shadow: 0 2px 18px rgba(0,0,0,0.95); direction: rtl;
+  }
+  .octo-cine-title {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    text-align: center; width: min(760px, 92vw); pointer-events: none;
+  }
+  .octo-cine-title-ar {
+    font-size: clamp(30px, 7vw, 66px); font-weight: 800; color: var(--teal);
+    text-shadow: 0 4px 30px rgba(0,0,0,0.9); direction: rtl;
+  }
+  .octo-cine-title-en {
+    margin-top: 6px; font-size: clamp(22px, 4.6vw, 44px); font-weight: 800;
+    background: linear-gradient(180deg, #fff0cf, #d99b3e);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .octo-cine-title-sub {
+    margin-top: 14px; font-size: 11px; letter-spacing: 0.30em; font-weight: 700;
+    color: rgba(246,236,216,0.66); text-transform: uppercase;
+  }
+  .octo-cine-skip {
+    position: absolute; bottom: calc(11vh + 16px); inset-inline-end: 20px;
+    padding: 9px 18px; border-radius: 999px; font-family: inherit;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer;
+    color: #e8dcc6; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.28);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .octo-cine-skip:hover { border-color: var(--gold); color: var(--gold); }
+  .octo-cine-progress {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+    background: rgba(255,255,255,0.10);
+  }
+  .octo-cine-progress i { display: block; height: 100%; width: 0%; background: var(--gold); }
+
+  /* -------------------------------------------------- character select */
+  .octo-select {
+    display: flex; flex-direction: column; justify-content: space-between;
+    align-items: center; padding: 0; z-index: 22;
+    background: linear-gradient(180deg, rgba(8,6,4,0.86) 0%, rgba(8,6,4,0) 34%,
+                                        rgba(8,6,4,0) 46%, rgba(8,6,4,0.92) 78%);
+    pointer-events: none;
+  }
+  .octo-select > * { pointer-events: auto; }
+  .octo-select-head { text-align: center; padding: 20px 16px 0; }
+  .octo-select-eyebrow {
+    font-size: 10px; letter-spacing: 0.28em; font-weight: 700; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 6px;
+  }
+  .octo-select-title {
+    margin: 0; font-size: clamp(20px, 3.6vw, 34px); font-weight: 800;
+    background: linear-gradient(180deg, #fff0cf, #d99b3e);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  /* Sits to one side so the avatar itself stays visible in the middle. */
+  .octo-select-detail {
+    position: absolute; top: 50%; inset-inline-start: 26px; transform: translateY(-50%);
+    width: min(310px, 76vw); padding: 16px 18px; border-radius: 16px;
+    background: rgba(14,10,7,0.86); border: 1px solid var(--edge);
+    box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+  }
+  .octo-sel-name { font-size: 24px; font-weight: 800; color: var(--sand); }
+  .octo-sel-role {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--teal); margin-top: 3px; font-weight: 700;
+  }
+  .octo-sel-line {
+    margin-top: 12px; font-size: 13px; line-height: 1.6; color: #f2e7d3;
+    padding-inline-start: 10px; border-inline-start: 2px solid var(--gold);
+  }
+  .octo-sel-bars { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .octo-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; opacity: 0.85; }
+  .octo-pips { display: flex; gap: 3px; }
+  .octo-pips b { width: 16px; height: 5px; border-radius: 2px; background: rgba(255,255,255,0.14); }
+  .octo-pips b.on { background: linear-gradient(90deg, var(--gold), var(--teal)); }
+  .octo-sel-lore { margin-top: 12px; font-size: 12px; line-height: 1.6; opacity: 0.62; font-style: italic; }
+  .octo-select-foot {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 0 16px 26px; width: 100%;
+  }
+  .octo-class-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .octo-class-chip {
+    display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit;
+    padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    color: #e8dcc6; background: rgba(20,15,10,0.88); border: 1px solid rgba(255,255,255,0.14);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .octo-class-chip i { width: 12px; height: 12px; border-radius: 4px; }
+  .octo-class-chip.active { border-color: var(--gold); color: #fff; background: rgba(227,181,88,0.20); }
+  .octo-select-go {
+    padding: 14px 54px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
+    color: #17110b; background: linear-gradient(90deg, var(--gold), #f2d493);
+    border: none; border-radius: 12px; letter-spacing: 0.04em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (max-width: 760px) {
+    .octo-select-detail {
+      position: static; transform: none; width: min(420px, 92vw); margin: 10px auto 0;
+    }
+    .octo-select { justify-content: flex-start; gap: 8px; overflow-y: auto; }
+    .octo-select-foot { margin-top: auto; }
+    .octo-sel-lore { display: none; }
+  }
+
   /* ---------------------------------------------------------- fatal */
   .octo-fatal {
     position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column;
@@ -2886,6 +3008,334 @@
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
+/* ===== src/35-human.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 35-human.js
+ *
+ * The Line-Walker avatar: a stylised human built entirely from the
+ * procedural mesh primitives, with a hand-authored walk cycle and
+ * per-class gear. Proportions are deliberately chunky so the silhouette
+ * still reads at the distance the third-person camera sits at.
+ *
+ * No skeleton, no skinning: each limb is a rigid segment placed by the
+ * transform stack. At this scale and style that is indistinguishable
+ * from a skinned rig, and it costs nothing to author.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+  var CELL = OCTO.CELL, TAU = OCTO.TAU;
+  var U = OCTO.util, clamp = U.clamp;
+
+  // Segment lengths, in world units. Total standing height ~1.62.
+  var P = {
+    hip: 0.80,        // pelvis height when standing
+    thigh: 0.40,
+    shin: 0.38,
+    footLen: 0.24,
+    torso: 0.46,
+    neck: 0.07,
+    headR: 0.155,
+    shoulder: 0.19,   // half-width between shoulders
+    upperArm: 0.30,
+    foreArm: 0.28,
+    hipHalf: 0.105
+  };
+
+  /**
+   * Pose the avatar and emit it in world space.
+   *
+   *   p  the player (pos, visualYaw, bodyTilt, squash, speed, state,
+   *      walkPhase, classDef)
+   */
+  function buildHuman(mb, p, quality) {
+    var cls = p.classDef || OCTO.classById(p.classId);
+    var s = cls.skin;
+    var seg = quality.bodySegs || 12;
+    var ring = Math.max(5, (quality.bodyRings || 8) - 2);
+
+    var onLine = p.state === 'line';
+    var airborne = p.state === 'air';
+    var ragdoll = p.state === 'ragdoll';
+    var climbing = p.state === 'climb';
+
+    // ---- gait ----------------------------------------------------------
+    var speed = p.speed || 0;
+    var moving = speed > 0.35 && !airborne && !ragdoll;
+    var stride = clamp(speed / (cls.stats.walkSpeed || 6), 0, 1.6);
+    var ph = p.walkPhase || 0;
+
+    var swing = moving ? Math.sin(ph) * (0.42 + stride * 0.30) : 0;
+    var swingB = moving ? Math.sin(ph + Math.PI) * (0.42 + stride * 0.30) : 0;
+    // knees only bend on the recovery half of the cycle
+    var kneeA = moving ? Math.max(0, -Math.cos(ph)) * (0.55 + stride * 0.45) : 0.06;
+    var kneeB = moving ? Math.max(0, -Math.cos(ph + Math.PI)) * (0.55 + stride * 0.45) : 0.06;
+    var bob = moving ? Math.abs(Math.sin(ph)) * 0.045 * (0.5 + stride) : 0;
+
+    if (airborne) {
+      // tuck: legs forward, arms up
+      swing = 0.55; swingB = -0.25; kneeA = 0.9; kneeB = 0.5;
+    } else if (onLine) {
+      // narrow stance, arms out for balance — the pose that sells the mechanic
+      swing = 0.10; swingB = -0.10; kneeA = 0.22; kneeB = 0.22;
+    } else if (ragdoll) {
+      swing = 0.9; swingB = -0.7; kneeA = 1.2; kneeB = 0.9;
+    }
+
+    var squash = p.squash === undefined ? 1 : p.squash;
+    var hipY = p.pos.y + P.hip * squash + bob;
+
+    mb.identity();
+    mb.translate(p.pos.x, hipY, p.pos.z);
+    mb.rotateY(p.visualYaw);
+    if (ragdoll) mb.rotateX(1.35);
+    else {
+      mb.rotateX(p.bodyTilt.z * 0.8 + (onLine ? 0 : stride * 0.10));
+      mb.rotateZ(-p.bodyTilt.x * 0.8);
+    }
+    if (onLine) {
+      // lean into the wobble; this is the readout the player feels
+      mb.rotateZ(-(p.tilt || 0) * 0.55);
+    }
+    if (climbing) mb.rotateX(-0.5);
+
+    /* ---- legs ---- */
+    for (var side = -1; side <= 1; side += 2) {
+      var hipSwing = side < 0 ? swing : swingB;
+      var knee = side < 0 ? kneeA : kneeB;
+      mb.push();
+      mb.translate(side * P.hipHalf, 0, 0);
+      mb.rotateX(hipSwing);
+      // thigh
+      mb.mat({ cell: CELL.NONE, color: s.cloth, roughness: 0.88, emissive: 0 });
+      limb(mb, 0.105, 0.092, P.thigh, seg);
+      mb.translate(0, -P.thigh, 0);
+      mb.rotateX(knee);
+      // shin
+      mb.mat({ color: mul(s.cloth, 0.86) });
+      limb(mb, 0.090, 0.070, P.shin, seg);
+      mb.translate(0, -P.shin, 0);
+      // boot
+      mb.mat({ color: s.metal, roughness: 0.6 });
+      mb.push().rotateX(-hipSwing * 0.5 - knee)
+        .translate(0, -0.045, P.footLen * 0.18).box(0.135, 0.09, P.footLen).pop();
+      mb.pop();
+    }
+
+    /* ---- torso ---- */
+    mb.push();
+    mb.translate(0, 0.02, 0);
+    mb.rotateY(moving ? Math.sin(ph) * 0.10 : 0);
+    mb.mat({ cell: CELL.NONE, color: s.cloth, roughness: 0.85, emissive: 0 });
+    // pelvis
+    mb.push().translate(0, 0.06, 0).box(0.30, 0.16, 0.20).pop();
+    // ribcage, tapered
+    mb.push().translate(0, 0.06 + P.torso * 0.5, 0)
+      .box(0.34, P.torso, 0.22).pop();
+    // sash / belt — the traditional read
+    mb.mat({ color: s.trim, roughness: 0.7 });
+    mb.push().translate(0, 0.14, 0).box(0.36, 0.09, 0.24).pop();
+    mb.push().translate(0.10, 0.06, 0.12).rotateZ(0.5).box(0.07, 0.34, 0.03).pop();
+
+    var shoulderY = 0.06 + P.torso;
+
+    /* ---- head ---- */
+    mb.push();
+    mb.translate(0, shoulderY + P.neck, 0);
+    mb.mat({ color: mul(s.skinTone, 0.94), roughness: 0.7 });
+    mb.push().translate(0, 0.02, 0).cylinder(0.055, 0.06, 0.10, 8).pop();
+    mb.mat({ color: s.skinTone, roughness: 0.62 });
+    mb.push().translate(0, P.headR * 0.92, 0.008).sphere(P.headR, seg, ring, { yScale: 1.12 }).pop();
+    // eyes, kept simple and readable
+    mb.mat({ color: [0.06, 0.05, 0.06], roughness: 0.2 });
+    for (var e = -1; e <= 1; e += 2) {
+      mb.push().translate(e * 0.058, P.headR * 0.98, P.headR * 0.80).box(0.030, 0.036, 0.02).pop();
+    }
+    buildHeadgear(mb, cls, s, seg, ring);
+    mb.pop();
+
+    /* ---- arms ---- */
+    for (var a = -1; a <= 1; a += 2) {
+      var armSwing = a < 0 ? swingB : swing;   // opposite the leg on the same side
+      mb.push();
+      mb.translate(a * P.shoulder, shoulderY - 0.03, 0);
+      // shoulder pad
+      mb.mat({ color: a > 0 && cls.gear === 'shield' ? s.metal : s.cloth, roughness: 0.8 });
+      mb.push().sphere(0.085, 8, 6).pop();
+
+      if (onLine) {
+        // arms out wide — the universal "I am balancing" silhouette
+        mb.rotateZ(a * 1.15);
+        mb.rotateX(-0.12 + (p.tilt || 0) * a * 0.5);
+      } else if (airborne) {
+        mb.rotateZ(a * 0.55); mb.rotateX(-0.7);
+      } else if (climbing) {
+        mb.rotateX(-1.9); mb.rotateZ(a * 0.25);
+      } else {
+        mb.rotateX(-armSwing * 0.85);
+        mb.rotateZ(a * 0.14);
+      }
+      mb.mat({ color: mul(s.cloth, 0.95), roughness: 0.86 });
+      limb(mb, 0.078, 0.066, P.upperArm, seg);
+      mb.translate(0, -P.upperArm, 0);
+      mb.rotateX(onLine ? 0.15 : Math.max(0, armSwing) * 0.5 + 0.12);
+      mb.mat({ color: s.skinTone, roughness: 0.65 });
+      limb(mb, 0.062, 0.052, P.foreArm, seg);
+      mb.translate(0, -P.foreArm, 0);
+      // hand
+      mb.push().translate(0, -0.035, 0).sphere(0.055, 7, 5, { yScale: 1.15 }).pop();
+      // gear goes in a hand, so it inherits the arm's pose for free
+      if (a > 0) buildMainHand(mb, cls, s, seg);
+      else buildOffHand(mb, cls, s, seg);
+      mb.pop();
+    }
+
+    buildBackGear(mb, cls, s, shoulderY, seg);
+    mb.pop();   // torso
+    mb.identity();
+  }
+
+  /** A tapered limb segment hanging downward from the current origin. */
+  function limb(mb, rTop, rBottom, len, seg) {
+    mb.push().translate(0, -len * 0.5, 0)
+      .cylinder(rBottom, rTop, len, Math.max(6, (seg / 2) | 0)).pop();
+  }
+
+  function mul(c, k) { return [c[0] * k, c[1] * k, c[2] * k]; }
+
+  /* --------------------------------------------------------- headgear */
+
+  function buildHeadgear(mb, cls, s, seg, ring) {
+    var g = cls.gear;
+    if (g === 'bow') {
+      // hood, pushed back off the face
+      mb.mat({ color: mul(s.cloth, 1.05), roughness: 0.9 });
+      mb.push().translate(0, 0.175, -0.035).sphere(0.175, seg, ring, { yScale: 0.86 }).pop();
+      mb.push().translate(0, 0.085, -0.16).rotateX(0.5).box(0.22, 0.20, 0.06).pop();
+    } else if (g === 'sword') {
+      // headband with a metal plate
+      mb.mat({ color: s.trim, roughness: 0.55 });
+      mb.push().translate(0, 0.20, 0).cylinder(0.165, 0.165, 0.05, 12, { capTop: false, capBottom: false }).pop();
+      mb.mat({ color: s.metal, roughness: 0.3 });
+      mb.push().translate(0, 0.21, 0.145).box(0.09, 0.055, 0.02).pop();
+    } else if (g === 'shield') {
+      // full helm with a nasal bar
+      mb.mat({ color: s.metal, roughness: 0.34 });
+      mb.push().translate(0, 0.17, 0).sphere(0.185, seg, ring, { yScale: 1.05, vEnd: 0.62 }).pop();
+      mb.push().translate(0, 0.17, 0).cylinder(0.185, 0.185, 0.06, 12, { capTop: false, capBottom: false }).pop();
+      mb.push().translate(0, 0.13, 0.165).box(0.035, 0.14, 0.03).pop();
+      mb.mat({ color: s.trim, roughness: 0.4 });
+      mb.push().translate(0, 0.30, -0.02).rotateX(-0.2).box(0.05, 0.16, 0.16).pop();
+    } else if (g === 'staff') {
+      // ghutra: cloth over the head, cord around it
+      mb.mat({ color: mul(s.cloth, 1.02), roughness: 0.95 });
+      mb.push().translate(0, 0.165, -0.01).sphere(0.185, seg, ring, { yScale: 0.80 }).pop();
+      mb.push().translate(0, 0.02, -0.13).rotateX(0.32).box(0.30, 0.30, 0.05).pop();
+      mb.mat({ color: [0.12, 0.12, 0.14], roughness: 0.6 });
+      mb.push().translate(0, 0.235, 0).cylinder(0.175, 0.175, 0.035, 12, { capTop: false, capBottom: false }).pop();
+    } else if (g === 'orb') {
+      // tall pointed hood
+      mb.mat({ color: mul(s.cloth, 1.08), roughness: 0.9 });
+      mb.push().translate(0, 0.17, -0.02).sphere(0.18, seg, ring, { yScale: 0.9 }).pop();
+      mb.push().translate(0, 0.30, -0.05).rotateX(0.35).cylinder(0.13, 0.012, 0.30, 9).pop();
+      mb.mat({ color: s.trim, roughness: 0.2, emissive: 0.9 });
+      mb.push().translate(0, 0.44, -0.14).sphere(0.036, 7, 5).pop();
+    }
+  }
+
+  /* ------------------------------------------------------- hand gear */
+
+  function buildMainHand(mb, cls, s, seg) {
+    var g = cls.gear;
+    if (g === 'sword') {
+      mb.mat({ color: s.metal, roughness: 0.22 });
+      mb.push().translate(0, -0.10, 0.02).rotateX(1.35);
+      mb.push().translate(0, 0.30, 0).box(0.055, 0.62, 0.016).pop();     // blade
+      mb.push().translate(0, 0.62, 0).rotateZ(0.78).box(0.045, 0.045, 0.02).pop(); // tip
+      mb.mat({ color: s.trim, roughness: 0.45 });
+      mb.push().translate(0, 0.02, 0).box(0.17, 0.035, 0.03).pop();      // guard
+      mb.push().translate(0, -0.09, 0).cylinder(0.024, 0.028, 0.16, 7).pop(); // grip
+      mb.pop();
+    } else if (g === 'staff') {
+      mb.mat({ color: mul(s.metal, 0.75), roughness: 0.8 });
+      mb.push().translate(0, -0.02, 0.02).rotateX(0.12);
+      mb.push().translate(0, 0.34, 0).cylinder(0.022, 0.026, 1.30, 7).pop();
+      mb.mat({ color: s.trim, roughness: 0.12, emissive: 1.6 });
+      mb.push().translate(0, 1.00, 0).sphere(0.085, 10, 8).pop();
+      mb.mat({ color: s.metal, roughness: 0.3, emissive: 0 });
+      mb.push().translate(0, 0.90, 0).cylinder(0.05, 0.03, 0.09, 8).pop();
+      mb.pop();
+    } else if (g === 'orb') {
+      // no weapon held: light orbs orbit the hand
+      mb.mat({ color: s.trim, roughness: 0.1, emissive: 2.2 });
+      for (var i = 0; i < 3; i++) {
+        var a = (i / 3) * TAU;
+        mb.push().translate(Math.cos(a) * 0.13, -0.10 + Math.sin(a) * 0.05, Math.sin(a) * 0.13)
+          .sphere(0.038, 7, 5).pop();
+      }
+    } else if (g === 'bow') {
+      mb.mat({ color: mul(s.metal, 0.8), roughness: 0.7 });
+      mb.push().translate(0, -0.06, 0.04).rotateX(1.57);
+      // recurve limbs
+      mb.push().translate(0, 0.26, 0).rotateZ(0.20).cylinder(0.016, 0.010, 0.50, 6).pop();
+      mb.push().translate(0, -0.26, 0).rotateZ(-0.20).cylinder(0.010, 0.016, 0.50, 6).pop();
+      mb.push().cylinder(0.020, 0.020, 0.14, 7).pop();
+      mb.mat({ color: [0.90, 0.88, 0.80], roughness: 0.9 });
+      mb.push().translate(0, 0, -0.055).box(0.006, 0.98, 0.006).pop();   // string
+      mb.pop();
+    }
+  }
+
+  function buildOffHand(mb, cls, s, seg) {
+    if (cls.gear !== 'shield') return;
+    mb.mat({ color: s.metal, roughness: 0.34 });
+    mb.push().translate(0, -0.12, 0.10).rotateX(1.57);
+    mb.push().cylinder(0.30, 0.26, 0.05, 8).pop();
+    mb.mat({ color: s.cloth, roughness: 0.7 });
+    mb.push().translate(0, 0.032, 0).cylinder(0.22, 0.19, 0.02, 8).pop();
+    mb.mat({ color: s.trim, roughness: 0.4 });
+    mb.push().translate(0, 0.05, 0).sphere(0.065, 8, 6, { yScale: 0.7 }).pop();
+    mb.pop();
+  }
+
+  /* -------------------------------------------------------- back gear */
+
+  function buildBackGear(mb, cls, s, shoulderY, seg) {
+    var g = cls.gear;
+    if (g === 'bow') {
+      // quiver, angled across the back
+      mb.mat({ color: mul(s.metal, 0.7), roughness: 0.8 });
+      mb.push().translate(-0.11, shoulderY - 0.18, -0.15).rotateX(-0.35).rotateZ(0.30);
+      mb.push().cylinder(0.062, 0.070, 0.42, 8).pop();
+      mb.mat({ color: [0.86, 0.84, 0.76], roughness: 0.9 });
+      for (var i = 0; i < 4; i++) {
+        mb.push().translate((i - 1.5) * 0.022, 0.26, 0.012).cylinder(0.007, 0.007, 0.16, 4).pop();
+      }
+      mb.pop();
+    } else if (g === 'orb' || g === 'staff') {
+      // long robe skirt so the legs read as robed, not bare
+      mb.mat({ color: mul(s.cloth, g === 'orb' ? 1.0 : 1.04), roughness: 0.92 });
+      mb.push().translate(0, -0.30, 0).cylinder(0.34, 0.20, 0.62, 12, { capTop: false, capBottom: false }).pop();
+      if (g === 'orb') {
+        mb.mat({ color: s.trim, roughness: 0.3, emissive: 0.7 });
+        mb.push().translate(0, -0.60, 0).cylinder(0.345, 0.345, 0.035, 12, { capTop: false, capBottom: false }).pop();
+      }
+    } else if (g === 'shield') {
+      // back plate + cloak
+      mb.mat({ color: s.metal, roughness: 0.35 });
+      mb.push().translate(0, shoulderY - 0.24, -0.13).box(0.32, 0.36, 0.05).pop();
+      mb.mat({ color: mul(s.cloth, 0.9), roughness: 0.92 });
+      mb.push().translate(0, shoulderY - 0.44, -0.16).rotateX(0.06).box(0.38, 0.66, 0.03).pop();
+    }
+  }
+
+  OCTO.avatar = OCTO.avatar || {};
+  OCTO.avatar.buildHuman = buildHuman;
+  OCTO.avatar.PROPORTIONS = P;
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
 /* ===== src/40-physics.js ===== */
 /* =====================================================================
  * OCTOPUSES ON THE LINE — 40-physics.js
@@ -4703,6 +5153,116 @@
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
+/* ===== src/55-classes.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 55-classes.js
+ *
+ * The five Line-Walker disciplines.
+ *
+ * Every class crosses the same ropes, so each one is defined by HOW IT
+ * CHANGES THE LINE rather than by a damage type. Weight, balance
+ * control and traversal speed feed straight into the inverted-pendulum
+ * model the game already runs — a Tank genuinely plays differently on a
+ * rope than an Archer, using systems that already exist.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+
+  var CLASSES = [
+    {
+      id: 'sayyad', en: 'Archer', ar: 'الصيّاد',
+      roleEn: 'Ranged', roleAr: 'رامٍ',
+      lineEn: 'Fires a grapple line across any gap.',
+      lineAr: 'يطلق خطاف حبل ليعبر أي فجوة.',
+      loreEn: 'Scouts the high wires. Sees the route before anyone else does.',
+      loreAr: 'يستكشف الأسلاك العالية، ويرى الطريق قبل الجميع.',
+      gear: 'bow',
+      skin: { cloth: [0.32, 0.46, 0.34], trim: [0.86, 0.72, 0.38], metal: [0.62, 0.58, 0.50], skinTone: [0.76, 0.56, 0.40] },
+      stats: {
+        walkSpeed: 5.9, sprintSpeed: 9.6, jumpVelocity: 9.6,
+        lineWeight: 28, balanceControl: 5.6, lineWalkSpeed: 2.8, lineSprintSpeed: 5.0,
+        destabilise: 0.95
+      },
+      bars: { speed: 4, balance: 4, power: 3, support: 1 }
+    },
+    {
+      id: 'muqatil', en: 'Fighter', ar: 'المقاتل',
+      roleEn: 'Melee', roleAr: 'مقاتل',
+      lineEn: 'Runs a line at full speed without losing footing.',
+      lineAr: 'يركض على الخيط بأقصى سرعة دون أن يفقد اتزانه.',
+      loreEn: 'First across, every time. Balance is muscle memory.',
+      loreAr: 'أول من يعبر دائماً. التوازن عنده عادة لا مهارة.',
+      gear: 'sword',
+      skin: { cloth: [0.58, 0.22, 0.20], trim: [0.90, 0.78, 0.44], metal: [0.70, 0.68, 0.62], skinTone: [0.70, 0.48, 0.34] },
+      stats: {
+        walkSpeed: 6.4, sprintSpeed: 10.4, jumpVelocity: 9.8,
+        lineWeight: 34, balanceControl: 6.4, lineWalkSpeed: 3.4, lineSprintSpeed: 6.0,
+        destabilise: 0.80
+      },
+      bars: { speed: 5, balance: 5, power: 4, support: 1 }
+    },
+    {
+      id: 'dir', en: 'Tank', ar: 'الدِّرع',
+      roleEn: 'Frontline', roleAr: 'خط أمامي',
+      lineEn: 'Heaviest — sags the rope into a bridge for allies.',
+      lineAr: 'الأثقل — يُحني الخيط ليصير جسراً للرفاق.',
+      loreEn: 'Holds the anchor while everyone else crosses.',
+      loreAr: 'يثبت المرساة بينما يعبر الباقون.',
+      gear: 'shield',
+      skin: { cloth: [0.30, 0.34, 0.44], trim: [0.72, 0.74, 0.80], metal: [0.78, 0.80, 0.86], skinTone: [0.66, 0.46, 0.32] },
+      stats: {
+        walkSpeed: 4.6, sprintSpeed: 7.2, jumpVelocity: 8.6,
+        lineWeight: 62, balanceControl: 4.2, lineWalkSpeed: 1.9, lineSprintSpeed: 3.2,
+        destabilise: 1.30
+      },
+      bars: { speed: 2, balance: 2, power: 5, support: 3 }
+    },
+    {
+      id: 'shafi', en: 'Healer', ar: 'الشافي',
+      roleEn: 'Support', roleAr: 'مساند',
+      lineEn: 'Steadies an ally’s balance from a distance.',
+      lineAr: 'يثبّت توازن رفيقه عن بُعد.',
+      loreEn: 'The only one who can catch a falling Line-Walker.',
+      loreAr: 'الوحيد الذي يستطيع إنقاذ ماشي خيط يسقط.',
+      gear: 'staff',
+      skin: { cloth: [0.90, 0.88, 0.82], trim: [0.36, 0.70, 0.66], metal: [0.84, 0.76, 0.52], skinTone: [0.80, 0.60, 0.44] },
+      stats: {
+        walkSpeed: 5.4, sprintSpeed: 8.6, jumpVelocity: 9.2,
+        lineWeight: 30, balanceControl: 5.8, lineWalkSpeed: 2.6, lineSprintSpeed: 4.4,
+        destabilise: 0.88
+      },
+      bars: { speed: 3, balance: 4, power: 2, support: 5 }
+    },
+    {
+      id: 'sahir', en: 'Mage', ar: 'الساحر',
+      roleEn: 'Control', roleAr: 'تحكم',
+      lineEn: 'Conjures a new line from light where none exists.',
+      lineAr: 'يخلق خيطاً من نور حيث لا خيط.',
+      loreEn: 'Does not follow the road. Writes one.',
+      loreAr: 'لا يسلك الطريق، بل يكتبه.',
+      gear: 'orb',
+      skin: { cloth: [0.34, 0.26, 0.52], trim: [0.52, 0.86, 0.94], metal: [0.62, 0.56, 0.74], skinTone: [0.74, 0.54, 0.40] },
+      stats: {
+        walkSpeed: 5.2, sprintSpeed: 8.2, jumpVelocity: 9.0,
+        lineWeight: 26, balanceControl: 5.0, lineWalkSpeed: 2.4, lineSprintSpeed: 4.0,
+        destabilise: 1.00
+      },
+      bars: { speed: 3, balance: 3, power: 5, support: 2 }
+    }
+  ];
+
+  function byId(id) {
+    for (var i = 0; i < CLASSES.length; i++) if (CLASSES[i].id === id) return CLASSES[i];
+    return CLASSES[1]; // Fighter is the safe default
+  }
+
+  OCTO.CLASSES = CLASSES;
+  OCTO.classById = byId;
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
 /* ===== src/60-player.js ===== */
 /* =====================================================================
  * OCTOPUSES ON THE LINE — 60-player.js
@@ -4814,6 +5374,16 @@
       hat: 'none'
     };
 
+    // Form and discipline. The octopus rig is kept for NPCs and for the
+    // antagonist; the player is a Line-Walker.
+    this.form = spawn.form || 'human';
+    this.classId = spawn.classId || 'muqatil';
+    this.classDef = OCTO.classById(this.classId);
+    this.upgrades = {};
+    this.tune = {};
+    this.applyClass(this.classId);
+    this.walkPhase = 0;
+
     this.gaitTime = 0;
     this.tentacles = [];
     this._initTentacles();
@@ -4867,6 +5437,37 @@
         segLen: segLen
       });
     }
+  };
+
+  /**
+   * Fold the discipline's stats — and any purchased upgrades — into this
+   * octopus's own tuning. Nothing is stored globally, so two Line-Walkers of
+   * different classes can coexist.
+   */
+  Octopus.prototype.applyClass = function (classId) {
+    if (classId) { this.classId = classId; this.classDef = OCTO.classById(classId); }
+    var t = this.tune;
+    for (var k in TUNING) t[k] = TUNING[k];
+    var st = this.classDef.stats;
+    for (var j in st) t[j] = st[j];
+    t.balanceControl = st.balanceControl;
+    t.lineWeight = st.lineWeight;
+    t.destabilise = st.destabilise;
+    if (this.upgrades.jump) t.jumpVelocity *= 1.17;
+    if (this.upgrades.dash) t.dashCooldown = 0.85;
+    if (this.upgrades.grip) t.balanceControl *= 1.25;
+    return this;
+  };
+
+  /** Advance the biped walk cycle. Cheap: no verlet, no IK. */
+  Octopus.prototype._updateBiped = function (dt) {
+    var moving = this.speed > 0.35 && (this.state === 'ground' || this.state === 'line');
+    var rate = this.state === 'line'
+      ? 2.2 + this.speed * 1.6
+      : 2.6 + (this.speed / Math.max(1, this.tune.walkSpeed)) * 7.0;
+    if (moving) this.walkPhase += dt * rate;
+    else this.walkPhase += dt * 0.9;   // idle sway keeps the pose alive
+    if (this.walkPhase > 1e6) this.walkPhase = 0;
   };
 
   /* --------------------------------------------------------------- api */
@@ -4925,7 +5526,8 @@
     else this._updateWalk(dt, input, camera);
 
     this._updateBodyMotion(dt);
-    this._updateTentacles(dt);
+    if (this.form === 'octopus') this._updateTentacles(dt);
+    else this._updateBiped(dt);
 
     var dx = this.pos.x - startX, dz = this.pos.z - startZ;
     this.stats.distance += Math.sqrt(dx * dx + dz * dz);
@@ -4958,13 +5560,13 @@
     var wishLen = Math.sqrt(wishX * wishX + wishZ * wishZ);
     if (wishLen > 1e-4) { wishX /= wishLen; wishZ /= wishLen; }
 
-    var maxSpeed = sprint ? TUNING.sprintSpeed : TUNING.walkSpeed;
+    var maxSpeed = sprint ? this.tune.sprintSpeed : this.tune.walkSpeed;
     if (this.carry) maxSpeed *= 0.82;
-    var accel = this.grounded ? TUNING.groundAccel : TUNING.airAccel;
+    var accel = this.grounded ? this.tune.groundAccel : this.tune.airAccel;
 
     if (this.dashTimer > 0) {
       this.dashTimer -= dt;
-      maxSpeed = TUNING.dashSpeed;
+      maxSpeed = this.tune.dashSpeed;
       accel = 60;
       if (wishLen < 1e-4) { wishX = Math.sin(this.yaw); wishZ = Math.cos(this.yaw); wishLen = 1; }
     }
@@ -4975,19 +5577,19 @@
       this.vel.z += (targetZ - this.vel.z) * clamp(accel * dt / maxSpeed, 0, 1);
       this.yaw = U.dampAngle(this.yaw, Math.atan2(wishX, wishZ), this.grounded ? 13 : 7, dt);
     } else if (this.grounded) {
-      var f = Math.exp(-TUNING.groundFriction * dt);
+      var f = Math.exp(-this.tune.groundFriction * dt);
       this.vel.x *= f; this.vel.z *= f;
     }
 
     // gravity
     this.vel.y += GRAVITY * dt;
-    if (this.vel.y < TUNING.maxFallSpeed) this.vel.y = TUNING.maxFallSpeed;
+    if (this.vel.y < this.tune.maxFallSpeed) this.vel.y = this.tune.maxFallSpeed;
 
     // jump
-    if (input.hit('jump')) this.jumpBuffered = TUNING.jumpBuffer;
+    if (input.hit('jump')) this.jumpBuffered = this.tune.jumpBuffer;
     this.jumpBuffered = Math.max(0, this.jumpBuffered - dt);
     if (this.jumpBuffered > 0 && (this.grounded || this.coyote > 0)) {
-      this.vel.y = TUNING.jumpVelocity;
+      this.vel.y = this.tune.jumpVelocity;
       this.jumpBuffered = 0;
       this.coyote = 0;
       this.grounded = false;
@@ -4998,13 +5600,13 @@
 
     // ink dash
     if (input.hit('dash') && this.dashCooldown <= 0) {
-      this.dashTimer = TUNING.dashDuration;
-      this.dashCooldown = TUNING.dashCooldown;
+      this.dashTimer = this.tune.dashDuration;
+      this.dashCooldown = this.tune.dashCooldown;
       this.inkTimer = 0.5;
       var dirX = wishLen > 1e-4 ? wishX : Math.sin(this.yaw);
       var dirZ = wishLen > 1e-4 ? wishZ : Math.cos(this.yaw);
-      this.vel.x = dirX * TUNING.dashSpeed;
-      this.vel.z = dirZ * TUNING.dashSpeed;
+      this.vel.x = dirX * this.tune.dashSpeed;
+      this.vel.z = dirZ * this.tune.dashSpeed;
       if (!this.grounded) this.vel.y = Math.max(this.vel.y, 1.5);
       this.game.audio && this.game.audio.play('dash');
       this.game.spawnInk && this.game.spawnInk(this.pos, 14);
@@ -5075,7 +5677,7 @@
         this.vel.y = 0;
         if (!wasGrounded) this._land(impact);
       }
-      this.coyote = TUNING.coyoteTime;
+      this.coyote = this.tune.coyoteTime;
       this.lastGroundY = this.pos.y;
       this.airTime = 0;
     } else {
@@ -5108,7 +5710,7 @@
     var v = Math.abs(impactVel);
     this.squash = clamp(1 - v * 0.022, 0.55, 1);
     this.game.audio && this.game.audio.play('land', clamp(v / 20, 0.2, 1));
-    if (impactVel < TUNING.terminalDamage) {
+    if (impactVel < this.tune.terminalDamage) {
       this.enterRagdoll(1.5);
       this.game.onHardLanding && this.game.onHardLanding(v);
     }
@@ -5126,7 +5728,7 @@
     var rx = upy * n.z - upz * n.y, ry = upz * n.x - upx * n.z, rz = upx * n.y - upy * n.x;
     var rl = Math.sqrt(rx * rx + ry * ry + rz * rz) || 1;
     rx /= rl; ry /= rl; rz /= rl;
-    var s = TUNING.climbSpeed * (input.held('sprint') ? 1.6 : 1);
+    var s = this.tune.climbSpeed * (input.held('sprint') ? 1.6 : 1);
     this.vel.x = rx * move.x * s;
     this.vel.y = move.y * s;
     this.vel.z = rz * move.x * s;
@@ -5157,10 +5759,10 @@
       this.state = 'air';
       this.vel.x = n.x * 7 + this.vel.x * 0.3;
       this.vel.z = n.z * 7 + this.vel.z * 0.3;
-      this.vel.y = TUNING.jumpVelocity * 0.85;
+      this.vel.y = this.tune.jumpVelocity * 0.85;
       this.game.audio && this.game.audio.play('jump');
     }
-    this.speed = TUNING.climbSpeed * Math.abs(move.x || move.y);
+    this.speed = this.tune.climbSpeed * Math.abs(move.x || move.y);
   };
 
   /* -------------------------------------------------------------- line */
@@ -5219,13 +5821,13 @@
 
     // ---- travel along the rope
     var sprint = input.held('sprint');
-    var target = move.y * (sprint ? TUNING.lineSprintSpeed : TUNING.lineWalkSpeed);
+    var target = move.y * (sprint ? this.tune.lineSprintSpeed : this.tune.lineWalkSpeed);
     // A steep rope lets you zip: gravity assists in the downhill direction.
     var tan = rope.tangentAt(this.lineT, this._tmp);
     var slope = tan.y;
     var facingSign = this.lineDir;
     var downhill = -slope * facingSign;
-    if (sprint && Math.abs(slope) > 0.08) target += downhill * TUNING.lineZipSpeed;
+    if (sprint && Math.abs(slope) > 0.08) target += downhill * this.tune.lineZipSpeed;
     this.lineSpeed = damp(this.lineSpeed, target, 6, dt);
 
     var len = Math.max(1, rope.length);
@@ -5236,10 +5838,11 @@
     var jitter = (this.balanceNoise.value2(this.noiseT * 1.6, rope.id * 3.1) - 0.5);
     var destab = Math.sin(this.tilt) * 6.2;
     destab += jitter * (1.4 + wind * 2.2);
+    destab *= this.tune.destabilise;
     destab += Math.abs(this.lineSpeed) * 0.35 * Math.sin(this.noiseT * 7.0);
     if (this.carry) destab *= 1.35;
     this.tiltVel += destab * dt;
-    this.tiltVel -= move.x * 5.2 * dt;
+    this.tiltVel -= move.x * this.tune.balanceControl * dt;
     if (this.gripping) {
       this.tiltVel *= Math.exp(-7.5 * dt);
       this.tilt *= Math.exp(-2.6 * dt);
@@ -5263,7 +5866,8 @@
 
     // ---- load the rope so it visibly sags under us
     var n = rope.verlet.p.length;
-    rope.load = { index: Math.round(clamp(this.lineT, 0, 1) * (n - 1)), weight: 34 };
+    // A Tank genuinely bends the rope further than an Archer does.
+    rope.load = { index: Math.round(clamp(this.lineT, 0, 1) * (n - 1)), weight: this.tune.lineWeight };
 
     // ---- ends of the rope: step off onto the anchor
     if (this.lineT <= 0.001 || this.lineT >= 0.999) {
@@ -5279,7 +5883,7 @@
       var t3 = rope.tangentAt(this.lineT, this._tmp2);
       this.detachLine({
         x: t3.x * facingSign * Math.abs(this.lineSpeed) + Math.sin(this.yaw) * 2,
-        y: TUNING.jumpVelocity * 0.95,
+        y: this.tune.jumpVelocity * 0.95,
         z: t3.z * facingSign * Math.abs(this.lineSpeed) + Math.cos(this.yaw) * 2
       });
       this.stats.jumps++;
@@ -5335,7 +5939,7 @@
   Octopus.prototype._updateRagdoll = function (dt, input) {
     this.ragdollTimer -= dt;
     this.vel.y += GRAVITY * dt;
-    if (this.vel.y < TUNING.maxFallSpeed) this.vel.y = TUNING.maxFallSpeed;
+    if (this.vel.y < this.tune.maxFallSpeed) this.vel.y = this.tune.maxFallSpeed;
     this._integrateAndCollide(dt);
     if (this.grounded) {
       var f = Math.exp(-6.5 * dt);
@@ -5438,7 +6042,7 @@
     var onLine = this.state === 'line';
     var floppy = this.state === 'air' || this.state === 'ragdoll' || this.wobble > 0.6;
 
-    var gaitSpeed = clamp(this.speed / TUNING.walkSpeed, 0, 1.7);
+    var gaitSpeed = clamp(this.speed / this.tune.walkSpeed, 0, 1.7);
     this.gaitTime += dt * (0.9 + gaitSpeed * 2.6);
 
     var cy = Math.cos(this.visualYaw), sy = Math.sin(this.visualYaw);
@@ -5499,7 +6103,7 @@
           var e = U.smoothstep(0, 1, t.stepT);
           t.foot.x = U.lerp(t.prevFoot.x, t.nextFoot.x, e);
           t.foot.z = U.lerp(t.prevFoot.z, t.nextFoot.z, e);
-          t.foot.y = U.lerp(t.prevFoot.y, t.nextFoot.y, e) + Math.sin(e * Math.PI) * TUNING.stepHeight * (0.4 + gaitSpeed * 0.6);
+          t.foot.y = U.lerp(t.prevFoot.y, t.nextFoot.y, e) + Math.sin(e * Math.PI) * this.tune.stepHeight * (0.4 + gaitSpeed * 0.6);
         }
         tip.pinned = true;
         tip.x = t.foot.x; tip.y = t.foot.y; tip.z = t.foot.z;
@@ -5550,6 +6154,14 @@
   /** Rebuild the octopus mesh in world space. Called once per frame. */
   Octopus.prototype.buildMesh = function (renderer, quality) {
     var mb = this.builder.reset();
+    if (this.form === 'human') {
+      OCTO.avatar.buildHuman(mb, this, quality);
+      var hd = mb.build();
+      if (!this.mesh) this.mesh = renderer.createMesh(hd.verts, hd.indices, true);
+      else this.mesh.update(hd.verts, hd.indices);
+      if (!_m) _m = M4.create();
+      return { mesh: this.mesh, model: _m };
+    }
     var skin = this.skin;
     var wob = this.wobble;
 
@@ -6324,7 +6936,10 @@
       delete w.meshData;
     }
 
-    this.player = new OCTO.Octopus(this, this.world.spawn);
+    var spawn = this.world.spawn;
+    spawn.classId = this.save.classId || 'muqatil';
+    spawn.form = 'human';
+    this.player = new OCTO.Octopus(this, spawn);
     this.camera = new OCTO.Camera(this.player);
     this.camera.yaw = this.world.spawn.yaw;
     this.lastCheckpoint = { x: this.world.spawn.x, y: this.world.spawn.y, z: this.world.spawn.z, yaw: this.world.spawn.yaw };
@@ -6511,11 +7126,16 @@
       }
     }
 
-    this.player.update(dt, input, this.camera);
+    var scripted = (this.cine && this.cine.active) || this.selecting;
+    // During the opening and character select the world keeps living, but the
+    // camera is authored and the player takes no input.
+    this.player.update(dt, scripted ? NULL_INPUT : input, this.camera);
     this.player.updateCarry(dt);
     var aspect = this.renderer.width / Math.max(1, this.renderer.height);
     this.camera.aspectBoost = aspect < 0.8 ? clamp(1 + (0.8 - aspect) * 1.1, 1, 1.55) : 1;
-    this.camera.update(dt, input, this.world.physics);
+    if (this.cine && this.cine.active) this.cine.update(dt, this.camera);
+    else if (this.selecting) this._selectCamera(dt);
+    else this.camera.update(dt, input, this.world.physics);
 
     for (var n = 0; n < this.npcs.length; n++) {
       var npc = this.npcs[n];
@@ -6548,6 +7168,81 @@
   };
 
   function sq(v) { return v * v; }
+
+  /** An input that never reports anything, for scripted sequences. */
+  var NULL_INPUT = {
+    moveAxis: function (o) { o = o || {}; o.x = 0; o.y = 0; return o; },
+    lookDelta: function (o) { o = o || {}; o.x = 0; o.y = 0; return o; },
+    held: function () { return false; },
+    hit: function () { return false; },
+    endFrame: function () {},
+    poll: function () {},
+    mouse: { dx: 0, dy: 0, wheel: 0, locked: false, left: false, right: false },
+    touch: { active: false, move: { x: 0, y: 0 }, look: { x: 0, y: 0 }, buttons: {}, pressed: {} },
+    invertY: false
+  };
+
+  /**
+   * Find somewhere the avatar can be shown from every angle. The spawn sits
+   * among market stalls, and an orbiting camera there spends most of its
+   * circle inside a hanging carpet.
+   */
+  Game.prototype.findOpenSpot = function (center) {
+    var phys = this.world.physics;
+    var best = null, bestClear = -1;
+    for (var i = 0; i < 32; i++) {
+      var a = (i / 32) * TAU;
+      var r = 5 + (i % 4) * 5;
+      var x = center.x + Math.cos(a) * r;
+      var z = center.z + Math.sin(a) * r;
+      var gy = phys.groundHeight(x, center.y + 30, z, 40);
+      if (!isFinite(gy)) continue;
+      var eye = { x: x, y: gy + 1.3, z: z };
+      var minClear = 99;
+      for (var k = 0; k < 10; k++) {
+        var ka = (k / 10) * TAU;
+        var hit = phys.raycast(eye, { x: Math.cos(ka), y: 0.06, z: Math.sin(ka) }, 9);
+        var clear = hit ? hit.t : 9;
+        if (clear < minClear) minClear = clear;
+      }
+      if (minClear > bestClear) { bestClear = minClear; best = { x: x, y: gy, z: z }; }
+    }
+    return best || { x: center.x, y: center.y, z: center.z };
+  };
+
+  /** Stage the avatar for character select. */
+  Game.prototype.prepareSelect = function () {
+    var spot = this.findOpenSpot(this.world.anchors.plaza);
+    this.player.teleport(spot.x, spot.y + 0.4, spot.z, 0);
+    this.player.lineCooldown = 999;      // no grabbing ropes on the podium
+    this.selectAngle = 0;
+    this.selecting = true;
+  };
+
+  /** Slow orbit that frames the avatar during character select. */
+  Game.prototype._selectCamera = function (dt) {
+    var c = this.camera, p = this.player.pos;
+    this.selectAngle = (this.selectAngle || 0) + dt * 0.22;
+    var portrait = this.renderer.width < this.renderer.height;
+    var dist = portrait ? 4.2 : 3.4;
+    var eye = { x: p.x, y: p.y + 0.92, z: p.z };
+    c.free = true;
+    // The plaza has stalls and awnings in it, and an orbit that ignores them
+    // ends up inside a hanging carpet with the avatar nowhere in frame.
+    var dir = { x: Math.sin(this.selectAngle), y: 0.09, z: Math.cos(this.selectAngle) };
+    var dl = Math.sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z) || 1;
+    dir.x /= dl; dir.y /= dl; dir.z /= dl;
+    var hit = this.world.physics.raycast(eye, dir, dist + 0.5);
+    if (hit) dist = Math.max(1.9, hit.t - 0.4);
+    c.pos.x = damp(c.pos.x, eye.x + dir.x * dist, 6, dt);
+    c.pos.y = damp(c.pos.y, eye.y + 0.30 + dir.y * dist, 6, dt);
+    c.pos.z = damp(c.pos.z, eye.z + dir.z * dist, 6, dt);
+    c.target.x = eye.x; c.target.y = eye.y; c.target.z = eye.z;
+    c.fov = (portrait ? 46 : 40) * OCTO.DEG;
+    // Face the camera. The camera sits at angle (sin, cos) from the avatar, so
+    // the avatar's yaw is that same angle — adding PI turns its back to us.
+    this.player.yaw = U.dampAngle(this.player.yaw, this.selectAngle, 4, dt);
+  };
 
   Game.prototype._updateEnvironment = function () {
     var env = sampleTime(this.hour);
@@ -6880,9 +7575,8 @@
     if (this.save.skin) this.player.skin.body = this.save.skin;
     if (this.save.skinAccent) this.player.skin.accent = this.save.skinAccent;
     this.player.skin.hat = this.save.hat || 'none';
-    var T = OCTO.PLAYER_TUNING;
-    T.jumpVelocity = this.upgrades.jump ? 11.0 : 9.4;
-    T.dashCooldown = this.upgrades.dash ? 0.85 : 1.5;
+    this.player.upgrades = this.upgrades;
+    this.player.applyClass();
   };
 
   /* --------------------------------------------------------- particles */
@@ -7044,6 +7738,28 @@
 
     // player
     scene.items.push(this.player.buildMesh(this.renderer, q));
+
+    // A character standing in a shadowed alley otherwise reads as a black
+    // silhouette. A soft fill travelling with the avatar keeps it legible
+    // without lighting the world around it; character select gets a stronger
+    // key from the camera side, the way a portrait would be lit.
+    var pp = this.player.pos;
+    scene.lights.push({
+      pos: { x: pp.x, y: pp.y + 1.25, z: pp.z },
+      color: [1.0, 0.94, 0.86], radius: 3.6, intensity: 0.55
+    });
+    if (this.selecting) {
+      var toCam = { x: cam.x - pp.x, z: cam.z - pp.z };
+      var l = Math.sqrt(toCam.x * toCam.x + toCam.z * toCam.z) || 1;
+      scene.lights.push({
+        pos: { x: pp.x + (toCam.x / l) * 2.0, y: pp.y + 2.1, z: pp.z + (toCam.z / l) * 2.0 },
+        color: [1.0, 0.90, 0.76], radius: 7.5, intensity: 1.45
+      });
+      scene.lights.push({
+        pos: { x: pp.x - (toCam.x / l) * 2.4, y: pp.y + 1.7, z: pp.z - (toCam.z / l) * 2.4 },
+        color: [0.55, 0.78, 1.0], radius: 6.5, intensity: 1.0   // cool rim from behind
+      });
+    }
 
     // ropes near the camera, rebuilt as one mesh
     var rb = this.ropeBuilder.reset();
@@ -7909,6 +8625,29 @@
     this.bodyEl = this.panel.querySelector('.octo-panel-body');
     this.panel.querySelector('.octo-close').addEventListener('click', function () { self.closePanel(); });
 
+    // ---------- character select
+    this.select = el('div', 'octo-screen octo-select hidden');
+    this.select.innerHTML =
+      '<div class="octo-select-head">' +
+      '  <div class="octo-select-eyebrow"></div>' +
+      '  <h2 class="octo-select-title"></h2>' +
+      '</div>' +
+      '<div class="octo-select-detail">' +
+      '  <div class="octo-sel-name"></div>' +
+      '  <div class="octo-sel-role"></div>' +
+      '  <div class="octo-sel-line"></div>' +
+      '  <div class="octo-sel-bars"></div>' +
+      '  <div class="octo-sel-lore"></div>' +
+      '</div>' +
+      '<div class="octo-select-foot">' +
+      '  <div class="octo-class-row"></div>' +
+      '  <button class="octo-select-go"></button>' +
+      '</div>';
+    r.appendChild(this.select);
+    this.classRow = this.select.querySelector('.octo-class-row');
+    this.select.querySelector('.octo-select-go')
+      .addEventListener('click', function () { self.confirmClass(); });
+
     // ---------- beta panel
     this.beta = el('div', 'octo-beta hidden');
     r.appendChild(this.beta);
@@ -7964,7 +8703,8 @@
     menu.innerHTML = '';
     var hasSave = !!(this.game.save && (this.game.save.dirhams || (this.game.save.pearls || []).length));
     var items = [
-      { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.startGame(); } },
+      { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.beginNewGame(); } },
+      { label: this.lang === 'ar' ? 'شاهد المقدمة' : 'Watch the intro', fn: function () { self.playIntro(); } },
       { label: this.t('controls'), fn: function () { self.openPanel('controls'); } },
       { label: this.t('settings'), fn: function () { self.openPanel('settings'); } },
       { label: this.lang === 'en' ? 'العربية' : 'English', fn: function () { self.toggleLang(); } }
@@ -7973,6 +8713,128 @@
       var b = el('button', 'octo-menu-btn', it.label);
       b.addEventListener('click', function () { self.game.audio && self.game.audio.play('ui'); it.fn(); });
       menu.appendChild(b);
+    });
+  };
+
+  /* ---------------------------------------------------- character select */
+
+  /**
+   * Class picking happens in the world, not on a menu backdrop: the camera
+   * frames the actual player avatar and the mesh rebuilds the moment the
+   * discipline changes, so you are looking at the character you will play.
+   */
+  Ui.prototype.showSelect = function () {
+    var self = this, g = this.game;
+    this.screen = 'select';
+    this.loading.classList.add('hidden');
+    this.title.classList.add('hidden');
+    this.hud.classList.add('hidden');
+    this.select.classList.remove('hidden');
+    g.paused = false;
+    g.prepareSelect();
+
+    this.select.querySelector('.octo-select-eyebrow').textContent =
+      this.lang === 'ar' ? 'نقابة ماشي الخيط' : 'The Line-Walkers’ Guild';
+    this.select.querySelector('.octo-select-title').textContent =
+      this.lang === 'ar' ? 'اختر انضباطك' : 'Choose your discipline';
+    this.select.querySelector('.octo-select-go').textContent =
+      this.lang === 'ar' ? 'ابدأ' : 'Begin';
+
+    this.classRow.innerHTML = '';
+    OCTO.CLASSES.forEach(function (c) {
+      var b = el('button', 'octo-class-chip');
+      var col = c.skin.cloth;
+      b.innerHTML =
+        '<i style="background:rgb(' + Math.round(col[0] * 255) + ',' + Math.round(col[1] * 255) + ',' + Math.round(col[2] * 255) + ')"></i>' +
+        '<span>' + (self.lang === 'ar' ? c.ar : c.en) + '</span>';
+      b.addEventListener('click', function () { self.pickClass(c.id); });
+      b.dataset.classId = c.id;
+      self.classRow.appendChild(b);
+    });
+
+    this.pickClass(g.save.classId || 'muqatil');
+  };
+
+  Ui.prototype.pickClass = function (id) {
+    var g = this.game, self = this;
+    var c = OCTO.classById(id);
+    this.selectedClass = c.id;
+    g.player.applyClass(c.id);
+    g.player.form = 'human';
+
+    Array.prototype.forEach.call(this.classRow.children, function (b) {
+      b.classList.toggle('active', b.dataset.classId === c.id);
+    });
+
+    this.select.querySelector('.octo-sel-name').textContent = this.lang === 'ar' ? c.ar : c.en;
+    this.select.querySelector('.octo-sel-role').textContent =
+      (this.lang === 'ar' ? c.roleAr : c.roleEn) + ' · ' + (this.lang === 'ar' ? c.en : c.ar);
+    this.select.querySelector('.octo-sel-line').textContent = this.lang === 'ar' ? c.lineAr : c.lineEn;
+    this.select.querySelector('.octo-sel-lore').textContent = this.lang === 'ar' ? c.loreAr : c.loreEn;
+
+    var labels = this.lang === 'ar'
+      ? { speed: 'سرعة', balance: 'اتزان', power: 'قوة', support: 'إسناد' }
+      : { speed: 'Speed', balance: 'Balance', power: 'Power', support: 'Support' };
+    var bars = '';
+    ['speed', 'balance', 'power', 'support'].forEach(function (k) {
+      var n = c.bars[k];
+      var pips = '';
+      for (var i = 0; i < 5; i++) pips += '<b class="' + (i < n ? 'on' : '') + '"></b>';
+      bars += '<div class="octo-bar-row"><span>' + labels[k] + '</span><div class="octo-pips">' + pips + '</div></div>';
+    });
+    this.select.querySelector('.octo-sel-bars').innerHTML = bars;
+
+    g.audio && g.audio.play('ui');
+  };
+
+  Ui.prototype.confirmClass = function () {
+    var g = this.game;
+    g.save.classId = this.selectedClass;
+    g.selecting = false;
+    g.player.lineCooldown = 0;
+    g.persist();
+    this.select.classList.add('hidden');
+    g.camera.free = false;
+    g.frameCamera();
+    this.startGame();
+    var c = OCTO.classById(this.selectedClass);
+    g.toast((this.lang === 'ar' ? 'أنت الآن ' : 'You are now a ') + (this.lang === 'ar' ? c.ar : c.en), 'mission');
+  };
+
+  /**
+   * Route into play: first-time players get the opening and then choose a
+   * discipline; returning players go straight back to the city.
+   */
+  Ui.prototype.beginNewGame = function () {
+    var self = this, g = this.game;
+    if (g.audio && !g.muted) { g.audio.init(); g.audio.resume(); }
+    this.title.classList.add('hidden');
+    this.loading.classList.add('hidden');
+    if (!g.save.seenIntro && g.cine) {
+      g.save.seenIntro = true;
+      g.persist();
+      this.screen = 'cine';
+      g.cine.start(function () { self.showSelect(); });
+    } else if (!g.save.classId) {
+      this.showSelect();
+    } else {
+      this.startGame();
+    }
+  };
+
+  Ui.prototype.playIntro = function () {
+    var self = this, g = this.game;
+    if (!g.cine) return;
+    if (g.audio && !g.muted) { g.audio.init(); g.audio.resume(); }
+    this.title.classList.add('hidden');
+    this.hud.classList.add('hidden');
+    this.select.classList.add('hidden');
+    this.panel.classList.add('hidden');
+    this.screen = 'cine';
+    g.paused = false;
+    g.cine.start(function () {
+      if (!g.save.classId) self.showSelect();
+      else { g.camera.free = false; g.frameCamera(); self.startGame(); }
     });
   };
 
@@ -8406,6 +9268,12 @@
   Ui.prototype.update = function (dt) {
     var g = this.game, input = this.input;
 
+    if (this.screen === 'cine' || this.screen === 'select') {
+      // the opening and the guild hall own the screen; only skipping applies
+      if (this.screen === 'cine' && (input.hit('jump') || input.hit('pause'))) this.game.cine.finish();
+      return;
+    }
+
     // global hotkeys
     if (input.hit('lang')) this.toggleLang();
     if (input.hit('beta')) this.toggleBeta();
@@ -8468,7 +9336,7 @@
     }
 
     // ability readouts
-    var dashPct = Math.round((1 - clamp(p.dashCooldown / OCTO.PLAYER_TUNING.dashCooldown, 0, 1)) * 100);
+    var dashPct = Math.round((1 - clamp(p.dashCooldown / p.tune.dashCooldown, 0, 1)) * 100);
     this.abilityEl.innerHTML =
       '<div class="octo-ability' + (dashPct >= 100 ? ' ready' : '') + '"><kbd>F</kbd>' +
       '<div class="octo-ability-bar"><i style="width:' + dashPct + '%"></i></div></div>' +
@@ -8517,6 +9385,217 @@
 
   OCTO.Ui = Ui;
   OCTO.STRINGS = STR;
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ===== src/95-cinematic.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 95-cinematic.js
+ *
+ * The opening. Rendered in-engine through the real world — no video
+ * file, consistent with the project's no-assets rule — as a sequence of
+ * camera moves with title cards, driving the time of day as it goes.
+ *
+ * Skippable at any moment, and never shown twice unless asked for.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+  var U = OCTO.util, clamp = U.clamp, smoothstep = U.smootherstep;
+
+  /**
+   * Shots are authored against world anchors so they stay valid for any
+   * seed. `hour` drives the sky, which is what carries the mood shift from
+   * the dark cistern to the dawn souq.
+   */
+  function makeShots(world) {
+    var plaza = world.anchors.plaza;
+    var minaret = world.anchors.minaret;
+    var harbour = world.anchors.harbour;
+    var towers = world.districts.towers.center;
+    var oasis = world.anchors.oasis;
+
+    return [
+      {
+        dur: 5.0, hour: 3.4, fov: 52,
+        // low under the ropes, looking up: the city hangs over you
+        from: { p: { x: plaza.x + 6, y: 0.7, z: plaza.z + 16 }, t: { x: plaza.x, y: 16, z: plaza.z - 6 } },
+        to:   { p: { x: plaza.x + 2, y: 1.6, z: plaza.z + 11 }, t: { x: plaza.x, y: 22, z: plaza.z - 10 } },
+        en: 'Something under the city is pulling.',
+        ar: 'شيء تحت المدينة يشدّ.'
+      },
+      {
+        dur: 5.5, hour: 4.2, fov: 46,
+        // climb the cables toward the minaret
+        from: { p: { x: minaret.x + 26, y: 6, z: minaret.z + 26 }, t: { x: minaret.x, y: 10, z: minaret.z } },
+        to:   { p: { x: minaret.x + 13, y: 27, z: minaret.z + 15 }, t: { x: minaret.x, y: 27, z: minaret.z } },
+        en: 'Eight arms. Eight cables. One city.',
+        ar: 'ثمانية أذرع. ثمانية كوابل. مدينة واحدة.'
+      },
+      {
+        dur: 5.5, hour: 5.4, fov: 58,
+        // out along the long line to Sky Harbour
+        from: { p: { x: minaret.x + 8, y: 30, z: minaret.z - 8 }, t: { x: harbour.x, y: harbour.y, z: harbour.z } },
+        to:   { p: { x: (minaret.x + harbour.x) / 2, y: 44, z: (minaret.z + harbour.z) / 2 }, t: { x: harbour.x, y: harbour.y + 4, z: harbour.z } },
+        en: 'Whoever holds the Lines holds Samarā’.',
+        ar: 'من يملك الخيوط يملك سَمَراء.'
+      },
+      {
+        dur: 5.5, hour: 6.4, fov: 50,
+        // the towers, leaning
+        from: { p: { x: towers.x + 150, y: 40, z: towers.z + 150 }, t: { x: towers.x, y: 70, z: towers.z } },
+        to:   { p: { x: towers.x + 95, y: 78, z: towers.z + 95 }, t: { x: towers.x, y: 95, z: towers.z } },
+        en: 'And the towers are already leaning.',
+        ar: 'والأبراج مائلة منذ الآن.'
+      },
+      {
+        dur: 5.0, hour: 7.2, fov: 55,
+        // dawn over the oasis: ordinary life, unaware
+        from: { p: { x: oasis.x + 40, y: 12, z: oasis.z + 40 }, t: { x: oasis.x, y: 3, z: oasis.z } },
+        to:   { p: { x: oasis.x + 22, y: 6, z: oasis.z + 24 }, t: { x: oasis.x, y: 2, z: oasis.z } },
+        en: 'The quarter wakes, and does not look up.',
+        ar: 'يستيقظ الحيّ، ولا ينظر إلى أعلى.'
+      },
+      {
+        dur: 6.5, hour: 8.0, fov: 44, title: true,
+        // settle on the plaza for the title card
+        from: { p: { x: plaza.x + 26, y: 12, z: plaza.z + 26 }, t: { x: plaza.x, y: 5, z: plaza.z } },
+        to:   { p: { x: plaza.x + 15, y: 7, z: plaza.z + 15 }, t: { x: plaza.x, y: 3, z: plaza.z } },
+        en: 'Octopuses on the Line',
+        ar: 'أخطبوطات على الخيط',
+        subEn: 'Head of the Line', subAr: 'رأس الخيط'
+      }
+    ];
+  }
+
+  function Cinematic(game, ui) {
+    this.game = game;
+    this.ui = ui;
+    this.active = false;
+    this.shots = [];
+    this.index = 0;
+    this.t = 0;
+    this.total = 0;
+    this.el = null;
+    this._built = false;
+  }
+
+  Cinematic.prototype._build = function () {
+    if (this._built) return;
+    this._built = true;
+    var self = this;
+    var el = document.createElement('div');
+    el.className = 'octo-cine hidden';
+    el.innerHTML =
+      '<div class="octo-cine-bar octo-cine-top"></div>' +
+      '<div class="octo-cine-bar octo-cine-bottom"></div>' +
+      '<div class="octo-cine-fade"></div>' +
+      '<div class="octo-cine-caption"><div class="octo-cine-en"></div><div class="octo-cine-ar"></div></div>' +
+      '<div class="octo-cine-title">' +
+      '  <div class="octo-cine-title-ar"></div>' +
+      '  <div class="octo-cine-title-en"></div>' +
+      '  <div class="octo-cine-title-sub"></div>' +
+      '</div>' +
+      '<button class="octo-cine-skip"></button>' +
+      '<div class="octo-cine-progress"><i></i></div>';
+    this.ui.root.appendChild(el);
+    this.el = el;
+    this.fadeEl = el.querySelector('.octo-cine-fade');
+    this.capEl = el.querySelector('.octo-cine-caption');
+    this.capEn = el.querySelector('.octo-cine-en');
+    this.capAr = el.querySelector('.octo-cine-ar');
+    this.titleEl = el.querySelector('.octo-cine-title');
+    this.progEl = el.querySelector('.octo-cine-progress i');
+    this.skipEl = el.querySelector('.octo-cine-skip');
+    this.skipEl.addEventListener('click', function (e) { e.stopPropagation(); self.finish(); });
+    // Any tap anywhere skips — nobody should be trapped in a cutscene.
+    el.addEventListener('click', function () { self.finish(); });
+  };
+
+  Cinematic.prototype.start = function (onDone) {
+    this._build();
+    this.shots = makeShots(this.game.world);
+    this.total = 0;
+    for (var i = 0; i < this.shots.length; i++) this.total += this.shots[i].dur;
+    this.index = 0;
+    this.t = 0;
+    this.elapsed = 0;
+    this.active = true;
+    this.onDone = onDone;
+    this.el.classList.remove('hidden');
+    this.skipEl.textContent = this.ui.lang === 'ar' ? 'تخطٍ ⏭' : 'Skip ⏭';
+    this.game.timeFrozen = true;
+    this._applyShot(0);
+    return this;
+  };
+
+  Cinematic.prototype.finish = function () {
+    if (!this.active) return;
+    this.active = false;
+    this.el.classList.add('hidden');
+    this.game.timeFrozen = false;
+    if (this.onDone) { var d = this.onDone; this.onDone = null; d(); }
+  };
+
+  Cinematic.prototype._applyShot = function (i) {
+    var s = this.shots[i];
+    if (!s) return;
+    this.capEn.textContent = s.title ? '' : s.en;
+    this.capAr.textContent = s.title ? '' : s.ar;
+    this.capEl.classList.toggle('hidden', !!s.title);
+    this.titleEl.classList.toggle('hidden', !s.title);
+    if (s.title) {
+      this.titleEl.querySelector('.octo-cine-title-ar').textContent = s.ar;
+      this.titleEl.querySelector('.octo-cine-title-en').textContent = s.en;
+      this.titleEl.querySelector('.octo-cine-title-sub').textContent =
+        (this.ui.lang === 'ar' ? s.subAr : s.subEn) + ' · ' + (this.ui.lang === 'ar' ? 'نسخة تجريبية' : 'BETA') + ' v' + OCTO.VERSION;
+    }
+  };
+
+  /** Called from Game.update while active; owns the camera outright. */
+  Cinematic.prototype.update = function (dt, camera) {
+    if (!this.active) return;
+    var s = this.shots[this.index];
+    if (!s) { this.finish(); return; }
+
+    this.t += dt;
+    this.elapsed += dt;
+    var k = clamp(this.t / s.dur, 0, 1);
+    var e = smoothstep(0, 1, k);          // ease both ends of every move
+
+    camera.free = true;                    // stop the follow logic fighting us
+    camera.pos.x = U.lerp(s.from.p.x, s.to.p.x, e);
+    camera.pos.y = U.lerp(s.from.p.y, s.to.p.y, e);
+    camera.pos.z = U.lerp(s.from.p.z, s.to.p.z, e);
+    camera.target.x = U.lerp(s.from.t.x, s.to.t.x, e);
+    camera.target.y = U.lerp(s.from.t.y, s.to.t.y, e);
+    camera.target.z = U.lerp(s.from.t.z, s.to.t.z, e);
+    camera.fov = (s.fov || 52) * OCTO.DEG;
+
+    // time of day eases with the cut, so the sky tells the story too
+    var next = this.shots[this.index + 1];
+    this.game.hour = next ? U.lerp(s.hour, next.hour, e) : s.hour;
+    this.game._updateEnvironment();
+
+    // fade at both ends of each shot
+    var fade = 1 - Math.min(smoothstep(0, 0.6, this.t), smoothstep(0, 0.6, s.dur - this.t));
+    this.fadeEl.style.opacity = (this.index === 0 ? Math.max(fade, 1 - smoothstep(0, 1.4, this.t)) : fade).toFixed(3);
+    this.progEl.style.width = ((this.elapsed / this.total) * 100).toFixed(1) + '%';
+
+    var caption = clamp((this.t - 0.5) / 0.7, 0, 1) * clamp((s.dur - this.t) / 0.6, 0, 1);
+    this.capEl.style.opacity = caption.toFixed(3);
+    this.titleEl.style.opacity = clamp((this.t - 0.8) / 1.2, 0, 1).toFixed(3);
+
+    if (this.t >= s.dur) {
+      this.index++;
+      this.t = 0;
+      if (this.index >= this.shots.length) { this.finish(); return; }
+      this._applyShot(this.index);
+    }
+  };
+
+  OCTO.Cinematic = Cinematic;
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -8654,6 +9733,9 @@
         for (var i = 0; i < 24; i++) {
           for (var r = 0; r < game.ropes.length; r++) game.ropes[r].update(STEP, 0, i * STEP);
         }
+      }],
+      ['Calling the guild…', 'ننادي النقابة…', function () {
+        game.cine = new OCTO.Cinematic(game, ui);
       }],
       ['Waking the octopuses…', 'نوقظ الأخطبوطات…', function () {
         if (ui.isTouchDevice()) ensureTouchControls();
@@ -9087,6 +10169,9 @@
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
+
+
+
 
 
 

@@ -132,6 +132,9 @@
           for (var r = 0; r < game.ropes.length; r++) game.ropes[r].update(STEP, 0, i * STEP);
         }
       }],
+      ['Calling the guild…', 'ننادي النقابة…', function () {
+        game.cine = new OCTO.Cinematic(game, ui);
+      }],
       ['Waking the octopuses…', 'نوقظ الأخطبوطات…', function () {
         if (ui.isTouchDevice()) ensureTouchControls();
       }]

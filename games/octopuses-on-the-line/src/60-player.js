@@ -108,6 +108,16 @@
       hat: 'none'
     };
 
+    // Form and discipline. The octopus rig is kept for NPCs and for the
+    // antagonist; the player is a Line-Walker.
+    this.form = spawn.form || 'human';
+    this.classId = spawn.classId || 'muqatil';
+    this.classDef = OCTO.classById(this.classId);
+    this.upgrades = {};
+    this.tune = {};
+    this.applyClass(this.classId);
+    this.walkPhase = 0;
+
     this.gaitTime = 0;
     this.tentacles = [];
     this._initTentacles();
@@ -161,6 +171,37 @@
         segLen: segLen
       });
     }
+  };
+
+  /**
+   * Fold the discipline's stats — and any purchased upgrades — into this
+   * octopus's own tuning. Nothing is stored globally, so two Line-Walkers of
+   * different classes can coexist.
+   */
+  Octopus.prototype.applyClass = function (classId) {
+    if (classId) { this.classId = classId; this.classDef = OCTO.classById(classId); }
+    var t = this.tune;
+    for (var k in TUNING) t[k] = TUNING[k];
+    var st = this.classDef.stats;
+    for (var j in st) t[j] = st[j];
+    t.balanceControl = st.balanceControl;
+    t.lineWeight = st.lineWeight;
+    t.destabilise = st.destabilise;
+    if (this.upgrades.jump) t.jumpVelocity *= 1.17;
+    if (this.upgrades.dash) t.dashCooldown = 0.85;
+    if (this.upgrades.grip) t.balanceControl *= 1.25;
+    return this;
+  };
+
+  /** Advance the biped walk cycle. Cheap: no verlet, no IK. */
+  Octopus.prototype._updateBiped = function (dt) {
+    var moving = this.speed > 0.35 && (this.state === 'ground' || this.state === 'line');
+    var rate = this.state === 'line'
+      ? 2.2 + this.speed * 1.6
+      : 2.6 + (this.speed / Math.max(1, this.tune.walkSpeed)) * 7.0;
+    if (moving) this.walkPhase += dt * rate;
+    else this.walkPhase += dt * 0.9;   // idle sway keeps the pose alive
+    if (this.walkPhase > 1e6) this.walkPhase = 0;
   };
 
   /* --------------------------------------------------------------- api */
@@ -219,7 +260,8 @@
     else this._updateWalk(dt, input, camera);
 
     this._updateBodyMotion(dt);
-    this._updateTentacles(dt);
+    if (this.form === 'octopus') this._updateTentacles(dt);
+    else this._updateBiped(dt);
 
     var dx = this.pos.x - startX, dz = this.pos.z - startZ;
     this.stats.distance += Math.sqrt(dx * dx + dz * dz);
@@ -252,13 +294,13 @@
     var wishLen = Math.sqrt(wishX * wishX + wishZ * wishZ);
     if (wishLen > 1e-4) { wishX /= wishLen; wishZ /= wishLen; }
 
-    var maxSpeed = sprint ? TUNING.sprintSpeed : TUNING.walkSpeed;
+    var maxSpeed = sprint ? this.tune.sprintSpeed : this.tune.walkSpeed;
     if (this.carry) maxSpeed *= 0.82;
-    var accel = this.grounded ? TUNING.groundAccel : TUNING.airAccel;
+    var accel = this.grounded ? this.tune.groundAccel : this.tune.airAccel;
 
     if (this.dashTimer > 0) {
       this.dashTimer -= dt;
-      maxSpeed = TUNING.dashSpeed;
+      maxSpeed = this.tune.dashSpeed;
       accel = 60;
       if (wishLen < 1e-4) { wishX = Math.sin(this.yaw); wishZ = Math.cos(this.yaw); wishLen = 1; }
     }
@@ -269,19 +311,19 @@
       this.vel.z += (targetZ - this.vel.z) * clamp(accel * dt / maxSpeed, 0, 1);
       this.yaw = U.dampAngle(this.yaw, Math.atan2(wishX, wishZ), this.grounded ? 13 : 7, dt);
     } else if (this.grounded) {
-      var f = Math.exp(-TUNING.groundFriction * dt);
+      var f = Math.exp(-this.tune.groundFriction * dt);
       this.vel.x *= f; this.vel.z *= f;
     }
 
     // gravity
     this.vel.y += GRAVITY * dt;
-    if (this.vel.y < TUNING.maxFallSpeed) this.vel.y = TUNING.maxFallSpeed;
+    if (this.vel.y < this.tune.maxFallSpeed) this.vel.y = this.tune.maxFallSpeed;
 
     // jump
-    if (input.hit('jump')) this.jumpBuffered = TUNING.jumpBuffer;
+    if (input.hit('jump')) this.jumpBuffered = this.tune.jumpBuffer;
     this.jumpBuffered = Math.max(0, this.jumpBuffered - dt);
     if (this.jumpBuffered > 0 && (this.grounded || this.coyote > 0)) {
-      this.vel.y = TUNING.jumpVelocity;
+      this.vel.y = this.tune.jumpVelocity;
       this.jumpBuffered = 0;
       this.coyote = 0;
       this.grounded = false;
@@ -292,13 +334,13 @@
 
     // ink dash
     if (input.hit('dash') && this.dashCooldown <= 0) {
-      this.dashTimer = TUNING.dashDuration;
-      this.dashCooldown = TUNING.dashCooldown;
+      this.dashTimer = this.tune.dashDuration;
+      this.dashCooldown = this.tune.dashCooldown;
       this.inkTimer = 0.5;
       var dirX = wishLen > 1e-4 ? wishX : Math.sin(this.yaw);
       var dirZ = wishLen > 1e-4 ? wishZ : Math.cos(this.yaw);
-      this.vel.x = dirX * TUNING.dashSpeed;
-      this.vel.z = dirZ * TUNING.dashSpeed;
+      this.vel.x = dirX * this.tune.dashSpeed;
+      this.vel.z = dirZ * this.tune.dashSpeed;
       if (!this.grounded) this.vel.y = Math.max(this.vel.y, 1.5);
       this.game.audio && this.game.audio.play('dash');
       this.game.spawnInk && this.game.spawnInk(this.pos, 14);
@@ -369,7 +411,7 @@
         this.vel.y = 0;
         if (!wasGrounded) this._land(impact);
       }
-      this.coyote = TUNING.coyoteTime;
+      this.coyote = this.tune.coyoteTime;
       this.lastGroundY = this.pos.y;
       this.airTime = 0;
     } else {
@@ -402,7 +444,7 @@
     var v = Math.abs(impactVel);
     this.squash = clamp(1 - v * 0.022, 0.55, 1);
     this.game.audio && this.game.audio.play('land', clamp(v / 20, 0.2, 1));
-    if (impactVel < TUNING.terminalDamage) {
+    if (impactVel < this.tune.terminalDamage) {
       this.enterRagdoll(1.5);
       this.game.onHardLanding && this.game.onHardLanding(v);
     }
@@ -420,7 +462,7 @@
     var rx = upy * n.z - upz * n.y, ry = upz * n.x - upx * n.z, rz = upx * n.y - upy * n.x;
     var rl = Math.sqrt(rx * rx + ry * ry + rz * rz) || 1;
     rx /= rl; ry /= rl; rz /= rl;
-    var s = TUNING.climbSpeed * (input.held('sprint') ? 1.6 : 1);
+    var s = this.tune.climbSpeed * (input.held('sprint') ? 1.6 : 1);
     this.vel.x = rx * move.x * s;
     this.vel.y = move.y * s;
     this.vel.z = rz * move.x * s;
@@ -451,10 +493,10 @@
       this.state = 'air';
       this.vel.x = n.x * 7 + this.vel.x * 0.3;
       this.vel.z = n.z * 7 + this.vel.z * 0.3;
-      this.vel.y = TUNING.jumpVelocity * 0.85;
+      this.vel.y = this.tune.jumpVelocity * 0.85;
       this.game.audio && this.game.audio.play('jump');
     }
-    this.speed = TUNING.climbSpeed * Math.abs(move.x || move.y);
+    this.speed = this.tune.climbSpeed * Math.abs(move.x || move.y);
   };
 
   /* -------------------------------------------------------------- line */
@@ -513,13 +555,13 @@
 
     // ---- travel along the rope
     var sprint = input.held('sprint');
-    var target = move.y * (sprint ? TUNING.lineSprintSpeed : TUNING.lineWalkSpeed);
+    var target = move.y * (sprint ? this.tune.lineSprintSpeed : this.tune.lineWalkSpeed);
     // A steep rope lets you zip: gravity assists in the downhill direction.
     var tan = rope.tangentAt(this.lineT, this._tmp);
     var slope = tan.y;
     var facingSign = this.lineDir;
     var downhill = -slope * facingSign;
-    if (sprint && Math.abs(slope) > 0.08) target += downhill * TUNING.lineZipSpeed;
+    if (sprint && Math.abs(slope) > 0.08) target += downhill * this.tune.lineZipSpeed;
     this.lineSpeed = damp(this.lineSpeed, target, 6, dt);
 
     var len = Math.max(1, rope.length);
@@ -530,10 +572,11 @@
     var jitter = (this.balanceNoise.value2(this.noiseT * 1.6, rope.id * 3.1) - 0.5);
     var destab = Math.sin(this.tilt) * 6.2;
     destab += jitter * (1.4 + wind * 2.2);
+    destab *= this.tune.destabilise;
     destab += Math.abs(this.lineSpeed) * 0.35 * Math.sin(this.noiseT * 7.0);
     if (this.carry) destab *= 1.35;
     this.tiltVel += destab * dt;
-    this.tiltVel -= move.x * 5.2 * dt;
+    this.tiltVel -= move.x * this.tune.balanceControl * dt;
     if (this.gripping) {
       this.tiltVel *= Math.exp(-7.5 * dt);
       this.tilt *= Math.exp(-2.6 * dt);
@@ -557,7 +600,8 @@
 
     // ---- load the rope so it visibly sags under us
     var n = rope.verlet.p.length;
-    rope.load = { index: Math.round(clamp(this.lineT, 0, 1) * (n - 1)), weight: 34 };
+    // A Tank genuinely bends the rope further than an Archer does.
+    rope.load = { index: Math.round(clamp(this.lineT, 0, 1) * (n - 1)), weight: this.tune.lineWeight };
 
     // ---- ends of the rope: step off onto the anchor
     if (this.lineT <= 0.001 || this.lineT >= 0.999) {
@@ -573,7 +617,7 @@
       var t3 = rope.tangentAt(this.lineT, this._tmp2);
       this.detachLine({
         x: t3.x * facingSign * Math.abs(this.lineSpeed) + Math.sin(this.yaw) * 2,
-        y: TUNING.jumpVelocity * 0.95,
+        y: this.tune.jumpVelocity * 0.95,
         z: t3.z * facingSign * Math.abs(this.lineSpeed) + Math.cos(this.yaw) * 2
       });
       this.stats.jumps++;
@@ -629,7 +673,7 @@
   Octopus.prototype._updateRagdoll = function (dt, input) {
     this.ragdollTimer -= dt;
     this.vel.y += GRAVITY * dt;
-    if (this.vel.y < TUNING.maxFallSpeed) this.vel.y = TUNING.maxFallSpeed;
+    if (this.vel.y < this.tune.maxFallSpeed) this.vel.y = this.tune.maxFallSpeed;
     this._integrateAndCollide(dt);
     if (this.grounded) {
       var f = Math.exp(-6.5 * dt);
@@ -732,7 +776,7 @@
     var onLine = this.state === 'line';
     var floppy = this.state === 'air' || this.state === 'ragdoll' || this.wobble > 0.6;
 
-    var gaitSpeed = clamp(this.speed / TUNING.walkSpeed, 0, 1.7);
+    var gaitSpeed = clamp(this.speed / this.tune.walkSpeed, 0, 1.7);
     this.gaitTime += dt * (0.9 + gaitSpeed * 2.6);
 
     var cy = Math.cos(this.visualYaw), sy = Math.sin(this.visualYaw);
@@ -793,7 +837,7 @@
           var e = U.smoothstep(0, 1, t.stepT);
           t.foot.x = U.lerp(t.prevFoot.x, t.nextFoot.x, e);
           t.foot.z = U.lerp(t.prevFoot.z, t.nextFoot.z, e);
-          t.foot.y = U.lerp(t.prevFoot.y, t.nextFoot.y, e) + Math.sin(e * Math.PI) * TUNING.stepHeight * (0.4 + gaitSpeed * 0.6);
+          t.foot.y = U.lerp(t.prevFoot.y, t.nextFoot.y, e) + Math.sin(e * Math.PI) * this.tune.stepHeight * (0.4 + gaitSpeed * 0.6);
         }
         tip.pinned = true;
         tip.x = t.foot.x; tip.y = t.foot.y; tip.z = t.foot.z;
@@ -844,6 +888,14 @@
   /** Rebuild the octopus mesh in world space. Called once per frame. */
   Octopus.prototype.buildMesh = function (renderer, quality) {
     var mb = this.builder.reset();
+    if (this.form === 'human') {
+      OCTO.avatar.buildHuman(mb, this, quality);
+      var hd = mb.build();
+      if (!this.mesh) this.mesh = renderer.createMesh(hd.verts, hd.indices, true);
+      else this.mesh.update(hd.verts, hd.indices);
+      if (!_m) _m = M4.create();
+      return { mesh: this.mesh, model: _m };
+    }
     var skin = this.skin;
     var wob = this.wobble;
 

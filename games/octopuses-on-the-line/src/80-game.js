@@ -221,7 +221,10 @@
       delete w.meshData;
     }
 
-    this.player = new OCTO.Octopus(this, this.world.spawn);
+    var spawn = this.world.spawn;
+    spawn.classId = this.save.classId || 'muqatil';
+    spawn.form = 'human';
+    this.player = new OCTO.Octopus(this, spawn);
     this.camera = new OCTO.Camera(this.player);
     this.camera.yaw = this.world.spawn.yaw;
     this.lastCheckpoint = { x: this.world.spawn.x, y: this.world.spawn.y, z: this.world.spawn.z, yaw: this.world.spawn.yaw };
@@ -408,11 +411,16 @@
       }
     }
 
-    this.player.update(dt, input, this.camera);
+    var scripted = (this.cine && this.cine.active) || this.selecting;
+    // During the opening and character select the world keeps living, but the
+    // camera is authored and the player takes no input.
+    this.player.update(dt, scripted ? NULL_INPUT : input, this.camera);
     this.player.updateCarry(dt);
     var aspect = this.renderer.width / Math.max(1, this.renderer.height);
     this.camera.aspectBoost = aspect < 0.8 ? clamp(1 + (0.8 - aspect) * 1.1, 1, 1.55) : 1;
-    this.camera.update(dt, input, this.world.physics);
+    if (this.cine && this.cine.active) this.cine.update(dt, this.camera);
+    else if (this.selecting) this._selectCamera(dt);
+    else this.camera.update(dt, input, this.world.physics);
 
     for (var n = 0; n < this.npcs.length; n++) {
       var npc = this.npcs[n];
@@ -445,6 +453,81 @@
   };
 
   function sq(v) { return v * v; }
+
+  /** An input that never reports anything, for scripted sequences. */
+  var NULL_INPUT = {
+    moveAxis: function (o) { o = o || {}; o.x = 0; o.y = 0; return o; },
+    lookDelta: function (o) { o = o || {}; o.x = 0; o.y = 0; return o; },
+    held: function () { return false; },
+    hit: function () { return false; },
+    endFrame: function () {},
+    poll: function () {},
+    mouse: { dx: 0, dy: 0, wheel: 0, locked: false, left: false, right: false },
+    touch: { active: false, move: { x: 0, y: 0 }, look: { x: 0, y: 0 }, buttons: {}, pressed: {} },
+    invertY: false
+  };
+
+  /**
+   * Find somewhere the avatar can be shown from every angle. The spawn sits
+   * among market stalls, and an orbiting camera there spends most of its
+   * circle inside a hanging carpet.
+   */
+  Game.prototype.findOpenSpot = function (center) {
+    var phys = this.world.physics;
+    var best = null, bestClear = -1;
+    for (var i = 0; i < 32; i++) {
+      var a = (i / 32) * TAU;
+      var r = 5 + (i % 4) * 5;
+      var x = center.x + Math.cos(a) * r;
+      var z = center.z + Math.sin(a) * r;
+      var gy = phys.groundHeight(x, center.y + 30, z, 40);
+      if (!isFinite(gy)) continue;
+      var eye = { x: x, y: gy + 1.3, z: z };
+      var minClear = 99;
+      for (var k = 0; k < 10; k++) {
+        var ka = (k / 10) * TAU;
+        var hit = phys.raycast(eye, { x: Math.cos(ka), y: 0.06, z: Math.sin(ka) }, 9);
+        var clear = hit ? hit.t : 9;
+        if (clear < minClear) minClear = clear;
+      }
+      if (minClear > bestClear) { bestClear = minClear; best = { x: x, y: gy, z: z }; }
+    }
+    return best || { x: center.x, y: center.y, z: center.z };
+  };
+
+  /** Stage the avatar for character select. */
+  Game.prototype.prepareSelect = function () {
+    var spot = this.findOpenSpot(this.world.anchors.plaza);
+    this.player.teleport(spot.x, spot.y + 0.4, spot.z, 0);
+    this.player.lineCooldown = 999;      // no grabbing ropes on the podium
+    this.selectAngle = 0;
+    this.selecting = true;
+  };
+
+  /** Slow orbit that frames the avatar during character select. */
+  Game.prototype._selectCamera = function (dt) {
+    var c = this.camera, p = this.player.pos;
+    this.selectAngle = (this.selectAngle || 0) + dt * 0.22;
+    var portrait = this.renderer.width < this.renderer.height;
+    var dist = portrait ? 4.2 : 3.4;
+    var eye = { x: p.x, y: p.y + 0.92, z: p.z };
+    c.free = true;
+    // The plaza has stalls and awnings in it, and an orbit that ignores them
+    // ends up inside a hanging carpet with the avatar nowhere in frame.
+    var dir = { x: Math.sin(this.selectAngle), y: 0.09, z: Math.cos(this.selectAngle) };
+    var dl = Math.sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z) || 1;
+    dir.x /= dl; dir.y /= dl; dir.z /= dl;
+    var hit = this.world.physics.raycast(eye, dir, dist + 0.5);
+    if (hit) dist = Math.max(1.9, hit.t - 0.4);
+    c.pos.x = damp(c.pos.x, eye.x + dir.x * dist, 6, dt);
+    c.pos.y = damp(c.pos.y, eye.y + 0.30 + dir.y * dist, 6, dt);
+    c.pos.z = damp(c.pos.z, eye.z + dir.z * dist, 6, dt);
+    c.target.x = eye.x; c.target.y = eye.y; c.target.z = eye.z;
+    c.fov = (portrait ? 46 : 40) * OCTO.DEG;
+    // Face the camera. The camera sits at angle (sin, cos) from the avatar, so
+    // the avatar's yaw is that same angle — adding PI turns its back to us.
+    this.player.yaw = U.dampAngle(this.player.yaw, this.selectAngle, 4, dt);
+  };
 
   Game.prototype._updateEnvironment = function () {
     var env = sampleTime(this.hour);
@@ -777,9 +860,8 @@
     if (this.save.skin) this.player.skin.body = this.save.skin;
     if (this.save.skinAccent) this.player.skin.accent = this.save.skinAccent;
     this.player.skin.hat = this.save.hat || 'none';
-    var T = OCTO.PLAYER_TUNING;
-    T.jumpVelocity = this.upgrades.jump ? 11.0 : 9.4;
-    T.dashCooldown = this.upgrades.dash ? 0.85 : 1.5;
+    this.player.upgrades = this.upgrades;
+    this.player.applyClass();
   };
 
   /* --------------------------------------------------------- particles */
@@ -941,6 +1023,28 @@
 
     // player
     scene.items.push(this.player.buildMesh(this.renderer, q));
+
+    // A character standing in a shadowed alley otherwise reads as a black
+    // silhouette. A soft fill travelling with the avatar keeps it legible
+    // without lighting the world around it; character select gets a stronger
+    // key from the camera side, the way a portrait would be lit.
+    var pp = this.player.pos;
+    scene.lights.push({
+      pos: { x: pp.x, y: pp.y + 1.25, z: pp.z },
+      color: [1.0, 0.94, 0.86], radius: 3.6, intensity: 0.55
+    });
+    if (this.selecting) {
+      var toCam = { x: cam.x - pp.x, z: cam.z - pp.z };
+      var l = Math.sqrt(toCam.x * toCam.x + toCam.z * toCam.z) || 1;
+      scene.lights.push({
+        pos: { x: pp.x + (toCam.x / l) * 2.0, y: pp.y + 2.1, z: pp.z + (toCam.z / l) * 2.0 },
+        color: [1.0, 0.90, 0.76], radius: 7.5, intensity: 1.45
+      });
+      scene.lights.push({
+        pos: { x: pp.x - (toCam.x / l) * 2.4, y: pp.y + 1.7, z: pp.z - (toCam.z / l) * 2.4 },
+        color: [0.55, 0.78, 1.0], radius: 6.5, intensity: 1.0   // cool rim from behind
+      });
+    }
 
     // ropes near the camera, rebuilt as one mesh
     var rb = this.ropeBuilder.reset();

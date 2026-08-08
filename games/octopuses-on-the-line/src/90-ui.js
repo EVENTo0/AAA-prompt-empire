@@ -190,6 +190,29 @@
     this.bodyEl = this.panel.querySelector('.octo-panel-body');
     this.panel.querySelector('.octo-close').addEventListener('click', function () { self.closePanel(); });
 
+    // ---------- character select
+    this.select = el('div', 'octo-screen octo-select hidden');
+    this.select.innerHTML =
+      '<div class="octo-select-head">' +
+      '  <div class="octo-select-eyebrow"></div>' +
+      '  <h2 class="octo-select-title"></h2>' +
+      '</div>' +
+      '<div class="octo-select-detail">' +
+      '  <div class="octo-sel-name"></div>' +
+      '  <div class="octo-sel-role"></div>' +
+      '  <div class="octo-sel-line"></div>' +
+      '  <div class="octo-sel-bars"></div>' +
+      '  <div class="octo-sel-lore"></div>' +
+      '</div>' +
+      '<div class="octo-select-foot">' +
+      '  <div class="octo-class-row"></div>' +
+      '  <button class="octo-select-go"></button>' +
+      '</div>';
+    r.appendChild(this.select);
+    this.classRow = this.select.querySelector('.octo-class-row');
+    this.select.querySelector('.octo-select-go')
+      .addEventListener('click', function () { self.confirmClass(); });
+
     // ---------- beta panel
     this.beta = el('div', 'octo-beta hidden');
     r.appendChild(this.beta);
@@ -245,7 +268,8 @@
     menu.innerHTML = '';
     var hasSave = !!(this.game.save && (this.game.save.dirhams || (this.game.save.pearls || []).length));
     var items = [
-      { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.startGame(); } },
+      { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.beginNewGame(); } },
+      { label: this.lang === 'ar' ? 'شاهد المقدمة' : 'Watch the intro', fn: function () { self.playIntro(); } },
       { label: this.t('controls'), fn: function () { self.openPanel('controls'); } },
       { label: this.t('settings'), fn: function () { self.openPanel('settings'); } },
       { label: this.lang === 'en' ? 'العربية' : 'English', fn: function () { self.toggleLang(); } }
@@ -254,6 +278,128 @@
       var b = el('button', 'octo-menu-btn', it.label);
       b.addEventListener('click', function () { self.game.audio && self.game.audio.play('ui'); it.fn(); });
       menu.appendChild(b);
+    });
+  };
+
+  /* ---------------------------------------------------- character select */
+
+  /**
+   * Class picking happens in the world, not on a menu backdrop: the camera
+   * frames the actual player avatar and the mesh rebuilds the moment the
+   * discipline changes, so you are looking at the character you will play.
+   */
+  Ui.prototype.showSelect = function () {
+    var self = this, g = this.game;
+    this.screen = 'select';
+    this.loading.classList.add('hidden');
+    this.title.classList.add('hidden');
+    this.hud.classList.add('hidden');
+    this.select.classList.remove('hidden');
+    g.paused = false;
+    g.prepareSelect();
+
+    this.select.querySelector('.octo-select-eyebrow').textContent =
+      this.lang === 'ar' ? 'نقابة ماشي الخيط' : 'The Line-Walkers’ Guild';
+    this.select.querySelector('.octo-select-title').textContent =
+      this.lang === 'ar' ? 'اختر انضباطك' : 'Choose your discipline';
+    this.select.querySelector('.octo-select-go').textContent =
+      this.lang === 'ar' ? 'ابدأ' : 'Begin';
+
+    this.classRow.innerHTML = '';
+    OCTO.CLASSES.forEach(function (c) {
+      var b = el('button', 'octo-class-chip');
+      var col = c.skin.cloth;
+      b.innerHTML =
+        '<i style="background:rgb(' + Math.round(col[0] * 255) + ',' + Math.round(col[1] * 255) + ',' + Math.round(col[2] * 255) + ')"></i>' +
+        '<span>' + (self.lang === 'ar' ? c.ar : c.en) + '</span>';
+      b.addEventListener('click', function () { self.pickClass(c.id); });
+      b.dataset.classId = c.id;
+      self.classRow.appendChild(b);
+    });
+
+    this.pickClass(g.save.classId || 'muqatil');
+  };
+
+  Ui.prototype.pickClass = function (id) {
+    var g = this.game, self = this;
+    var c = OCTO.classById(id);
+    this.selectedClass = c.id;
+    g.player.applyClass(c.id);
+    g.player.form = 'human';
+
+    Array.prototype.forEach.call(this.classRow.children, function (b) {
+      b.classList.toggle('active', b.dataset.classId === c.id);
+    });
+
+    this.select.querySelector('.octo-sel-name').textContent = this.lang === 'ar' ? c.ar : c.en;
+    this.select.querySelector('.octo-sel-role').textContent =
+      (this.lang === 'ar' ? c.roleAr : c.roleEn) + ' · ' + (this.lang === 'ar' ? c.en : c.ar);
+    this.select.querySelector('.octo-sel-line').textContent = this.lang === 'ar' ? c.lineAr : c.lineEn;
+    this.select.querySelector('.octo-sel-lore').textContent = this.lang === 'ar' ? c.loreAr : c.loreEn;
+
+    var labels = this.lang === 'ar'
+      ? { speed: 'سرعة', balance: 'اتزان', power: 'قوة', support: 'إسناد' }
+      : { speed: 'Speed', balance: 'Balance', power: 'Power', support: 'Support' };
+    var bars = '';
+    ['speed', 'balance', 'power', 'support'].forEach(function (k) {
+      var n = c.bars[k];
+      var pips = '';
+      for (var i = 0; i < 5; i++) pips += '<b class="' + (i < n ? 'on' : '') + '"></b>';
+      bars += '<div class="octo-bar-row"><span>' + labels[k] + '</span><div class="octo-pips">' + pips + '</div></div>';
+    });
+    this.select.querySelector('.octo-sel-bars').innerHTML = bars;
+
+    g.audio && g.audio.play('ui');
+  };
+
+  Ui.prototype.confirmClass = function () {
+    var g = this.game;
+    g.save.classId = this.selectedClass;
+    g.selecting = false;
+    g.player.lineCooldown = 0;
+    g.persist();
+    this.select.classList.add('hidden');
+    g.camera.free = false;
+    g.frameCamera();
+    this.startGame();
+    var c = OCTO.classById(this.selectedClass);
+    g.toast((this.lang === 'ar' ? 'أنت الآن ' : 'You are now a ') + (this.lang === 'ar' ? c.ar : c.en), 'mission');
+  };
+
+  /**
+   * Route into play: first-time players get the opening and then choose a
+   * discipline; returning players go straight back to the city.
+   */
+  Ui.prototype.beginNewGame = function () {
+    var self = this, g = this.game;
+    if (g.audio && !g.muted) { g.audio.init(); g.audio.resume(); }
+    this.title.classList.add('hidden');
+    this.loading.classList.add('hidden');
+    if (!g.save.seenIntro && g.cine) {
+      g.save.seenIntro = true;
+      g.persist();
+      this.screen = 'cine';
+      g.cine.start(function () { self.showSelect(); });
+    } else if (!g.save.classId) {
+      this.showSelect();
+    } else {
+      this.startGame();
+    }
+  };
+
+  Ui.prototype.playIntro = function () {
+    var self = this, g = this.game;
+    if (!g.cine) return;
+    if (g.audio && !g.muted) { g.audio.init(); g.audio.resume(); }
+    this.title.classList.add('hidden');
+    this.hud.classList.add('hidden');
+    this.select.classList.add('hidden');
+    this.panel.classList.add('hidden');
+    this.screen = 'cine';
+    g.paused = false;
+    g.cine.start(function () {
+      if (!g.save.classId) self.showSelect();
+      else { g.camera.free = false; g.frameCamera(); self.startGame(); }
     });
   };
 
@@ -687,6 +833,12 @@
   Ui.prototype.update = function (dt) {
     var g = this.game, input = this.input;
 
+    if (this.screen === 'cine' || this.screen === 'select') {
+      // the opening and the guild hall own the screen; only skipping applies
+      if (this.screen === 'cine' && (input.hit('jump') || input.hit('pause'))) this.game.cine.finish();
+      return;
+    }
+
     // global hotkeys
     if (input.hit('lang')) this.toggleLang();
     if (input.hit('beta')) this.toggleBeta();
@@ -749,7 +901,7 @@
     }
 
     // ability readouts
-    var dashPct = Math.round((1 - clamp(p.dashCooldown / OCTO.PLAYER_TUNING.dashCooldown, 0, 1)) * 100);
+    var dashPct = Math.round((1 - clamp(p.dashCooldown / p.tune.dashCooldown, 0, 1)) * 100);
     this.abilityEl.innerHTML =
       '<div class="octo-ability' + (dashPct >= 100 ? ' ready' : '') + '"><kbd>F</kbd>' +
       '<div class="octo-ability-bar"><i style="width:' + dashPct + '%"></i></div></div>' +
