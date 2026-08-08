@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "empire_version": "2.2",
+  "agents": [
+    {"id":"code_mapper","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/code_mapper.toml","claude_path":".claude/agents/code-mapper.md","skills":["project-intake-audit"],"permissions":["read"],"may_self_approve":false},
+    {"id":"solution_architect","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/solution_architect.toml","claude_path":".claude/agents/solution-architect.md","skills":["stack-architecture-router"],"permissions":["read"],"may_self_approve":false},
+    {"id":"product_ux","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/product_ux.toml","claude_path":".claude/agents/product-ux.md","skills":["project-intake-audit"],"permissions":["read"],"may_self_approve":false},
+    {"id":"web_builder","version":"2.2.0","status":"active","posture":"implementation","codex_path":".codex/agents/web_builder.toml","claude_path":".claude/agents/web-builder.md","skills":["web-delivery"],"permissions":["read","write_branch"],"may_self_approve":false},
+    {"id":"mobile_builder","version":"2.2.0","status":"active","posture":"implementation","codex_path":".codex/agents/mobile_builder.toml","claude_path":".claude/agents/mobile-builder.md","skills":["mobile-delivery","cloud-preview-phone"],"permissions":["read","write_branch"],"may_self_approve":false},
+    {"id":"native_platform","version":"2.2.0","status":"active","posture":"implementation","codex_path":".codex/agents/native_platform.toml","claude_path":".claude/agents/native-platform.md","skills":["native-platform-delivery"],"permissions":["read","write_branch"],"may_self_approve":false},
+    {"id":"backend_data","version":"2.2.0","status":"active","posture":"implementation","codex_path":".codex/agents/backend_data.toml","claude_path":".claude/agents/backend-data.md","skills":["backend-data-cloud"],"permissions":["read","write_branch"],"may_self_approve":false},
+    {"id":"ai_engineer","version":"2.2.0","status":"active","posture":"implementation","codex_path":".codex/agents/ai_engineer.toml","claude_path":".claude/agents/ai-engineer.md","skills":["ai-agent-engineering"],"permissions":["read","write_branch"],"may_self_approve":false},
+    {"id":"game_simulation","version":"2.2.0","status":"active","posture":"implementation","codex_path":".codex/agents/game_simulation.toml","claude_path":".claude/agents/game-simulation.md","skills":["game-xr-simulation"],"permissions":["read","write_branch"],"may_self_approve":false},
+    {"id":"security_reviewer","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/security_reviewer.toml","claude_path":".claude/agents/security-reviewer.md","skills":["security-privacy-audit"],"permissions":["read"],"may_self_approve":false},
+    {"id":"qa_verifier","version":"2.2.0","status":"active","posture":"verification","codex_path":".codex/agents/qa_verifier.toml","claude_path":".claude/agents/qa-verifier.md","skills":["qa-release-readiness"],"permissions":["read"],"may_self_approve":false},
+    {"id":"performance_reliability","version":"2.2.0","status":"active","posture":"verification","codex_path":".codex/agents/performance_reliability.toml","claude_path":".claude/agents/performance-reliability.md","skills":["performance-accessibility"],"permissions":["read"],"may_self_approve":false},
+    {"id":"release_engineer","version":"2.2.0","status":"active","posture":"operations","codex_path":".codex/agents/release_engineer.toml","claude_path":".claude/agents/release-engineer.md","skills":["cloud-preview-phone","qa-release-readiness"],"permissions":["read","write_branch","deploy_preview"],"may_self_approve":false},
+    {"id":"red_team_reviewer","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/red_team_reviewer.toml","claude_path":".claude/agents/red-team-reviewer.md","skills":["qa-release-readiness","security-privacy-audit"],"permissions":["read"],"may_self_approve":false}
+  ]
+}
