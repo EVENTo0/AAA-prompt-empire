@@ -177,6 +177,12 @@
     this.minimap = this.hud.querySelector('.octo-minimap');
     this.minimapCtx = this.minimap.getContext('2d');
 
+    // On touch there is no keyboard, so the HUD itself is the navigation:
+    // tap the tracker for jobs, the minimap for the map, the purse for the shop.
+    this.minimap.addEventListener('click', function () { self.openPanel('map'); });
+    this.missionEl.addEventListener('click', function () { self.openPanel('jobs'); });
+    this.hud.querySelector('.octo-money').addEventListener('click', function () { self.openPanel('shop'); });
+
     // ---------- overlay panel (pause / jobs / shop / map / settings)
     this.panel = el('div', 'octo-screen octo-panel hidden');
     this.panel.innerHTML =
@@ -269,7 +275,12 @@
     var hasSave = !!(this.game.save && (this.game.save.dirhams || (this.game.save.pearls || []).length));
     var items = [
       { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.beginNewGame(); } },
-      { label: this.lang === 'ar' ? 'شاهد المقدمة' : 'Watch the intro', fn: function () { self.playIntro(); } },
+      { label: this.lang === 'ar' ? '▶  شاهد المقدمة' : '▶  Watch the intro', fn: function () { self.playIntro(); } },
+      { label: this.lang === 'ar' ? 'غيّر الانضباط' : 'Change discipline', fn: function () {
+        self.title.classList.add('hidden');
+        self.hud.classList.add('hidden');
+        self.showSelect();
+      } },
       { label: this.t('controls'), fn: function () { self.openPanel('controls'); } },
       { label: this.t('settings'), fn: function () { self.openPanel('settings'); } },
       { label: this.lang === 'en' ? 'العربية' : 'English', fn: function () { self.toggleLang(); } }

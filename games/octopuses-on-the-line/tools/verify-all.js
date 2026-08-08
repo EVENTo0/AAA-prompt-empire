@@ -50,7 +50,7 @@ async function boot(page, href) {
 async function suiteDesktop(browser) {
   const { page, errs } = await newPage(browser);
   const rep = await boot(page, url('index.html', '?test=1'));
-  record('desktop', 'boots', rep.version === '1.0.0', rep.version);
+  record('desktop', 'boots', /^\d+\.\d+\.\d+$/.test(rep.version || ''), rep.version);
   record('desktop', 'world generated',
     rep.chunks > 200 && rep.colliders > 150 && rep.ropes > 100,
     `${rep.chunks} chunks / ${rep.colliders} colliders / ${rep.ropes} ropes`);

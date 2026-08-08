@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Octopuses on the Line — an open-map browser action game. Balance an eight-armed octopus along the washing lines of an old Arabian souq and climb to the neon sky towers above.">
 <meta name="theme-color" content="#1a120b">
-<title>Octopuses on the Line — Open Map Beta v1.0.0</title>
+<title>Octopuses on the Line — Open Map Beta v1.0.4</title>
 <style>
   /* ---------------------------------------------------------- reset */
   *, *::before, *::after { box-sizing: border-box; }
@@ -291,186 +291,81 @@
   .octo-beta-btn:hover { background: rgba(121,230,160,0.18); border-color: #79e6a0; }
 
   /* ---------------------------------------------------- touch controls */
+  /* Laid out the way a mobile action game is: a floating thumb-stick on the
+     left, a large primary action with satellites on the right. */
   .octo-touch { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
-  .octo-stick {
-    position: absolute; bottom: 26px; inset-inline-start: 26px;
-    width: 128px; height: 128px; border-radius: 50%;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18);
+
+  .octo-stick-zone {
+    position: absolute; left: 0; bottom: 0; width: 46%; height: calc(100% - 64px);
     pointer-events: auto; touch-action: none;
   }
-  .octo-knob {
-    position: absolute; top: 50%; left: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px;
-    border-radius: 50%; background: rgba(255,255,255,0.30); border: 1px solid rgba(255,255,255,0.4);
+  .octo-stick {
+    position: absolute; width: 132px; height: 132px; margin: -66px 0 0 -66px;
+    border-radius: 50%; opacity: 0; transition: opacity 0.14s ease;
+    background: radial-gradient(circle, rgba(255,255,255,0.07) 40%, rgba(255,255,255,0.02) 70%);
+    border: 2px solid rgba(255,255,255,0.22);
+    pointer-events: none;
   }
-  /* Leaves the top bar free so it never swallows taps meant for the HUD. */
-  .octo-look { position: absolute; inset: 62px 0 0 40%; pointer-events: auto; touch-action: none; }
-  .octo-buttons {
-    position: absolute; bottom: 24px; inset-inline-end: 20px;
-    display: grid; grid-template-columns: repeat(3, 68px); gap: 10px; pointer-events: auto;
+  .octo-stick.active { opacity: 1; }
+  .octo-knob {
+    position: absolute; top: 50%; left: 50%; width: 58px; height: 58px;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.85), rgba(227,181,88,0.55));
+    border: 2px solid rgba(255,255,255,0.55);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.5);
+  }
+  .octo-look { position: absolute; inset: 62px 0 0 46%; pointer-events: auto; touch-action: none; }
+
+  .octo-actions {
+    position: absolute; bottom: 22px; inset-inline-end: 18px;
+    width: 216px; height: 216px; pointer-events: auto;
   }
   .octo-btn {
-    width: 68px; height: 68px; border-radius: 50%; font-size: 21px; font-weight: 800;
-    color: #f4ece0; background: rgba(30,22,14,0.82); border: 2px solid var(--edge);
-    font-family: inherit; touch-action: none; -webkit-tap-highlight-color: transparent;
+    position: absolute; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1px;
+    width: 62px; height: 62px; border-radius: 50%; padding: 0;
+    color: #f6ecd8; background: rgba(24,17,11,0.80);
+    border: 2px solid rgba(227,181,88,0.45);
+    font-family: inherit; touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.45);
   }
-  .octo-btn:active { background: rgba(227,181,88,0.42); }
-  .octo-touch-mode .octo-minimap { bottom: 178px; }
+  .octo-btn svg { width: 26px; height: 26px; fill: currentColor; }
+  .octo-btn span {
+    font-size: 8px; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; opacity: 0.7; line-height: 1;
+  }
+  .octo-btn.down { background: rgba(227,181,88,0.55); border-color: #ffe6b0; transform: scale(0.93); }
+  /* the primary sits lowest and largest, where the thumb rests */
+  .octo-btn-primary {
+    width: 92px; height: 92px; right: 6px; bottom: 4px;
+    background: radial-gradient(circle at 35% 28%, rgba(227,181,88,0.55), rgba(24,17,11,0.9));
+    border-color: rgba(255,230,176,0.8);
+  }
+  .octo-btn-primary svg { width: 38px; height: 38px; }
+  .octo-btn-primary span { font-size: 9px; opacity: 0.85; }
+  .octo-btn-jump   { right: 104px; bottom: 12px; }
+  .octo-btn-dash   { right: 16px;  bottom: 104px; }
+  .octo-btn-grip   { right: 92px;  bottom: 86px; }
+  .octo-btn-sprint { right: 150px; bottom: 74px; }
+  .octo-btn-wobble { right: 6px;   bottom: 168px; width: 50px; height: 50px; }
+  .octo-btn-wobble svg { width: 22px; height: 22px; }
+
+  .octo-touch-mode .octo-minimap { bottom: 250px; }
   .octo-touch-mode .octo-abilities { display: none; }
-
-  /* ------------------------------------------- quick bar + diagnostics */
-  /* Above the touch overlay (z 15) so its look area cannot intercept taps.
-     On a phone there is no Esc key, so menu and mute must live here. */
-  .octo-quickbar { position: absolute; inset: 0; z-index: 18; pointer-events: none; }
-  .octo-quick-row {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 8px; pointer-events: auto;
-  }
-  .octo-quick {
-    width: 40px; height: 40px; border-radius: 50%;
-    font-family: inherit; font-size: 16px; font-weight: 800; line-height: 1;
-    color: #cdbfa8; background: rgba(14,10,7,0.74); border: 1px solid var(--edge);
-    -webkit-tap-highlight-color: transparent; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .octo-quick:hover, .octo-quick:focus-visible { border-color: var(--gold); color: var(--gold); }
-  .octo-quick-diag { font-style: italic; }
-  .octo-quick-sound { position: relative; }
-  .octo-quick-sound.muted { color: #8b7f6e; }
-  /* A bar through the note reads as "off" without needing a second glyph. */
-  .octo-quick-sound.muted::after {
-    content: ""; position: absolute; left: 20%; right: 20%; top: 50%;
-    height: 2px; background: #d85c5c; transform: rotate(-38deg); border-radius: 2px;
-  }
-  .octo-diag {
-    position: absolute; top: 62px; left: 50%; transform: translateX(-50%);
-    max-width: min(340px, 88vw); max-height: 60vh; overflow: auto; margin: 0;
-    padding: 12px 14px; border-radius: 12px; pointer-events: auto;
-    background: rgba(8,6,4,0.94); border: 1px solid #79e6a0;
-    color: #dff4ff; font-size: 11px; line-height: 1.65; text-align: start;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    white-space: pre-wrap; direction: ltr;
-  }
-
-
-  /* ------------------------------------------------------- cinematic */
-  .octo-cine { position: absolute; inset: 0; z-index: 40; }
-  .octo-cine-bar {
-    position: absolute; left: 0; right: 0; height: 11vh; background: #000;
-    pointer-events: none;
-  }
-  .octo-cine-top { top: 0; }
-  .octo-cine-bottom { bottom: 0; }
-  .octo-cine-fade { position: absolute; inset: 0; background: #000; pointer-events: none; }
-  .octo-cine-caption {
-    position: absolute; left: 50%; bottom: 15vh; transform: translateX(-50%);
-    width: min(680px, 88vw); text-align: center; pointer-events: none;
-  }
-  .octo-cine-en {
-    font-size: clamp(17px, 2.6vw, 27px); font-weight: 600; letter-spacing: 0.01em;
-    color: #f6ecd8; text-shadow: 0 2px 18px rgba(0,0,0,0.95);
-  }
-  .octo-cine-ar {
-    margin-top: 8px; font-size: clamp(15px, 2.2vw, 23px); font-weight: 600;
-    color: var(--teal); text-shadow: 0 2px 18px rgba(0,0,0,0.95); direction: rtl;
-  }
-  .octo-cine-title {
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    text-align: center; width: min(760px, 92vw); pointer-events: none;
-  }
-  .octo-cine-title-ar {
-    font-size: clamp(30px, 7vw, 66px); font-weight: 800; color: var(--teal);
-    text-shadow: 0 4px 30px rgba(0,0,0,0.9); direction: rtl;
-  }
-  .octo-cine-title-en {
-    margin-top: 6px; font-size: clamp(22px, 4.6vw, 44px); font-weight: 800;
-    background: linear-gradient(180deg, #fff0cf, #d99b3e);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .octo-cine-title-sub {
-    margin-top: 14px; font-size: 11px; letter-spacing: 0.30em; font-weight: 700;
-    color: rgba(246,236,216,0.66); text-transform: uppercase;
-  }
-  .octo-cine-skip {
-    position: absolute; bottom: calc(11vh + 16px); inset-inline-end: 20px;
-    padding: 9px 18px; border-radius: 999px; font-family: inherit;
-    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer;
-    color: #e8dcc6; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.28);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .octo-cine-skip:hover { border-color: var(--gold); color: var(--gold); }
-  .octo-cine-progress {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
-    background: rgba(255,255,255,0.10);
-  }
-  .octo-cine-progress i { display: block; height: 100%; width: 0%; background: var(--gold); }
-
-  /* -------------------------------------------------- character select */
-  .octo-select {
-    display: flex; flex-direction: column; justify-content: space-between;
-    align-items: center; padding: 0; z-index: 22;
-    background: linear-gradient(180deg, rgba(8,6,4,0.86) 0%, rgba(8,6,4,0) 34%,
-                                        rgba(8,6,4,0) 46%, rgba(8,6,4,0.92) 78%);
-    pointer-events: none;
-  }
-  .octo-select > * { pointer-events: auto; }
-  .octo-select-head { text-align: center; padding: 20px 16px 0; }
-  .octo-select-eyebrow {
-    font-size: 10px; letter-spacing: 0.28em; font-weight: 700; text-transform: uppercase;
-    color: var(--teal); margin-bottom: 6px;
-  }
-  .octo-select-title {
-    margin: 0; font-size: clamp(20px, 3.6vw, 34px); font-weight: 800;
-    background: linear-gradient(180deg, #fff0cf, #d99b3e);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  /* Sits to one side so the avatar itself stays visible in the middle. */
-  .octo-select-detail {
-    position: absolute; top: 50%; inset-inline-start: 26px; transform: translateY(-50%);
-    width: min(310px, 76vw); padding: 16px 18px; border-radius: 16px;
-    background: rgba(14,10,7,0.86); border: 1px solid var(--edge);
-    box-shadow: 0 18px 50px rgba(0,0,0,0.5);
-  }
-  .octo-sel-name { font-size: 24px; font-weight: 800; color: var(--sand); }
-  .octo-sel-role {
-    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--teal); margin-top: 3px; font-weight: 700;
-  }
-  .octo-sel-line {
-    margin-top: 12px; font-size: 13px; line-height: 1.6; color: #f2e7d3;
-    padding-inline-start: 10px; border-inline-start: 2px solid var(--gold);
-  }
-  .octo-sel-bars { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-  .octo-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; opacity: 0.85; }
-  .octo-pips { display: flex; gap: 3px; }
-  .octo-pips b { width: 16px; height: 5px; border-radius: 2px; background: rgba(255,255,255,0.14); }
-  .octo-pips b.on { background: linear-gradient(90deg, var(--gold), var(--teal)); }
-  .octo-sel-lore { margin-top: 12px; font-size: 12px; line-height: 1.6; opacity: 0.62; font-style: italic; }
-  .octo-select-foot {
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
-    padding: 0 16px 26px; width: 100%;
-  }
-  .octo-class-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .octo-class-chip {
-    display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit;
-    padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
-    color: #e8dcc6; background: rgba(20,15,10,0.88); border: 1px solid rgba(255,255,255,0.14);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .octo-class-chip i { width: 12px; height: 12px; border-radius: 4px; }
-  .octo-class-chip.active { border-color: var(--gold); color: #fff; background: rgba(227,181,88,0.20); }
-  .octo-select-go {
-    padding: 14px 54px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
-    color: #17110b; background: linear-gradient(90deg, var(--gold), #f2d493);
-    border: none; border-radius: 12px; letter-spacing: 0.04em;
-    -webkit-tap-highlight-color: transparent;
-  }
-  @media (max-width: 760px) {
-    .octo-select-detail {
-      position: static; transform: none; width: min(420px, 92vw); margin: 10px auto 0;
-    }
-    .octo-select { justify-content: flex-start; gap: 8px; overflow-y: auto; }
-    .octo-select-foot { margin-top: auto; }
-    .octo-sel-lore { display: none; }
+  .octo-touch-mode .octo-balance { bottom: 250px; }
+  .octo-touch-mode .octo-prompt { bottom: 218px; }
+  /* HUD panels become buttons on touch, the way a mobile MMO does it */
+  .octo-touch-mode .octo-hud { pointer-events: none; }
+  .octo-touch-mode .octo-mission,
+  .octo-touch-mode .octo-minimap,
+  .octo-touch-mode .octo-money { pointer-events: auto; cursor: pointer; }
+  .octo-touch-mode .octo-mission:active,
+  .octo-touch-mode .octo-minimap:active,
+  .octo-touch-mode .octo-money:active { border-color: var(--gold); }
+  .octo-tap-hint {
+    position: absolute; inset-inline-end: 8px; bottom: 6px;
+    font-size: 8px; letter-spacing: 0.1em; opacity: 0.45; font-weight: 700;
   }
 
   /* ---------------------------------------------------------- fatal */

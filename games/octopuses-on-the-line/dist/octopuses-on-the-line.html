@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Octopuses on the Line — an open-map browser action game. Balance an eight-armed octopus along the washing lines of an old Arabian souq and climb to the neon sky towers above.">
 <meta name="theme-color" content="#1a120b">
-<title>Octopuses on the Line — Open Map Beta v1.0.0</title>
+<title>Octopuses on the Line — Open Map Beta v1.0.4</title>
 <style>
   /* ---------------------------------------------------------- reset */
   *, *::before, *::after { box-sizing: border-box; }
@@ -291,186 +291,81 @@
   .octo-beta-btn:hover { background: rgba(121,230,160,0.18); border-color: #79e6a0; }
 
   /* ---------------------------------------------------- touch controls */
+  /* Laid out the way a mobile action game is: a floating thumb-stick on the
+     left, a large primary action with satellites on the right. */
   .octo-touch { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
-  .octo-stick {
-    position: absolute; bottom: 26px; inset-inline-start: 26px;
-    width: 128px; height: 128px; border-radius: 50%;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18);
+
+  .octo-stick-zone {
+    position: absolute; left: 0; bottom: 0; width: 46%; height: calc(100% - 64px);
     pointer-events: auto; touch-action: none;
   }
-  .octo-knob {
-    position: absolute; top: 50%; left: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px;
-    border-radius: 50%; background: rgba(255,255,255,0.30); border: 1px solid rgba(255,255,255,0.4);
+  .octo-stick {
+    position: absolute; width: 132px; height: 132px; margin: -66px 0 0 -66px;
+    border-radius: 50%; opacity: 0; transition: opacity 0.14s ease;
+    background: radial-gradient(circle, rgba(255,255,255,0.07) 40%, rgba(255,255,255,0.02) 70%);
+    border: 2px solid rgba(255,255,255,0.22);
+    pointer-events: none;
   }
-  /* Leaves the top bar free so it never swallows taps meant for the HUD. */
-  .octo-look { position: absolute; inset: 62px 0 0 40%; pointer-events: auto; touch-action: none; }
-  .octo-buttons {
-    position: absolute; bottom: 24px; inset-inline-end: 20px;
-    display: grid; grid-template-columns: repeat(3, 68px); gap: 10px; pointer-events: auto;
+  .octo-stick.active { opacity: 1; }
+  .octo-knob {
+    position: absolute; top: 50%; left: 50%; width: 58px; height: 58px;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.85), rgba(227,181,88,0.55));
+    border: 2px solid rgba(255,255,255,0.55);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.5);
+  }
+  .octo-look { position: absolute; inset: 62px 0 0 46%; pointer-events: auto; touch-action: none; }
+
+  .octo-actions {
+    position: absolute; bottom: 22px; inset-inline-end: 18px;
+    width: 216px; height: 216px; pointer-events: auto;
   }
   .octo-btn {
-    width: 68px; height: 68px; border-radius: 50%; font-size: 21px; font-weight: 800;
-    color: #f4ece0; background: rgba(30,22,14,0.82); border: 2px solid var(--edge);
-    font-family: inherit; touch-action: none; -webkit-tap-highlight-color: transparent;
+    position: absolute; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1px;
+    width: 62px; height: 62px; border-radius: 50%; padding: 0;
+    color: #f6ecd8; background: rgba(24,17,11,0.80);
+    border: 2px solid rgba(227,181,88,0.45);
+    font-family: inherit; touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.45);
   }
-  .octo-btn:active { background: rgba(227,181,88,0.42); }
-  .octo-touch-mode .octo-minimap { bottom: 178px; }
+  .octo-btn svg { width: 26px; height: 26px; fill: currentColor; }
+  .octo-btn span {
+    font-size: 8px; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; opacity: 0.7; line-height: 1;
+  }
+  .octo-btn.down { background: rgba(227,181,88,0.55); border-color: #ffe6b0; transform: scale(0.93); }
+  /* the primary sits lowest and largest, where the thumb rests */
+  .octo-btn-primary {
+    width: 92px; height: 92px; right: 6px; bottom: 4px;
+    background: radial-gradient(circle at 35% 28%, rgba(227,181,88,0.55), rgba(24,17,11,0.9));
+    border-color: rgba(255,230,176,0.8);
+  }
+  .octo-btn-primary svg { width: 38px; height: 38px; }
+  .octo-btn-primary span { font-size: 9px; opacity: 0.85; }
+  .octo-btn-jump   { right: 104px; bottom: 12px; }
+  .octo-btn-dash   { right: 16px;  bottom: 104px; }
+  .octo-btn-grip   { right: 92px;  bottom: 86px; }
+  .octo-btn-sprint { right: 150px; bottom: 74px; }
+  .octo-btn-wobble { right: 6px;   bottom: 168px; width: 50px; height: 50px; }
+  .octo-btn-wobble svg { width: 22px; height: 22px; }
+
+  .octo-touch-mode .octo-minimap { bottom: 250px; }
   .octo-touch-mode .octo-abilities { display: none; }
-
-  /* ------------------------------------------- quick bar + diagnostics */
-  /* Above the touch overlay (z 15) so its look area cannot intercept taps.
-     On a phone there is no Esc key, so menu and mute must live here. */
-  .octo-quickbar { position: absolute; inset: 0; z-index: 18; pointer-events: none; }
-  .octo-quick-row {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 8px; pointer-events: auto;
-  }
-  .octo-quick {
-    width: 40px; height: 40px; border-radius: 50%;
-    font-family: inherit; font-size: 16px; font-weight: 800; line-height: 1;
-    color: #cdbfa8; background: rgba(14,10,7,0.74); border: 1px solid var(--edge);
-    -webkit-tap-highlight-color: transparent; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .octo-quick:hover, .octo-quick:focus-visible { border-color: var(--gold); color: var(--gold); }
-  .octo-quick-diag { font-style: italic; }
-  .octo-quick-sound { position: relative; }
-  .octo-quick-sound.muted { color: #8b7f6e; }
-  /* A bar through the note reads as "off" without needing a second glyph. */
-  .octo-quick-sound.muted::after {
-    content: ""; position: absolute; left: 20%; right: 20%; top: 50%;
-    height: 2px; background: #d85c5c; transform: rotate(-38deg); border-radius: 2px;
-  }
-  .octo-diag {
-    position: absolute; top: 62px; left: 50%; transform: translateX(-50%);
-    max-width: min(340px, 88vw); max-height: 60vh; overflow: auto; margin: 0;
-    padding: 12px 14px; border-radius: 12px; pointer-events: auto;
-    background: rgba(8,6,4,0.94); border: 1px solid #79e6a0;
-    color: #dff4ff; font-size: 11px; line-height: 1.65; text-align: start;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    white-space: pre-wrap; direction: ltr;
-  }
-
-
-  /* ------------------------------------------------------- cinematic */
-  .octo-cine { position: absolute; inset: 0; z-index: 40; }
-  .octo-cine-bar {
-    position: absolute; left: 0; right: 0; height: 11vh; background: #000;
-    pointer-events: none;
-  }
-  .octo-cine-top { top: 0; }
-  .octo-cine-bottom { bottom: 0; }
-  .octo-cine-fade { position: absolute; inset: 0; background: #000; pointer-events: none; }
-  .octo-cine-caption {
-    position: absolute; left: 50%; bottom: 15vh; transform: translateX(-50%);
-    width: min(680px, 88vw); text-align: center; pointer-events: none;
-  }
-  .octo-cine-en {
-    font-size: clamp(17px, 2.6vw, 27px); font-weight: 600; letter-spacing: 0.01em;
-    color: #f6ecd8; text-shadow: 0 2px 18px rgba(0,0,0,0.95);
-  }
-  .octo-cine-ar {
-    margin-top: 8px; font-size: clamp(15px, 2.2vw, 23px); font-weight: 600;
-    color: var(--teal); text-shadow: 0 2px 18px rgba(0,0,0,0.95); direction: rtl;
-  }
-  .octo-cine-title {
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    text-align: center; width: min(760px, 92vw); pointer-events: none;
-  }
-  .octo-cine-title-ar {
-    font-size: clamp(30px, 7vw, 66px); font-weight: 800; color: var(--teal);
-    text-shadow: 0 4px 30px rgba(0,0,0,0.9); direction: rtl;
-  }
-  .octo-cine-title-en {
-    margin-top: 6px; font-size: clamp(22px, 4.6vw, 44px); font-weight: 800;
-    background: linear-gradient(180deg, #fff0cf, #d99b3e);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .octo-cine-title-sub {
-    margin-top: 14px; font-size: 11px; letter-spacing: 0.30em; font-weight: 700;
-    color: rgba(246,236,216,0.66); text-transform: uppercase;
-  }
-  .octo-cine-skip {
-    position: absolute; bottom: calc(11vh + 16px); inset-inline-end: 20px;
-    padding: 9px 18px; border-radius: 999px; font-family: inherit;
-    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer;
-    color: #e8dcc6; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.28);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .octo-cine-skip:hover { border-color: var(--gold); color: var(--gold); }
-  .octo-cine-progress {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
-    background: rgba(255,255,255,0.10);
-  }
-  .octo-cine-progress i { display: block; height: 100%; width: 0%; background: var(--gold); }
-
-  /* -------------------------------------------------- character select */
-  .octo-select {
-    display: flex; flex-direction: column; justify-content: space-between;
-    align-items: center; padding: 0; z-index: 22;
-    background: linear-gradient(180deg, rgba(8,6,4,0.86) 0%, rgba(8,6,4,0) 34%,
-                                        rgba(8,6,4,0) 46%, rgba(8,6,4,0.92) 78%);
-    pointer-events: none;
-  }
-  .octo-select > * { pointer-events: auto; }
-  .octo-select-head { text-align: center; padding: 20px 16px 0; }
-  .octo-select-eyebrow {
-    font-size: 10px; letter-spacing: 0.28em; font-weight: 700; text-transform: uppercase;
-    color: var(--teal); margin-bottom: 6px;
-  }
-  .octo-select-title {
-    margin: 0; font-size: clamp(20px, 3.6vw, 34px); font-weight: 800;
-    background: linear-gradient(180deg, #fff0cf, #d99b3e);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  /* Sits to one side so the avatar itself stays visible in the middle. */
-  .octo-select-detail {
-    position: absolute; top: 50%; inset-inline-start: 26px; transform: translateY(-50%);
-    width: min(310px, 76vw); padding: 16px 18px; border-radius: 16px;
-    background: rgba(14,10,7,0.86); border: 1px solid var(--edge);
-    box-shadow: 0 18px 50px rgba(0,0,0,0.5);
-  }
-  .octo-sel-name { font-size: 24px; font-weight: 800; color: var(--sand); }
-  .octo-sel-role {
-    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--teal); margin-top: 3px; font-weight: 700;
-  }
-  .octo-sel-line {
-    margin-top: 12px; font-size: 13px; line-height: 1.6; color: #f2e7d3;
-    padding-inline-start: 10px; border-inline-start: 2px solid var(--gold);
-  }
-  .octo-sel-bars { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-  .octo-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; opacity: 0.85; }
-  .octo-pips { display: flex; gap: 3px; }
-  .octo-pips b { width: 16px; height: 5px; border-radius: 2px; background: rgba(255,255,255,0.14); }
-  .octo-pips b.on { background: linear-gradient(90deg, var(--gold), var(--teal)); }
-  .octo-sel-lore { margin-top: 12px; font-size: 12px; line-height: 1.6; opacity: 0.62; font-style: italic; }
-  .octo-select-foot {
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
-    padding: 0 16px 26px; width: 100%;
-  }
-  .octo-class-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .octo-class-chip {
-    display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit;
-    padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
-    color: #e8dcc6; background: rgba(20,15,10,0.88); border: 1px solid rgba(255,255,255,0.14);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .octo-class-chip i { width: 12px; height: 12px; border-radius: 4px; }
-  .octo-class-chip.active { border-color: var(--gold); color: #fff; background: rgba(227,181,88,0.20); }
-  .octo-select-go {
-    padding: 14px 54px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
-    color: #17110b; background: linear-gradient(90deg, var(--gold), #f2d493);
-    border: none; border-radius: 12px; letter-spacing: 0.04em;
-    -webkit-tap-highlight-color: transparent;
-  }
-  @media (max-width: 760px) {
-    .octo-select-detail {
-      position: static; transform: none; width: min(420px, 92vw); margin: 10px auto 0;
-    }
-    .octo-select { justify-content: flex-start; gap: 8px; overflow-y: auto; }
-    .octo-select-foot { margin-top: auto; }
-    .octo-sel-lore { display: none; }
+  .octo-touch-mode .octo-balance { bottom: 250px; }
+  .octo-touch-mode .octo-prompt { bottom: 218px; }
+  /* HUD panels become buttons on touch, the way a mobile MMO does it */
+  .octo-touch-mode .octo-hud { pointer-events: none; }
+  .octo-touch-mode .octo-mission,
+  .octo-touch-mode .octo-minimap,
+  .octo-touch-mode .octo-money { pointer-events: auto; cursor: pointer; }
+  .octo-touch-mode .octo-mission:active,
+  .octo-touch-mode .octo-minimap:active,
+  .octo-touch-mode .octo-money:active { border-color: var(--gold); }
+  .octo-tap-hint {
+    position: absolute; inset-inline-end: 8px; bottom: 6px;
+    font-size: 8px; letter-spacing: 0.1em; opacity: 0.45; font-weight: 700;
   }
 
   /* ---------------------------------------------------------- fatal */
@@ -4095,9 +3990,27 @@
 
   /* --------------------------------------------------------- touch rig */
 
+  /** Inline icon set. Glyph letters mean nothing on a phone — these read. */
+  var ICONS = {
+    jump:  '<path d="M12 3l5 6h-3v5h-4V9H7l5-6z"/><rect x="5" y="17" width="14" height="2.6" rx="1.3"/>',
+    grab:  '<path d="M8 11V5.6a1.6 1.6 0 013.2 0V11h.6V4.4a1.6 1.6 0 013.2 0V11h.6V6.4a1.6 1.6 0 013.2 0v7.2c0 4-2.7 6.8-6.4 6.8-3 0-4.6-1.3-6.2-3.6l-2.5-3.6a1.6 1.6 0 012.4-2l1.9 1.9z"/>',
+    grip:  '<path d="M12 4a8 8 0 108 8h-2.6A5.4 5.4 0 1112 6.6z"/><circle cx="12" cy="12" r="2.6"/>',
+    dash:  '<path d="M13 2L4.5 13.2H11l-1.6 8.8 8.9-11.6H12l1-9z"/>',
+    sprint:'<path d="M5.6 5.2l6.2 6.8-6.2 6.8 2 1.9 8-8.7-8-8.7-2 1.9z"/><path d="M12.6 5.2l6.2 6.8-6.2 6.8 2 1.9 8-8.7-8-8.7-2 1.9z" opacity=".55"/>',
+    wobble:'<path d="M3 14c2.4 0 2.4-4 4.8-4s2.4 4 4.8 4 2.4-4 4.8-4 2.4 4 4.8 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>'
+  };
+  function svg(name) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (ICONS[name] || '') + '</svg>';
+  }
+
   /**
-   * Attaches a left stick (movement), a right look area and an action
-   * pad. Returns the root element so the UI can show/hide it.
+   * Attaches a floating left-thumb stick, a right-side look area and an
+   * action pad.
+   *
+   * The stick is deliberately NOT a fixed circle: on a phone a fixed
+   * 128px target has to be hit precisely, and a thumb that lands beside
+   * it moves nothing at all. Touching anywhere in the left zone drops the
+   * stick under the thumb, which is what every mobile action game does.
    */
   Input.prototype.attachTouch = function (container, actions) {
     var self = this;
@@ -4105,49 +4018,63 @@
     var root = document.createElement('div');
     root.className = 'octo-touch';
     root.innerHTML =
-      '<div class="octo-stick" id="octo-stick"><div class="octo-knob"></div></div>' +
+      '<div class="octo-stick-zone" id="octo-stick-zone">' +
+      '  <div class="octo-stick" id="octo-stick"><div class="octo-knob"></div></div>' +
+      '</div>' +
       '<div class="octo-look" id="octo-look"></div>' +
-      '<div class="octo-buttons" id="octo-buttons"></div>';
+      '<div class="octo-actions" id="octo-actions"></div>';
     container.appendChild(root);
 
+    var zone = root.querySelector('#octo-stick-zone');
     var stick = root.querySelector('#octo-stick');
     var knob = root.querySelector('.octo-knob');
     var look = root.querySelector('#octo-look');
-    var btns = root.querySelector('#octo-buttons');
+    var pad = root.querySelector('#octo-actions');
 
-    var stickId = null, stickOrigin = { x: 0, y: 0 };
+    var MAX = 58;
+    var stickId = null;
+    var origin = { x: 0, y: 0 };
+
+    function place(x, y) {
+      stick.style.left = x + 'px';
+      stick.style.top = y + 'px';
+    }
     function stickStart(e) {
       var t = e.changedTouches[0];
       stickId = t.identifier;
-      var r = stick.getBoundingClientRect();
-      stickOrigin.x = r.left + r.width / 2;
-      stickOrigin.y = r.top + r.height / 2;
+      var r = zone.getBoundingClientRect();
+      origin.x = t.clientX;
+      origin.y = t.clientY;
+      place(t.clientX - r.left, t.clientY - r.top);
+      stick.classList.add('active');
+      knob.style.transform = 'translate(-50%,-50%)';
       e.preventDefault();
     }
     function stickMove(e) {
+      if (stickId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
         if (t.identifier !== stickId) continue;
-        var dx = t.clientX - stickOrigin.x, dy = t.clientY - stickOrigin.y;
-        var max = 56;
+        var dx = t.clientX - origin.x, dy = t.clientY - origin.y;
         var l = Math.sqrt(dx * dx + dy * dy);
-        if (l > max) { dx = dx / l * max; dy = dy / l * max; }
-        self.touch.move.x = dx / max;
-        self.touch.move.y = -dy / max;
-        knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+        if (l > MAX) { dx = dx / l * MAX; dy = dy / l * MAX; }
+        self.touch.move.x = dx / MAX;
+        self.touch.move.y = -dy / MAX;
+        knob.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
         e.preventDefault();
       }
     }
     function stickEnd(e) {
+      if (stickId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === stickId) {
-          stickId = null;
-          self.touch.move.x = self.touch.move.y = 0;
-          knob.style.transform = 'translate(0,0)';
-        }
+        if (e.changedTouches[i].identifier !== stickId) continue;
+        stickId = null;
+        self.touch.move.x = self.touch.move.y = 0;
+        stick.classList.remove('active');
+        knob.style.transform = 'translate(-50%,-50%)';
       }
     }
-    this._on(stick, 'touchstart', stickStart, { passive: false });
+    this._on(zone, 'touchstart', stickStart, { passive: false });
     this._on(window, 'touchmove', stickMove, { passive: false });
     this._on(window, 'touchend', stickEnd);
     this._on(window, 'touchcancel', stickEnd);
@@ -4159,6 +4086,7 @@
       e.preventDefault();
     }, { passive: false });
     this._on(window, 'touchmove', function (e) {
+      if (lookId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
         if (t.identifier !== lookId) continue;
@@ -4167,24 +4095,32 @@
         lookPrev.x = t.clientX; lookPrev.y = t.clientY;
       }
     }, { passive: false });
-    this._on(window, 'touchend', function (e) {
+    function lookEnd(e) {
+      if (lookId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === lookId) lookId = null;
       }
-    });
+    }
+    this._on(window, 'touchend', lookEnd);
+    this._on(window, 'touchcancel', lookEnd);
 
     actions.forEach(function (a) {
       var el = document.createElement('button');
-      el.className = 'octo-btn octo-btn-' + a.action;
-      el.textContent = a.label;
-      el.setAttribute('aria-label', a.aria || a.label);
-      btns.appendChild(el);
+      el.className = 'octo-btn octo-btn-' + a.action + (a.primary ? ' octo-btn-primary' : '');
+      el.innerHTML = svg(a.icon || a.action) + '<span>' + (a.label || '') + '</span>';
+      el.setAttribute('aria-label', a.aria || a.action);
+      pad.appendChild(el);
       function on(e) {
         self.touch.buttons[a.action] = 1;
-        self.touch.pressed[a.action] = true;   // cleared by endFrame, not by release
+        self.touch.pressed[a.action] = true;
+        el.classList.add('down');
         e.preventDefault();
       }
-      function off(e) { self.touch.buttons[a.action] = 0; e.preventDefault(); }
+      function off(e) {
+        self.touch.buttons[a.action] = 0;
+        el.classList.remove('down');
+        e.preventDefault();
+      }
       self._on(el, 'touchstart', on, { passive: false });
       self._on(el, 'touchend', off, { passive: false });
       self._on(el, 'touchcancel', off, { passive: false });
@@ -6980,7 +6916,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.4';
 
   /* ------------------------------------------------------------ quality */
 
@@ -8890,6 +8826,12 @@
     this.minimap = this.hud.querySelector('.octo-minimap');
     this.minimapCtx = this.minimap.getContext('2d');
 
+    // On touch there is no keyboard, so the HUD itself is the navigation:
+    // tap the tracker for jobs, the minimap for the map, the purse for the shop.
+    this.minimap.addEventListener('click', function () { self.openPanel('map'); });
+    this.missionEl.addEventListener('click', function () { self.openPanel('jobs'); });
+    this.hud.querySelector('.octo-money').addEventListener('click', function () { self.openPanel('shop'); });
+
     // ---------- overlay panel (pause / jobs / shop / map / settings)
     this.panel = el('div', 'octo-screen octo-panel hidden');
     this.panel.innerHTML =
@@ -8982,7 +8924,12 @@
     var hasSave = !!(this.game.save && (this.game.save.dirhams || (this.game.save.pearls || []).length));
     var items = [
       { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.beginNewGame(); } },
-      { label: this.lang === 'ar' ? 'شاهد المقدمة' : 'Watch the intro', fn: function () { self.playIntro(); } },
+      { label: this.lang === 'ar' ? '▶  شاهد المقدمة' : '▶  Watch the intro', fn: function () { self.playIntro(); } },
+      { label: this.lang === 'ar' ? 'غيّر الانضباط' : 'Change discipline', fn: function () {
+        self.title.classList.add('hidden');
+        self.hud.classList.add('hidden');
+        self.showSelect();
+      } },
       { label: this.t('controls'), fn: function () { self.openPanel('controls'); } },
       { label: this.t('settings'), fn: function () { self.openPanel('settings'); } },
       { label: this.lang === 'en' ? 'العربية' : 'English', fn: function () { self.toggleLang(); } }
@@ -10030,12 +9977,12 @@
       if (touchAttached) return false;
       touchAttached = true;
       input.attachTouch(container, [
-        { action: 'jump', label: '⤒', aria: 'Jump' },
-        { action: 'grab', label: 'E', aria: 'Grab' },
-        { action: 'grip', label: 'Q', aria: 'Grip' },
-        { action: 'dash', label: 'F', aria: 'Dash' },
-        { action: 'sprint', label: '»', aria: 'Sprint' },
-        { action: 'wobble', label: 'R', aria: 'Wobble' }
+        { action: 'grab', icon: 'grab', label: 'Act', aria: 'Interact', primary: true },
+        { action: 'jump', icon: 'jump', label: 'Jump', aria: 'Jump' },
+        { action: 'dash', icon: 'dash', label: 'Dash', aria: 'Ink dash' },
+        { action: 'grip', icon: 'grip', label: 'Grip', aria: 'Grip the line' },
+        { action: 'sprint', icon: 'sprint', label: 'Run', aria: 'Sprint' },
+        { action: 'wobble', icon: 'wobble', label: 'Flop', aria: 'Go wobbly' }
       ]);
       container.classList.add('octo-touch-mode');
       return true;

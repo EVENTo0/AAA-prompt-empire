@@ -239,9 +239,27 @@
 
   /* --------------------------------------------------------- touch rig */
 
+  /** Inline icon set. Glyph letters mean nothing on a phone — these read. */
+  var ICONS = {
+    jump:  '<path d="M12 3l5 6h-3v5h-4V9H7l5-6z"/><rect x="5" y="17" width="14" height="2.6" rx="1.3"/>',
+    grab:  '<path d="M8 11V5.6a1.6 1.6 0 013.2 0V11h.6V4.4a1.6 1.6 0 013.2 0V11h.6V6.4a1.6 1.6 0 013.2 0v7.2c0 4-2.7 6.8-6.4 6.8-3 0-4.6-1.3-6.2-3.6l-2.5-3.6a1.6 1.6 0 012.4-2l1.9 1.9z"/>',
+    grip:  '<path d="M12 4a8 8 0 108 8h-2.6A5.4 5.4 0 1112 6.6z"/><circle cx="12" cy="12" r="2.6"/>',
+    dash:  '<path d="M13 2L4.5 13.2H11l-1.6 8.8 8.9-11.6H12l1-9z"/>',
+    sprint:'<path d="M5.6 5.2l6.2 6.8-6.2 6.8 2 1.9 8-8.7-8-8.7-2 1.9z"/><path d="M12.6 5.2l6.2 6.8-6.2 6.8 2 1.9 8-8.7-8-8.7-2 1.9z" opacity=".55"/>',
+    wobble:'<path d="M3 14c2.4 0 2.4-4 4.8-4s2.4 4 4.8 4 2.4-4 4.8-4 2.4 4 4.8 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>'
+  };
+  function svg(name) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (ICONS[name] || '') + '</svg>';
+  }
+
   /**
-   * Attaches a left stick (movement), a right look area and an action
-   * pad. Returns the root element so the UI can show/hide it.
+   * Attaches a floating left-thumb stick, a right-side look area and an
+   * action pad.
+   *
+   * The stick is deliberately NOT a fixed circle: on a phone a fixed
+   * 128px target has to be hit precisely, and a thumb that lands beside
+   * it moves nothing at all. Touching anywhere in the left zone drops the
+   * stick under the thumb, which is what every mobile action game does.
    */
   Input.prototype.attachTouch = function (container, actions) {
     var self = this;
@@ -249,49 +267,63 @@
     var root = document.createElement('div');
     root.className = 'octo-touch';
     root.innerHTML =
-      '<div class="octo-stick" id="octo-stick"><div class="octo-knob"></div></div>' +
+      '<div class="octo-stick-zone" id="octo-stick-zone">' +
+      '  <div class="octo-stick" id="octo-stick"><div class="octo-knob"></div></div>' +
+      '</div>' +
       '<div class="octo-look" id="octo-look"></div>' +
-      '<div class="octo-buttons" id="octo-buttons"></div>';
+      '<div class="octo-actions" id="octo-actions"></div>';
     container.appendChild(root);
 
+    var zone = root.querySelector('#octo-stick-zone');
     var stick = root.querySelector('#octo-stick');
     var knob = root.querySelector('.octo-knob');
     var look = root.querySelector('#octo-look');
-    var btns = root.querySelector('#octo-buttons');
+    var pad = root.querySelector('#octo-actions');
 
-    var stickId = null, stickOrigin = { x: 0, y: 0 };
+    var MAX = 58;
+    var stickId = null;
+    var origin = { x: 0, y: 0 };
+
+    function place(x, y) {
+      stick.style.left = x + 'px';
+      stick.style.top = y + 'px';
+    }
     function stickStart(e) {
       var t = e.changedTouches[0];
       stickId = t.identifier;
-      var r = stick.getBoundingClientRect();
-      stickOrigin.x = r.left + r.width / 2;
-      stickOrigin.y = r.top + r.height / 2;
+      var r = zone.getBoundingClientRect();
+      origin.x = t.clientX;
+      origin.y = t.clientY;
+      place(t.clientX - r.left, t.clientY - r.top);
+      stick.classList.add('active');
+      knob.style.transform = 'translate(-50%,-50%)';
       e.preventDefault();
     }
     function stickMove(e) {
+      if (stickId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
         if (t.identifier !== stickId) continue;
-        var dx = t.clientX - stickOrigin.x, dy = t.clientY - stickOrigin.y;
-        var max = 56;
+        var dx = t.clientX - origin.x, dy = t.clientY - origin.y;
         var l = Math.sqrt(dx * dx + dy * dy);
-        if (l > max) { dx = dx / l * max; dy = dy / l * max; }
-        self.touch.move.x = dx / max;
-        self.touch.move.y = -dy / max;
-        knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+        if (l > MAX) { dx = dx / l * MAX; dy = dy / l * MAX; }
+        self.touch.move.x = dx / MAX;
+        self.touch.move.y = -dy / MAX;
+        knob.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
         e.preventDefault();
       }
     }
     function stickEnd(e) {
+      if (stickId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === stickId) {
-          stickId = null;
-          self.touch.move.x = self.touch.move.y = 0;
-          knob.style.transform = 'translate(0,0)';
-        }
+        if (e.changedTouches[i].identifier !== stickId) continue;
+        stickId = null;
+        self.touch.move.x = self.touch.move.y = 0;
+        stick.classList.remove('active');
+        knob.style.transform = 'translate(-50%,-50%)';
       }
     }
-    this._on(stick, 'touchstart', stickStart, { passive: false });
+    this._on(zone, 'touchstart', stickStart, { passive: false });
     this._on(window, 'touchmove', stickMove, { passive: false });
     this._on(window, 'touchend', stickEnd);
     this._on(window, 'touchcancel', stickEnd);
@@ -303,6 +335,7 @@
       e.preventDefault();
     }, { passive: false });
     this._on(window, 'touchmove', function (e) {
+      if (lookId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
         if (t.identifier !== lookId) continue;
@@ -311,24 +344,32 @@
         lookPrev.x = t.clientX; lookPrev.y = t.clientY;
       }
     }, { passive: false });
-    this._on(window, 'touchend', function (e) {
+    function lookEnd(e) {
+      if (lookId === null) return;
       for (var i = 0; i < e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === lookId) lookId = null;
       }
-    });
+    }
+    this._on(window, 'touchend', lookEnd);
+    this._on(window, 'touchcancel', lookEnd);
 
     actions.forEach(function (a) {
       var el = document.createElement('button');
-      el.className = 'octo-btn octo-btn-' + a.action;
-      el.textContent = a.label;
-      el.setAttribute('aria-label', a.aria || a.label);
-      btns.appendChild(el);
+      el.className = 'octo-btn octo-btn-' + a.action + (a.primary ? ' octo-btn-primary' : '');
+      el.innerHTML = svg(a.icon || a.action) + '<span>' + (a.label || '') + '</span>';
+      el.setAttribute('aria-label', a.aria || a.action);
+      pad.appendChild(el);
       function on(e) {
         self.touch.buttons[a.action] = 1;
-        self.touch.pressed[a.action] = true;   // cleared by endFrame, not by release
+        self.touch.pressed[a.action] = true;
+        el.classList.add('down');
         e.preventDefault();
       }
-      function off(e) { self.touch.buttons[a.action] = 0; e.preventDefault(); }
+      function off(e) {
+        self.touch.buttons[a.action] = 0;
+        el.classList.remove('down');
+        e.preventDefault();
+      }
       self._on(el, 'touchstart', on, { passive: false });
       self._on(el, 'touchend', off, { passive: false });
       self._on(el, 'touchcancel', off, { passive: false });

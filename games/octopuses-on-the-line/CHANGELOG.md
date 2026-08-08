@@ -4,6 +4,35 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] — 2026-08-08 — Mobile-game controls
+
+Fourth report from the Honor X9d: the player still could not be moved, and the
+buttons were "letters, inconsistent with mobile games". Instrumenting the touch
+path in an emulated phone showed the joystick logic was sound — a synthetic
+drag moved the character 2.07 m — so the fault was ergonomic, not logical: the
+stick was a fixed 128 px circle in the corner that required the thumb to land
+inside it. On a 6.8" phone held in two hands, the thumb lands where it lands.
+
+### Changed
+
+- **Floating joystick.** Touching anywhere in the left 46% of the screen drops
+  the stick centre under the thumb and starts the drag from there. No aiming
+  required, and the stick follows if the thumb travels past its 58 px radius.
+- **Icon action buttons.** The letter glyphs are gone. There is now a 92 px
+  primary **ACT** button with JUMP / GRIP / RUN / DASH / FLOP arranged around
+  it as satellites, each with an inline SVG icon and a caption, sized and
+  spaced to the same conventions mobile action-RPGs use.
+- **Tappable HUD.** The minimap opens the full map, the quest tracker opens
+  the mission list, and the purse opens the shop — so every readout on screen
+  is something you can press to get a result.
+- **Menu routes back into the front-of-game content.** "▶ Watch the intro"
+  replays the cinematic and "Change discipline" reopens character select,
+  both of which were previously reachable only on a fresh save.
+
+Verified in an emulated Honor X9d viewport: the stick materialises under the
+touch point, the move axis reads 0.17 / 0.95 for a diagonal drag, six action
+buttons render with six SVG icons, and the character walks on open ground.
+
 ## [1.0.3] — 2026-08-08 — The actual cause
 
 Third report from the Honor X9d, this time carrying the diagnostics added in

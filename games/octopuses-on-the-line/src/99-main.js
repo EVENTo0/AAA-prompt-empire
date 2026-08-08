@@ -150,12 +150,12 @@
       if (touchAttached) return false;
       touchAttached = true;
       input.attachTouch(container, [
-        { action: 'jump', label: '⤒', aria: 'Jump' },
-        { action: 'grab', label: 'E', aria: 'Grab' },
-        { action: 'grip', label: 'Q', aria: 'Grip' },
-        { action: 'dash', label: 'F', aria: 'Dash' },
-        { action: 'sprint', label: '»', aria: 'Sprint' },
-        { action: 'wobble', label: 'R', aria: 'Wobble' }
+        { action: 'grab', icon: 'grab', label: 'Act', aria: 'Interact', primary: true },
+        { action: 'jump', icon: 'jump', label: 'Jump', aria: 'Jump' },
+        { action: 'dash', icon: 'dash', label: 'Dash', aria: 'Ink dash' },
+        { action: 'grip', icon: 'grip', label: 'Grip', aria: 'Grip the line' },
+        { action: 'sprint', icon: 'sprint', label: 'Run', aria: 'Sprint' },
+        { action: 'wobble', icon: 'wobble', label: 'Flop', aria: 'Go wobbly' }
       ]);
       container.classList.add('octo-touch-mode');
       return true;

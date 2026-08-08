@@ -1,6 +1,6 @@
 # Octopuses on the Line — أخطبوطات على الخيط
 
-**Open Map Beta · v1.0.0**
+**Open Map Beta · v1.0.4**
 
 A browser action-sandbox about an eight-armed octopus balancing along the washing
 lines of an old Arabian souq — and climbing, line by line, into the neon sky
