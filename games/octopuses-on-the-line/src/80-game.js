@@ -64,15 +64,15 @@
       groundSky: [0.30, 0.20, 0.16], stars: 0.10, exposure: 1.05, fogDensity: 0.0038, emissive: 2.4, bloom: 0.90 },
     // groundCol is the warm bounce off the sand; in a desert it is strong, and
     // it is what keeps shadowed walls readable instead of flat blue.
-    { h: 9.0,  sunCol: [1.10, 0.96, 0.76], skyCol: [0.21, 0.27, 0.39], groundCol: [0.26, 0.20, 0.13],
-      fogCol: [0.66, 0.60, 0.50], zenith: [0.13, 0.31, 0.68], horizon: [0.80, 0.71, 0.55],
-      groundSky: [0.28, 0.23, 0.17], stars: 0, exposure: 1.00, fogDensity: 0.0026, emissive: 1.6, bloom: 0.70 },
-    { h: 13.0, sunCol: [1.16, 1.06, 0.90], skyCol: [0.24, 0.31, 0.45], groundCol: [0.30, 0.24, 0.16],
-      fogCol: [0.70, 0.66, 0.58], zenith: [0.11, 0.30, 0.72], horizon: [0.76, 0.72, 0.62],
-      groundSky: [0.30, 0.26, 0.20], stars: 0, exposure: 0.96, fogDensity: 0.0022, emissive: 1.3, bloom: 0.60 },
-    { h: 17.0, sunCol: [1.18, 0.92, 0.62], skyCol: [0.24, 0.27, 0.38], groundCol: [0.28, 0.20, 0.12],
-      fogCol: [0.72, 0.60, 0.46], zenith: [0.12, 0.28, 0.64], horizon: [0.86, 0.68, 0.46],
-      groundSky: [0.30, 0.23, 0.16], stars: 0, exposure: 1.00, fogDensity: 0.0028, emissive: 1.8, bloom: 0.75 },
+    { h: 9.0,  sunCol: [1.22, 0.98, 0.68], skyCol: [0.23, 0.26, 0.34], groundCol: [0.32, 0.23, 0.13],
+      fogCol: [0.78, 0.62, 0.42], zenith: [0.16, 0.30, 0.58], horizon: [0.94, 0.76, 0.50],
+      groundSky: [0.28, 0.23, 0.17], stars: 0, exposure: 1.00, fogDensity: 0.0034, emissive: 1.6, bloom: 0.70 },
+    { h: 13.0, sunCol: [1.26, 1.10, 0.86], skyCol: [0.26, 0.30, 0.40], groundCol: [0.36, 0.27, 0.16],
+      fogCol: [0.82, 0.71, 0.54], zenith: [0.13, 0.29, 0.62], horizon: [0.92, 0.80, 0.58],
+      groundSky: [0.30, 0.26, 0.20], stars: 0, exposure: 0.96, fogDensity: 0.0030, emissive: 1.3, bloom: 0.60 },
+    { h: 17.0, sunCol: [1.34, 0.94, 0.56], skyCol: [0.26, 0.26, 0.33], groundCol: [0.34, 0.23, 0.12],
+      fogCol: [0.90, 0.68, 0.42], zenith: [0.14, 0.26, 0.54], horizon: [1.00, 0.76, 0.44],
+      groundSky: [0.30, 0.23, 0.16], stars: 0, exposure: 1.00, fogDensity: 0.0038, emissive: 1.8, bloom: 0.75 },
     { h: 19.2, sunCol: [1.25, 0.50, 0.26], skyCol: [0.26, 0.20, 0.26], groundCol: [0.16, 0.10, 0.09],
       fogCol: [0.66, 0.38, 0.30], zenith: [0.10, 0.16, 0.42], horizon: [0.96, 0.46, 0.28],
       groundSky: [0.26, 0.14, 0.12], stars: 0.08, exposure: 1.06, fogDensity: 0.0036, emissive: 2.6, bloom: 1.00 },
@@ -1005,6 +1005,33 @@
     var w = this.world;
     var q = this.quality;
     var cam = this.camera.pos;
+
+    // The titan is a horizon landmark: never culled by distance, and its
+    // eyes breathe so it reads as alive from anywhere in the city.
+    if (w.titan) {
+      var pulse = 0.82 + 0.18 * Math.sin(this.time * 0.55);
+      scene.items.push({
+        mesh: w.titan.mesh, model: w.titan.model,
+        emissive: 2.2 + pulse * 1.4, alwaysVisible: true, noShadow: true
+      });
+      for (var te = 0; te < w.titan.eyes.length; te++) {
+        scene.lights.push({
+          pos: w.titan.eyes[te], color: OCTO.landmarks.CYAN,
+          radius: 90, intensity: 2.2 * pulse
+        });
+      }
+    }
+    if (w.gates) {
+      for (var gi = 0; gi < w.gates.length; gi++) {
+        var gt = w.gates[gi];
+        var gdx = gt.x - cam.x, gdz = gt.z - cam.z;
+        if (gdx * gdx + gdz * gdz > 460 * 460) continue;
+        scene.items.push({
+          mesh: gt.mesh, model: gt.model,
+          emissive: 2.4 + Math.sin(this.time * 1.3 + gi) * 0.6
+        });
+      }
+    }
 
     // static chunks
     for (var i = 0; i < w.items.length; i++) scene.items.push(w.items[i]);

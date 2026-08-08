@@ -17,6 +17,10 @@
   var CELL = OCTO.CELL, TAU = OCTO.TAU;
   var U = OCTO.util, clamp = U.clamp;
 
+  // The concept film reserves cyan for three things: the titan's eyes, the
+  // gates, and the weapons. Keeping to that is most of why the look reads.
+  var ENERGY = [0.34, 0.94, 1.00];
+
   // Segment lengths, in world units. Total standing height ~1.62.
   var P = {
     hip: 0.80,        // pelvis height when standing
@@ -242,6 +246,10 @@
       mb.push().translate(0, -0.10, 0.02).rotateX(1.35);
       mb.push().translate(0, 0.30, 0).box(0.055, 0.62, 0.016).pop();     // blade
       mb.push().translate(0, 0.62, 0).rotateZ(0.78).box(0.045, 0.045, 0.02).pop(); // tip
+      // energy edge — the film gives every weapon a cyan core
+      mb.mat({ color: ENERGY, roughness: 0.05, emissive: 2.8 });
+      mb.push().translate(0, 0.32, 0).box(0.026, 0.66, 0.026).pop();
+      mb.mat({ color: s.metal, roughness: 0.22, emissive: 0 });
       mb.mat({ color: s.trim, roughness: 0.45 });
       mb.push().translate(0, 0.02, 0).box(0.17, 0.035, 0.03).pop();      // guard
       mb.push().translate(0, -0.09, 0).cylinder(0.024, 0.028, 0.16, 7).pop(); // grip
@@ -270,8 +278,9 @@
       mb.push().translate(0, 0.26, 0).rotateZ(0.20).cylinder(0.016, 0.010, 0.50, 6).pop();
       mb.push().translate(0, -0.26, 0).rotateZ(-0.20).cylinder(0.010, 0.016, 0.50, 6).pop();
       mb.push().cylinder(0.020, 0.020, 0.14, 7).pop();
-      mb.mat({ color: [0.90, 0.88, 0.80], roughness: 0.9 });
-      mb.push().translate(0, 0, -0.055).box(0.006, 0.98, 0.006).pop();   // string
+      mb.mat({ color: ENERGY, roughness: 0.05, emissive: 2.4 });
+      mb.push().translate(0, 0, -0.055).box(0.005, 0.98, 0.005).pop();   // string
+      mb.push().translate(0, 0, 0.10).rotateZ(1.5708).cylinder(0.012, 0.001, 0.42, 5).pop();
       mb.pop();
     }
   }
@@ -283,8 +292,10 @@
     mb.push().cylinder(0.30, 0.26, 0.05, 8).pop();
     mb.mat({ color: s.cloth, roughness: 0.7 });
     mb.push().translate(0, 0.032, 0).cylinder(0.22, 0.19, 0.02, 8).pop();
-    mb.mat({ color: s.trim, roughness: 0.4 });
+    mb.mat({ color: ENERGY, roughness: 0.1, emissive: 2.0 });
     mb.push().translate(0, 0.05, 0).sphere(0.065, 8, 6, { yScale: 0.7 }).pop();
+    mb.mat({ color: s.trim, roughness: 0.4, emissive: 0 });
+    mb.push().translate(0, 0.038, 0).cylinder(0.10, 0.085, 0.02, 8).pop();
     mb.pop();
   }
 

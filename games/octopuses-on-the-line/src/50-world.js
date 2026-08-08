@@ -104,6 +104,10 @@
     buildHarbour(cb, physics, world, rng);
     buildRopeNetwork(world, rng);
     buildCollectibles(world, rng);
+    // Landmarks from the concept film: the titan on the horizon and the
+    // cyan gates. Built after the districts so they can use the anchors.
+    OCTO.landmarks.addGates(renderer, world, physics);
+    OCTO.landmarks.addTitan(renderer, world, physics);
 
     cb.finalize(renderer, world.items);
     foliage.finalize(renderer, world.foliageItems, { wind: 0.028 });

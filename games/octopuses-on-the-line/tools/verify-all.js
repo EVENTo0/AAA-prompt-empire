@@ -126,8 +126,20 @@ async function suitePhone(browser) {
   record('phone', 'render buffer capped for the device', d1.buffer.split('x').reduce((a, b) => a * b, 1) <= 1000000, d1.buffer);
   record('phone', 'quality auto-selected for touch', d1.quality === 'low', d1.quality);
 
-  // a tap must move the character
+  // A tap must move the character. Put it on known open ground first and
+  // block the rope auto-grab: otherwise this measures where the character
+  // happened to be standing, not whether the tap reached the input system.
+  await page.evaluate(() => {
+    const g = window.GAME.game;
+    const spot = g.world.anchors.plaza;
+    g.player.teleport(spot.x, spot.y + 0.5, spot.z, 0);
+    g.player.lineCooldown = 30;
+  });
+  await page.waitForFunction(
+    () => window.GAME.game.player.state === 'ground', null, { timeout: 30000 }
+  ).catch(() => {});
   const before = await page.evaluate(() => window.GAME.game.player.pos.y);
+  const stateBefore = await page.evaluate(() => window.GAME.game.player.state);
   await page.evaluate(() => {
     const e = document.querySelector('.octo-btn-jump'), b = e.getBoundingClientRect();
     const t = new Touch({ identifier: 7, target: e, clientX: b.x + b.width / 2, clientY: b.y + b.height / 2 });
@@ -137,7 +149,7 @@ async function suitePhone(browser) {
   await page.waitForTimeout(800);
   const after = await page.evaluate(() => window.GAME.game.player.pos.y);
   record('phone', 'tap registers (jump moves the character)', after > before + 0.1,
-    `${before.toFixed(2)} -> ${after.toFixed(2)}`);
+    `state=${stateBefore} y ${before.toFixed(2)} -> ${after.toFixed(2)}`);
 
   // quick bar: menu, mute, diagnostics
   const quick = await page.evaluate(() => {
