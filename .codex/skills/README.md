@@ -1,32 +1,20 @@
-# Codex Skills Registry
+# Legacy Codex Skills Path
 
-Reusable skills for AAA+ Engineering Empire live here.
+`/.codex/skills/` is retained only as a migration/compatibility area for artifacts created by the earlier Empire foundation.
 
-Each skill should have its own directory containing a `SKILL.md` with:
+## Current source of truth
 
-- purpose and activation conditions;
-- required inputs and constraints;
-- step-by-step workflow;
-- tools and permissions;
-- outputs and evidence requirements;
-- failure modes and recovery;
-- quality checklist.
+Codex repository skills live under:
 
-## Initial skill domains
+- `/.agents/skills/<skill-name>/SKILL.md`
 
-- `empire-orchestrator/`
-- `repository-audit/`
-- `architecture-council/`
-- `product-discovery/`
-- `ai-engineering/`
-- `game-development/`
-- `web-engineering/`
-- `mobile-engineering/`
-- `vr-xr-engineering/`
-- `security-review/`
-- `qa-verification/`
-- `performance-engineering/`
-- `devops-release/`
-- `documentation-governance/`
+Claude Code project mirrors live under:
 
-A skill is not considered ready until it contains activation rules, an executable workflow, explicit deliverables, and verification criteria.
+- `/.claude/skills/<skill-name>/SKILL.md`
+
+Project-scoped executable subagents are separate from skills:
+
+- Codex: `/.codex/agents/*.toml`
+- Claude Code: `/.claude/agents/*.md`
+
+Do not add new production skills to this legacy directory. Migrate any remaining useful legacy skill behavior to the canonical `.agents/skills/` catalog and keep cross-agent mirrors synchronized through Empire Guard.
