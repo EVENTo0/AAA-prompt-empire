@@ -25,7 +25,34 @@ NODE_PATH=$(npm root -g) node tools/verify.js game
 Both exit non-zero on any uncaught page error, any failed assertion, or a
 non-zero `glGetError`.
 
-## Result — `VERIFIED`
+
+## Full acceptance pass — v1.1.0 — `VERIFIED`
+
+```bash
+NODE_PATH=$(npm root -g) node tools/verify-all.js
+```
+
+One command, four suites, every path a player can take.
+
+```
+  desktop   6/6     boot, all five districts, night, map, self-test 16/16
+  phone     10/10   touch rig, tap latch, quick bar, gamepad refusal, buffer cap
+  flow      6/6     cinematic, skip, five disciplines, class stats, entering play
+  dist      5/5     single-file bundle boots and self-tests identically
+  TOTAL     27/27
+RESULT: PASS  (exit 0)
+```
+
+The phone suite reproduces the reported device: 420x880 at dpr 3.25, touch
+enabled, and `navigator.getGamepads` overridden to throw the same
+`SecurityError` the embed's Permissions-Policy produces.
+
+One assertion was corrected rather than the code: "simulation actually steps"
+used a fixed 2.5s delay, which under a software rasteriser at ~2fps measures
+the rasteriser rather than the simulation. It now waits for the character to
+leave the `air` state, with a timeout.
+
+## Result — v1.0.0 — `VERIFIED`
 
 ```
 BOOT REPORT
