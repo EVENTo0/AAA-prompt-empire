@@ -21,28 +21,28 @@
   var QUALITY = {
     low: {
       name: 'Low', shadows: false, bloom: false, fxaa: false, water: true, lights: 4,
-      drawDistance: 260, renderScale: 0.7, shadowSize: 1024,
+      drawDistance: 260, renderScale: 0.7, shadowSize: 1024, maxPixels: 800000,
       bodySegs: 10, bodyRings: 7, tentacleSides: 5, suckers: false,
       npcSegs: 7, npcRings: 5, npcTentacleSides: 4, npcDistance: 70,
       ropeSides: 4, ropeDistance: 110, particles: 40
     },
     medium: {
       name: 'Medium', shadows: true, bloom: true, fxaa: true, water: true, lights: 8,
-      drawDistance: 380, renderScale: 0.85, shadowSize: 1024,
+      drawDistance: 380, renderScale: 0.85, shadowSize: 1024, maxPixels: 1500000,
       bodySegs: 14, bodyRings: 9, tentacleSides: 6, suckers: false,
       npcSegs: 9, npcRings: 6, npcTentacleSides: 4, npcDistance: 110,
       ropeSides: 5, ropeDistance: 160, particles: 90
     },
     high: {
       name: 'High', shadows: true, bloom: true, fxaa: true, water: true, lights: 12,
-      drawDistance: 520, renderScale: 1, shadowSize: 2048,
+      drawDistance: 520, renderScale: 1, shadowSize: 2048, maxPixels: 2600000,
       bodySegs: 18, bodyRings: 12, tentacleSides: 7, suckers: true,
       npcSegs: 11, npcRings: 8, npcTentacleSides: 5, npcDistance: 150,
       ropeSides: 6, ropeDistance: 220, particles: 150
     },
     ultra: {
       name: 'Ultra', shadows: true, bloom: true, fxaa: true, water: true, lights: 16,
-      drawDistance: 700, renderScale: 1, shadowSize: 2048,
+      drawDistance: 700, renderScale: 1, shadowSize: 2048, maxPixels: 4000000,
       bodySegs: 24, bodyRings: 16, tentacleSides: 9, suckers: true,
       npcSegs: 14, npcRings: 10, npcTentacleSides: 6, npcDistance: 220,
       ropeSides: 8, ropeDistance: 300, particles: 240
@@ -195,6 +195,7 @@
     this.activeMission = null;
     this.toasts = [];
     this.lang = this.save.lang || 'en';
+    this.muted = !!this.save.muted;
 
     this.lastCheckpoint = null;
     this.particles = [];
@@ -254,6 +255,7 @@
     renderer.quality.lights = q.lights;
     renderer.quality.drawDistance = q.drawDistance;
     renderer.quality.renderScale = q.renderScale;
+    renderer.quality.maxPixels = q.maxPixels;
   }
 
   Game.prototype.setQuality = function (name) {

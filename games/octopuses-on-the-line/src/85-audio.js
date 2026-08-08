@@ -31,8 +31,8 @@
     this.ctx = null;
     this.ready = false;
     this.enabled = true;
-    this.masterVol = 0.7;
-    this.musicVol = 0.55;
+    this.masterVol = 0.6;
+    this.musicVol = 0.40;   // the generative score sits under the game, not on it
     this.sfxVol = 0.85;
     this.district = 'souq';
     this.mood = DISTRICT_MOOD.souq;

@@ -23,12 +23,17 @@
     return q;
   }
 
+  /**
+   * CSS pixel dimensions are not a reliable phone signal: an embed without a
+   * mobile viewport tag reports Android's 980px desktop fallback, which read
+   * as "desktop" and picked a preset the device could not sustain. Touch is
+   * the signal. Phones start at Low and can be raised in Settings — an
+   * unplayable frame rate is worse than a plainer picture.
+   */
   function detectQuality() {
     var mem = root.navigator && root.navigator.deviceMemory;
     var touch = ('ontouchstart' in root) || (root.navigator && root.navigator.maxTouchPoints > 0);
-    var wide = Math.max(root.innerWidth || 0, root.innerHeight || 0);
-    if (touch && wide < 1000) return 'low';
-    if (touch) return 'medium';
+    if (touch) return 'low';
     if (mem && mem <= 4) return 'medium';
     return 'high';
   }
@@ -54,8 +59,19 @@
     var api = root.GAME = {
       booted: false,
       error: null,
+      lastError: null,
+      frameCount: 0,
+      frameErrors: 0,
       version: OCTO.VERSION
     };
+
+    // Anything thrown outside the frame still gets recorded for diagnostics.
+    root.addEventListener('error', function (e) {
+      api.lastError = String((e && (e.message || e.error)) || 'unknown error');
+    });
+    root.addEventListener('unhandledrejection', function (e) {
+      api.lastError = 'promise: ' + String((e && e.reason) || 'unknown');
+    });
 
     var renderer;
     try {
@@ -87,7 +103,11 @@
     var audio = new OCTO.Audio();
     game.audio = audio;
 
-    var pixelRatio = clamp(root.devicePixelRatio || 1, 1, 2);
+    // A dense phone screen gains nothing visible from a 2x buffer but pays the
+    // full fill-rate cost, so cap harder where the pixels are smallest.
+    var rawDpr = root.devicePixelRatio || 1;
+    var touchDevice = ('ontouchstart' in root) || (root.navigator && root.navigator.maxTouchPoints > 0);
+    var pixelRatio = clamp(rawDpr, 1, touchDevice ? 1.5 : 2);
     game.pixelRatio = pixelRatio;
 
     function resize() {
@@ -194,18 +214,29 @@
     var slowFor = 0, autoScaled = false;
     function autoScaleQuality() {
       if (q.quality || ui.screen !== 'game') return;      // explicit choice wins
-      if (game.fps > 0 && game.fps < 20) slowFor += 0.35; else slowFor = 0;
+      if (game.fps < 20) slowFor += 0.35; else slowFor = 0;
       if (slowFor < 3) return;
       slowFor = 0;
       var i = LADDER.indexOf(game.qualityName);
-      if (i < 0 || i >= LADDER.length - 1) return;
-      var next = LADDER[i + 1];
-      game.setQuality(next);
+      if (i >= 0 && i < LADDER.length - 1) {
+        var next = LADDER[i + 1];
+        game.setQuality(next);
+        resize();
+        autoScaled = true;
+        game.toast(
+          (ui.lang === 'ar' ? 'خُفضت الجودة إلى ' : 'Quality lowered to ') + OCTO.QUALITY[next].name,
+          'info');
+        return;
+      }
+      // Already at the lowest preset: keep shrinking the render buffer, which
+      // is the one thing that still buys frames on a weak GPU.
+      var scale = renderer.quality.renderScale;
+      if (scale <= 0.42) return;
+      renderer.quality.renderScale = Math.max(0.42, scale - 0.12);
+      renderer.quality.maxPixels = Math.max(360000, (renderer.quality.maxPixels || 800000) * 0.7);
       resize();
       autoScaled = true;
-      game.toast(
-        (ui.lang === 'ar' ? 'خُفضت الجودة إلى ' : 'Quality lowered to ') + OCTO.QUALITY[next].name,
-        'info');
+      game.toast(ui.lang === 'ar' ? 'خُفضت الدقة لتحسين الأداء' : 'Resolution lowered for performance', 'info');
     }
 
     function step(dt) {
@@ -218,13 +249,37 @@
       game.render(dt);
     }
 
+    /**
+     * The frame. Wrapped so a single bad frame cannot kill the game: an
+     * exception here used to stop the requestAnimationFrame chain outright,
+     * leaving a rendered still image, fps pinned at 0 and no input response —
+     * indistinguishable, to a player, from a frozen game.
+     */
     function loop() {
+      try {
+        frame();
+      } catch (e) {
+        api.frameErrors++;
+        api.lastError = String(e && e.stack || e);
+        if (api.frameErrors === 1) {
+          game.toast(ui.lang === 'ar' ? 'حدث خطأ — اضغط i للتفاصيل' : 'A frame error occurred — tap i for details', 'warn');
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function frame() {
+      api.frameCount++;
       var t = now();
       var dt = (t - last) / 1000;
       last = t;
+      // Measure the frame rate from real elapsed time. Using the clamped
+      // simulation dt makes a 3fps device report 15fps, which hides exactly
+      // the problem the readout exists to reveal.
+      var realDt = dt;
       if (dt > MAX_STEP) dt = MAX_STEP;
 
-      game._fpsAcc += dt; game._fpsCount++;
+      game._fpsAcc += realDt; game._fpsCount++;
       if (game._fpsAcc >= 0.35) {
         game.fps = game._fpsCount / game._fpsAcc;
         game._fpsAcc = 0; game._fpsCount = 0;
@@ -238,13 +293,11 @@
       // No endFrame when no step ran: clearing input a simulation step never
       // read is how taps and look deltas get silently dropped.
       render(dt);
-      requestAnimationFrame(loop);
     }
 
     canvas.addEventListener('click', function () {
       if (ui.screen === 'game' && !ui.isTouchDevice() && !input.mouse.locked) input.requestLock();
-      audio.init();
-      audio.resume();
+      if (!game.muted) { audio.init(); audio.resume(); }
     });
 
     /* ------------------------------------------------------- test hooks */
@@ -302,6 +355,10 @@
         return {
           version: OCTO.VERSION,
           fps: Math.round(game.fps),
+          frameMs: game.fps > 0 ? Math.round(1000 / game.fps) : -1,
+          frames: api.frameCount,
+          frameErrors: api.frameErrors,
+          lastError: api.lastError ? String(api.lastError).slice(0, 220) : 'none',
           quality: game.qualityName,
           autoScaled: autoScaled,
           draws: renderer.stats.draws,
@@ -316,6 +373,7 @@
           inIframe: (function () { try { return root.self !== root.top; } catch (e) { return true; } })(),
           viewport: (root.innerWidth || 0) + 'x' + (root.innerHeight || 0),
           buffer: renderer.width + 'x' + renderer.height,
+          renderScale: +renderer.quality.renderScale.toFixed(2),
           dpr: root.devicePixelRatio || 1,
           gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
           floatColor: renderer.floatColor,

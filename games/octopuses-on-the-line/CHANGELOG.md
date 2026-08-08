@@ -4,6 +4,61 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] — 2026-08-08 — Phone playability
+
+Reported from an Honor X9d (Adreno 810) running the embedded build: the game
+loaded and Play worked, but nothing could be controlled, and there was no way
+to turn the sound off.
+
+### Fixed
+
+- **Taps were dropped between simulation frames.** Touch presses were stored as
+  a held-state only. A tap that begins and ends inside one frame set and
+  cleared the flag before any simulation step read it, so the press was never
+  observed. Presses now latch into a separate map that only `endFrame` clears,
+  after a step has consumed it. The main loop also no longer calls `endFrame`
+  when zero steps ran, which discarded taps and look deltas on high-refresh
+  displays for the same reason.
+- **The frame loop could die permanently.** An exception inside the loop broke
+  the `requestAnimationFrame` chain, leaving a rendered still image, `fps 0`
+  and no input — indistinguishable from a frozen game. The frame body is now
+  wrapped, errors are recorded and surfaced, and the chain always continues.
+- **Frame rate was measured from the clamped simulation delta**, so a device
+  running at 3fps reported 15fps — hiding the exact problem the readout exists
+  to reveal. It now uses real elapsed time, and reports `frameMs` too.
+- **The fragment shader ran a nine-tap PCF shadow lookup even with shadows
+  disabled.** At Low quality on a 3.4-megapixel buffer that is tens of millions
+  of texture fetches per frame for a result multiplied by zero.
+- **Render buffers were unbounded on dense screens.** A tall phone at dpr 3.25
+  asked for 1372×2472 — 3.4 megapixels, larger than a 1080p desktop window.
+  Buffers are now capped by total pixel count per quality preset, and the
+  device pixel ratio is capped harder on touch devices.
+- **Quality detection used CSS dimensions.** An embed without a mobile viewport
+  tag reports Android's 980px desktop fallback width, which read as "desktop"
+  and selected a preset the phone could not sustain. Touch is now the signal,
+  and phones start at Low.
+- **There was no way to reach Settings on a phone.** The panel opened only via
+  `Esc`. A quick bar (menu / mute / diagnostics) now sits above the touch
+  overlay, where the camera look area cannot intercept it.
+
+### Added
+
+- One-tap mute, remembered between sessions, plus a Sound row in Settings.
+- Diagnostics panel reachable by tapping **i**: fps, frame time, frame count,
+  frame errors, last error, quality, render scale, buffer size, touch state,
+  iframe, GPU, storage and audio state.
+- Automatic quality reduction after three seconds below 20fps, continuing into
+  progressive resolution reduction once the lowest preset is reached.
+- Touch controls attach on the first touch anywhere, so a failed capability
+  check can no longer leave a player with no controls at all.
+
+### Changed
+
+- Larger touch targets (60px → 68px); the camera pulls back on portrait aspect
+  ratios, which show far less of the world horizontally.
+- Default music volume lowered; the score sits under the game rather than on
+  top of it.
+
 ## [1.0.0] — 2026-08-08 — Open Map Beta
 
 First playable release. The full map is open and every system is in place; the

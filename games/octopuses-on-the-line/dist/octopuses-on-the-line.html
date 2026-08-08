@@ -303,7 +303,7 @@
     border-radius: 50%; background: rgba(255,255,255,0.30); border: 1px solid rgba(255,255,255,0.4);
   }
   /* Leaves the top bar free so it never swallows taps meant for the HUD. */
-  .octo-look { position: absolute; inset: 58px 0 0 40%; pointer-events: auto; touch-action: none; }
+  .octo-look { position: absolute; inset: 62px 0 0 40%; pointer-events: auto; touch-action: none; }
   .octo-buttons {
     position: absolute; bottom: 24px; inset-inline-end: 20px;
     display: grid; grid-template-columns: repeat(3, 68px); gap: 10px; pointer-events: auto;
@@ -317,19 +317,32 @@
   .octo-touch-mode .octo-minimap { bottom: 178px; }
   .octo-touch-mode .octo-abilities { display: none; }
 
-  /* ---------------------------------------------------- diagnostics */
-  /* Above the touch overlay (z 15) so its look area cannot intercept taps. */
-  .octo-diag-wrap { position: absolute; inset: 0; z-index: 18; pointer-events: none; }
-  .octo-diag-toggle {
-    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-    width: 34px; height: 34px; border-radius: 50%; pointer-events: auto;
-    font-family: inherit; font-size: 15px; font-weight: 800; font-style: italic;
-    color: #cdbfa8; background: rgba(14,10,7,0.62); border: 1px solid var(--edge);
-    -webkit-tap-highlight-color: transparent; cursor: pointer;
+  /* ------------------------------------------- quick bar + diagnostics */
+  /* Above the touch overlay (z 15) so its look area cannot intercept taps.
+     On a phone there is no Esc key, so menu and mute must live here. */
+  .octo-quickbar { position: absolute; inset: 0; z-index: 18; pointer-events: none; }
+  .octo-quick-row {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; pointer-events: auto;
   }
-  .octo-diag-toggle:hover { border-color: var(--gold); color: var(--gold); }
+  .octo-quick {
+    width: 40px; height: 40px; border-radius: 50%;
+    font-family: inherit; font-size: 16px; font-weight: 800; line-height: 1;
+    color: #cdbfa8; background: rgba(14,10,7,0.74); border: 1px solid var(--edge);
+    -webkit-tap-highlight-color: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .octo-quick:hover, .octo-quick:focus-visible { border-color: var(--gold); color: var(--gold); }
+  .octo-quick-diag { font-style: italic; }
+  .octo-quick-sound { position: relative; }
+  .octo-quick-sound.muted { color: #8b7f6e; }
+  /* A bar through the note reads as "off" without needing a second glyph. */
+  .octo-quick-sound.muted::after {
+    content: ""; position: absolute; left: 20%; right: 20%; top: 50%;
+    height: 2px; background: #d85c5c; transform: rotate(-38deg); border-radius: 2px;
+  }
   .octo-diag {
-    position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: 62px; left: 50%; transform: translateX(-50%);
     max-width: min(340px, 88vw); max-height: 60vh; overflow: auto; margin: 0;
     padding: 12px 14px; border-radius: 12px; pointer-events: auto;
     background: rgba(8,6,4,0.94); border: 1px solid #79e6a0;
@@ -881,6 +894,9 @@
     '}',
     '',
     'float sunShadow(vec3 N){',
+    '  // With shadows off this used to still run a 9-tap PCF lookup per pixel —',
+    '  // tens of millions of wasted texture fetches per frame on a phone.',
+    '  if (uShadowStrength <= 0.0) return 1.0;',
     '  vec3 off = vWorld + N * uShadowTexel * 2.4 * (vDepth > uSplit ? 220.0 : 60.0);',
     '  vec4 lp; float texel;',
     '  if (vDepth <= uSplit) { lp = uLightVP0 * vec4(off, 1.0); texel = uShadowTexel; }',
@@ -1331,7 +1347,7 @@
     };
     this.quality = {
       shadows: true, bloom: true, fxaa: true, water: true, lights: MAX_LIGHTS,
-      drawDistance: 520, renderScale: 1
+      drawDistance: 520, renderScale: 1, maxPixels: 2600000
     };
     this.time = 0;
 
@@ -1391,6 +1407,15 @@
     var scale = this.quality.renderScale || 1;
     w = Math.max(2, Math.floor(w * this.pixelRatio * scale));
     h = Math.max(2, Math.floor(h * this.pixelRatio * scale));
+    // A tall phone at dpr 3+ asks for a buffer several times larger than a
+    // 1080p desktop window. Cap by total pixels, not by axis, so the aspect
+    // ratio survives.
+    var maxPixels = this.quality.maxPixels || 0;
+    if (maxPixels > 0 && w * h > maxPixels) {
+      var k = Math.sqrt(maxPixels / (w * h));
+      w = Math.max(2, Math.floor(w * k));
+      h = Math.max(2, Math.floor(h * k));
+    }
     if (w === this.width && h === this.height && this.sceneFbo) return;
     this.width = w; this.height = h;
     this.canvas.width = w; this.canvas.height = h;
@@ -6087,28 +6112,28 @@
   var QUALITY = {
     low: {
       name: 'Low', shadows: false, bloom: false, fxaa: false, water: true, lights: 4,
-      drawDistance: 260, renderScale: 0.7, shadowSize: 1024,
+      drawDistance: 260, renderScale: 0.7, shadowSize: 1024, maxPixels: 800000,
       bodySegs: 10, bodyRings: 7, tentacleSides: 5, suckers: false,
       npcSegs: 7, npcRings: 5, npcTentacleSides: 4, npcDistance: 70,
       ropeSides: 4, ropeDistance: 110, particles: 40
     },
     medium: {
       name: 'Medium', shadows: true, bloom: true, fxaa: true, water: true, lights: 8,
-      drawDistance: 380, renderScale: 0.85, shadowSize: 1024,
+      drawDistance: 380, renderScale: 0.85, shadowSize: 1024, maxPixels: 1500000,
       bodySegs: 14, bodyRings: 9, tentacleSides: 6, suckers: false,
       npcSegs: 9, npcRings: 6, npcTentacleSides: 4, npcDistance: 110,
       ropeSides: 5, ropeDistance: 160, particles: 90
     },
     high: {
       name: 'High', shadows: true, bloom: true, fxaa: true, water: true, lights: 12,
-      drawDistance: 520, renderScale: 1, shadowSize: 2048,
+      drawDistance: 520, renderScale: 1, shadowSize: 2048, maxPixels: 2600000,
       bodySegs: 18, bodyRings: 12, tentacleSides: 7, suckers: true,
       npcSegs: 11, npcRings: 8, npcTentacleSides: 5, npcDistance: 150,
       ropeSides: 6, ropeDistance: 220, particles: 150
     },
     ultra: {
       name: 'Ultra', shadows: true, bloom: true, fxaa: true, water: true, lights: 16,
-      drawDistance: 700, renderScale: 1, shadowSize: 2048,
+      drawDistance: 700, renderScale: 1, shadowSize: 2048, maxPixels: 4000000,
       bodySegs: 24, bodyRings: 16, tentacleSides: 9, suckers: true,
       npcSegs: 14, npcRings: 10, npcTentacleSides: 6, npcDistance: 220,
       ropeSides: 8, ropeDistance: 300, particles: 240
@@ -6261,6 +6286,7 @@
     this.activeMission = null;
     this.toasts = [];
     this.lang = this.save.lang || 'en';
+    this.muted = !!this.save.muted;
 
     this.lastCheckpoint = null;
     this.particles = [];
@@ -6320,6 +6346,7 @@
     renderer.quality.lights = q.lights;
     renderer.quality.drawDistance = q.drawDistance;
     renderer.quality.renderScale = q.renderScale;
+    renderer.quality.maxPixels = q.maxPixels;
   }
 
   Game.prototype.setQuality = function (name) {
@@ -7238,8 +7265,8 @@
     this.ctx = null;
     this.ready = false;
     this.enabled = true;
-    this.masterVol = 0.7;
-    this.musicVol = 0.55;
+    this.masterVol = 0.6;
+    this.musicVol = 0.40;   // the generative score sits under the game, not on it
     this.sfxVol = 0.85;
     this.district = 'souq';
     this.mood = DISTRICT_MOOD.souq;
@@ -7822,17 +7849,28 @@
       '<div class="octo-crosshair"></div>';
     r.appendChild(this.hud);
 
-    // Diagnostics lives outside the HUD: the HUD's own stacking context sits
+    // The quick bar lives outside the HUD: the HUD's own stacking context sits
     // below the touch overlay, whose look area covers most of the screen and
-    // would swallow every tap aimed at it.
-    this.diagWrap = el('div', 'octo-diag-wrap');
-    this.diagWrap.innerHTML =
-      '<button class="octo-diag-toggle" aria-label="Diagnostics">i</button>' +
+    // would swallow every tap aimed at it. Menu and mute must be reachable on
+    // a phone, where there is no Esc key to open settings with.
+    this.quickbar = el('div', 'octo-quickbar');
+    this.quickbar.innerHTML =
+      '<div class="octo-quick-row">' +
+      '  <button class="octo-quick octo-quick-menu" aria-label="Menu">☰</button>' +
+      '  <button class="octo-quick octo-quick-sound" aria-label="Sound">♪</button>' +
+      '  <button class="octo-quick octo-quick-diag" aria-label="Diagnostics">i</button>' +
+      '</div>' +
       '<pre class="octo-diag hidden"></pre>';
-    r.appendChild(this.diagWrap);
-    this.diagEl = this.diagWrap.querySelector('.octo-diag');
-    this.diagWrap.querySelector('.octo-diag-toggle')
+    r.appendChild(this.quickbar);
+    this.diagEl = this.quickbar.querySelector('.octo-diag');
+    this.soundBtn = this.quickbar.querySelector('.octo-quick-sound');
+    this.quickbar.querySelector('.octo-quick-diag')
       .addEventListener('click', function () { self.toggleDiag(); });
+    this.quickbar.querySelector('.octo-quick-menu')
+      .addEventListener('click', function () {
+        if (self.screen === 'panel') self.closePanel(); else self.openPanel('settings');
+      });
+    this.soundBtn.addEventListener('click', function () { self.toggleMute(); });
     this.moneyEl = this.hud.querySelector('.octo-money-v');
     this.districtEl = this.hud.querySelector('.octo-district');
     this.clockEl = this.hud.querySelector('.octo-clock');
@@ -7864,6 +7902,7 @@
     r.appendChild(this.beta);
 
     this.applyLang();
+    this.syncMuteButton();
   };
 
   Ui.prototype.applyLang = function () {
@@ -7932,7 +7971,7 @@
     this.hud.classList.remove('hidden');
     this.panel.classList.add('hidden');
     this.game.paused = false;
-    if (this.game.audio) { this.game.audio.init(); this.game.audio.resume(); }
+    if (this.game.audio && !this.game.muted) { this.game.audio.init(); this.game.audio.resume(); }
     if (!this.input.touch.active && !this.isTouchDevice()) this.input.requestLock();
     if (!this.shownIntro) {
       this.shownIntro = true;
@@ -8093,6 +8132,13 @@
     row(this.t('volume'), slider(a ? a.masterVol : 0.7, function (v) { a && a.setVolumes(v, a.musicVol, a.sfxVol); }));
     row(this.t('music'), slider(a ? a.musicVol : 0.55, function (v) { a && a.setVolumes(a.masterVol, v, a.sfxVol); }));
     row(this.t('sfx'), slider(a ? a.sfxVol : 0.85, function (v) { a && a.setVolumes(a.masterVol, a.musicVol, v); }));
+
+    var mute = el('button', 'octo-btn-small', g.muted ? (this.lang === 'ar' ? 'مكتوم' : 'MUTED') : (this.lang === 'ar' ? 'يعمل' : 'ON'));
+    mute.addEventListener('click', function () {
+      self.toggleMute();
+      mute.textContent = g.muted ? (self.lang === 'ar' ? 'مكتوم' : 'MUTED') : (self.lang === 'ar' ? 'يعمل' : 'ON');
+    });
+    row(this.lang === 'ar' ? 'كتم الصوت' : 'Sound', mute);
 
     var inv = el('button', 'octo-btn-small', this.input.invertY ? 'ON' : 'OFF');
     inv.addEventListener('click', function () {
@@ -8296,6 +8342,26 @@
     this.beta.appendChild(camRow);
   };
 
+  /** One-tap mute, remembered between sessions. */
+  Ui.prototype.toggleMute = function (force) {
+    var g = this.game;
+    g.muted = force === undefined ? !g.muted : !!force;
+    if (g.audio) g.audio.setEnabled(!g.muted);
+    g.save.muted = g.muted;
+    g.persist();
+    this.syncMuteButton();
+    if (!g.muted && g.audio) { g.audio.init(); g.audio.resume(); }
+  };
+
+  Ui.prototype.syncMuteButton = function () {
+    if (!this.soundBtn) return;
+    var muted = !!this.game.muted;
+    this.soundBtn.classList.toggle('muted', muted);
+    this.soundBtn.textContent = muted ? '♪' : '♪';
+    this.soundBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+    this.soundBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+  };
+
   /**
    * A readable dump of the environment, reachable by tap. This is what a
    * player on an unfamiliar device can screenshot and send back.
@@ -8468,12 +8534,17 @@
     return q;
   }
 
+  /**
+   * CSS pixel dimensions are not a reliable phone signal: an embed without a
+   * mobile viewport tag reports Android's 980px desktop fallback, which read
+   * as "desktop" and picked a preset the device could not sustain. Touch is
+   * the signal. Phones start at Low and can be raised in Settings — an
+   * unplayable frame rate is worse than a plainer picture.
+   */
   function detectQuality() {
     var mem = root.navigator && root.navigator.deviceMemory;
     var touch = ('ontouchstart' in root) || (root.navigator && root.navigator.maxTouchPoints > 0);
-    var wide = Math.max(root.innerWidth || 0, root.innerHeight || 0);
-    if (touch && wide < 1000) return 'low';
-    if (touch) return 'medium';
+    if (touch) return 'low';
     if (mem && mem <= 4) return 'medium';
     return 'high';
   }
@@ -8499,8 +8570,19 @@
     var api = root.GAME = {
       booted: false,
       error: null,
+      lastError: null,
+      frameCount: 0,
+      frameErrors: 0,
       version: OCTO.VERSION
     };
+
+    // Anything thrown outside the frame still gets recorded for diagnostics.
+    root.addEventListener('error', function (e) {
+      api.lastError = String((e && (e.message || e.error)) || 'unknown error');
+    });
+    root.addEventListener('unhandledrejection', function (e) {
+      api.lastError = 'promise: ' + String((e && e.reason) || 'unknown');
+    });
 
     var renderer;
     try {
@@ -8532,7 +8614,11 @@
     var audio = new OCTO.Audio();
     game.audio = audio;
 
-    var pixelRatio = clamp(root.devicePixelRatio || 1, 1, 2);
+    // A dense phone screen gains nothing visible from a 2x buffer but pays the
+    // full fill-rate cost, so cap harder where the pixels are smallest.
+    var rawDpr = root.devicePixelRatio || 1;
+    var touchDevice = ('ontouchstart' in root) || (root.navigator && root.navigator.maxTouchPoints > 0);
+    var pixelRatio = clamp(rawDpr, 1, touchDevice ? 1.5 : 2);
     game.pixelRatio = pixelRatio;
 
     function resize() {
@@ -8639,18 +8725,29 @@
     var slowFor = 0, autoScaled = false;
     function autoScaleQuality() {
       if (q.quality || ui.screen !== 'game') return;      // explicit choice wins
-      if (game.fps > 0 && game.fps < 20) slowFor += 0.35; else slowFor = 0;
+      if (game.fps < 20) slowFor += 0.35; else slowFor = 0;
       if (slowFor < 3) return;
       slowFor = 0;
       var i = LADDER.indexOf(game.qualityName);
-      if (i < 0 || i >= LADDER.length - 1) return;
-      var next = LADDER[i + 1];
-      game.setQuality(next);
+      if (i >= 0 && i < LADDER.length - 1) {
+        var next = LADDER[i + 1];
+        game.setQuality(next);
+        resize();
+        autoScaled = true;
+        game.toast(
+          (ui.lang === 'ar' ? 'خُفضت الجودة إلى ' : 'Quality lowered to ') + OCTO.QUALITY[next].name,
+          'info');
+        return;
+      }
+      // Already at the lowest preset: keep shrinking the render buffer, which
+      // is the one thing that still buys frames on a weak GPU.
+      var scale = renderer.quality.renderScale;
+      if (scale <= 0.42) return;
+      renderer.quality.renderScale = Math.max(0.42, scale - 0.12);
+      renderer.quality.maxPixels = Math.max(360000, (renderer.quality.maxPixels || 800000) * 0.7);
       resize();
       autoScaled = true;
-      game.toast(
-        (ui.lang === 'ar' ? 'خُفضت الجودة إلى ' : 'Quality lowered to ') + OCTO.QUALITY[next].name,
-        'info');
+      game.toast(ui.lang === 'ar' ? 'خُفضت الدقة لتحسين الأداء' : 'Resolution lowered for performance', 'info');
     }
 
     function step(dt) {
@@ -8663,13 +8760,37 @@
       game.render(dt);
     }
 
+    /**
+     * The frame. Wrapped so a single bad frame cannot kill the game: an
+     * exception here used to stop the requestAnimationFrame chain outright,
+     * leaving a rendered still image, fps pinned at 0 and no input response —
+     * indistinguishable, to a player, from a frozen game.
+     */
     function loop() {
+      try {
+        frame();
+      } catch (e) {
+        api.frameErrors++;
+        api.lastError = String(e && e.stack || e);
+        if (api.frameErrors === 1) {
+          game.toast(ui.lang === 'ar' ? 'حدث خطأ — اضغط i للتفاصيل' : 'A frame error occurred — tap i for details', 'warn');
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function frame() {
+      api.frameCount++;
       var t = now();
       var dt = (t - last) / 1000;
       last = t;
+      // Measure the frame rate from real elapsed time. Using the clamped
+      // simulation dt makes a 3fps device report 15fps, which hides exactly
+      // the problem the readout exists to reveal.
+      var realDt = dt;
       if (dt > MAX_STEP) dt = MAX_STEP;
 
-      game._fpsAcc += dt; game._fpsCount++;
+      game._fpsAcc += realDt; game._fpsCount++;
       if (game._fpsAcc >= 0.35) {
         game.fps = game._fpsCount / game._fpsAcc;
         game._fpsAcc = 0; game._fpsCount = 0;
@@ -8683,13 +8804,11 @@
       // No endFrame when no step ran: clearing input a simulation step never
       // read is how taps and look deltas get silently dropped.
       render(dt);
-      requestAnimationFrame(loop);
     }
 
     canvas.addEventListener('click', function () {
       if (ui.screen === 'game' && !ui.isTouchDevice() && !input.mouse.locked) input.requestLock();
-      audio.init();
-      audio.resume();
+      if (!game.muted) { audio.init(); audio.resume(); }
     });
 
     /* ------------------------------------------------------- test hooks */
@@ -8747,6 +8866,10 @@
         return {
           version: OCTO.VERSION,
           fps: Math.round(game.fps),
+          frameMs: game.fps > 0 ? Math.round(1000 / game.fps) : -1,
+          frames: api.frameCount,
+          frameErrors: api.frameErrors,
+          lastError: api.lastError ? String(api.lastError).slice(0, 220) : 'none',
           quality: game.qualityName,
           autoScaled: autoScaled,
           draws: renderer.stats.draws,
@@ -8761,6 +8884,7 @@
           inIframe: (function () { try { return root.self !== root.top; } catch (e) { return true; } })(),
           viewport: (root.innerWidth || 0) + 'x' + (root.innerHeight || 0),
           buffer: renderer.width + 'x' + renderer.height,
+          renderScale: +renderer.quality.renderScale.toFixed(2),
           dpr: root.devicePixelRatio || 1,
           gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
           floatColor: renderer.floatColor,

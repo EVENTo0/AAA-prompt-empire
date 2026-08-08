@@ -95,6 +95,9 @@
     '}',
     '',
     'float sunShadow(vec3 N){',
+    '  // With shadows off this used to still run a 9-tap PCF lookup per pixel —',
+    '  // tens of millions of wasted texture fetches per frame on a phone.',
+    '  if (uShadowStrength <= 0.0) return 1.0;',
     '  vec3 off = vWorld + N * uShadowTexel * 2.4 * (vDepth > uSplit ? 220.0 : 60.0);',
     '  vec4 lp; float texel;',
     '  if (vDepth <= uSplit) { lp = uLightVP0 * vec4(off, 1.0); texel = uShadowTexel; }',
@@ -545,7 +548,7 @@
     };
     this.quality = {
       shadows: true, bloom: true, fxaa: true, water: true, lights: MAX_LIGHTS,
-      drawDistance: 520, renderScale: 1
+      drawDistance: 520, renderScale: 1, maxPixels: 2600000
     };
     this.time = 0;
 
@@ -605,6 +608,15 @@
     var scale = this.quality.renderScale || 1;
     w = Math.max(2, Math.floor(w * this.pixelRatio * scale));
     h = Math.max(2, Math.floor(h * this.pixelRatio * scale));
+    // A tall phone at dpr 3+ asks for a buffer several times larger than a
+    // 1080p desktop window. Cap by total pixels, not by axis, so the aspect
+    // ratio survives.
+    var maxPixels = this.quality.maxPixels || 0;
+    if (maxPixels > 0 && w * h > maxPixels) {
+      var k = Math.sqrt(maxPixels / (w * h));
+      w = Math.max(2, Math.floor(w * k));
+      h = Math.max(2, Math.floor(h * k));
+    }
     if (w === this.width && h === this.height && this.sceneFbo) return;
     this.width = w; this.height = h;
     this.canvas.width = w; this.canvas.height = h;

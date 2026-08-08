@@ -142,17 +142,28 @@
       '<div class="octo-crosshair"></div>';
     r.appendChild(this.hud);
 
-    // Diagnostics lives outside the HUD: the HUD's own stacking context sits
+    // The quick bar lives outside the HUD: the HUD's own stacking context sits
     // below the touch overlay, whose look area covers most of the screen and
-    // would swallow every tap aimed at it.
-    this.diagWrap = el('div', 'octo-diag-wrap');
-    this.diagWrap.innerHTML =
-      '<button class="octo-diag-toggle" aria-label="Diagnostics">i</button>' +
+    // would swallow every tap aimed at it. Menu and mute must be reachable on
+    // a phone, where there is no Esc key to open settings with.
+    this.quickbar = el('div', 'octo-quickbar');
+    this.quickbar.innerHTML =
+      '<div class="octo-quick-row">' +
+      '  <button class="octo-quick octo-quick-menu" aria-label="Menu">☰</button>' +
+      '  <button class="octo-quick octo-quick-sound" aria-label="Sound">♪</button>' +
+      '  <button class="octo-quick octo-quick-diag" aria-label="Diagnostics">i</button>' +
+      '</div>' +
       '<pre class="octo-diag hidden"></pre>';
-    r.appendChild(this.diagWrap);
-    this.diagEl = this.diagWrap.querySelector('.octo-diag');
-    this.diagWrap.querySelector('.octo-diag-toggle')
+    r.appendChild(this.quickbar);
+    this.diagEl = this.quickbar.querySelector('.octo-diag');
+    this.soundBtn = this.quickbar.querySelector('.octo-quick-sound');
+    this.quickbar.querySelector('.octo-quick-diag')
       .addEventListener('click', function () { self.toggleDiag(); });
+    this.quickbar.querySelector('.octo-quick-menu')
+      .addEventListener('click', function () {
+        if (self.screen === 'panel') self.closePanel(); else self.openPanel('settings');
+      });
+    this.soundBtn.addEventListener('click', function () { self.toggleMute(); });
     this.moneyEl = this.hud.querySelector('.octo-money-v');
     this.districtEl = this.hud.querySelector('.octo-district');
     this.clockEl = this.hud.querySelector('.octo-clock');
@@ -184,6 +195,7 @@
     r.appendChild(this.beta);
 
     this.applyLang();
+    this.syncMuteButton();
   };
 
   Ui.prototype.applyLang = function () {
@@ -252,7 +264,7 @@
     this.hud.classList.remove('hidden');
     this.panel.classList.add('hidden');
     this.game.paused = false;
-    if (this.game.audio) { this.game.audio.init(); this.game.audio.resume(); }
+    if (this.game.audio && !this.game.muted) { this.game.audio.init(); this.game.audio.resume(); }
     if (!this.input.touch.active && !this.isTouchDevice()) this.input.requestLock();
     if (!this.shownIntro) {
       this.shownIntro = true;
@@ -413,6 +425,13 @@
     row(this.t('volume'), slider(a ? a.masterVol : 0.7, function (v) { a && a.setVolumes(v, a.musicVol, a.sfxVol); }));
     row(this.t('music'), slider(a ? a.musicVol : 0.55, function (v) { a && a.setVolumes(a.masterVol, v, a.sfxVol); }));
     row(this.t('sfx'), slider(a ? a.sfxVol : 0.85, function (v) { a && a.setVolumes(a.masterVol, a.musicVol, v); }));
+
+    var mute = el('button', 'octo-btn-small', g.muted ? (this.lang === 'ar' ? 'مكتوم' : 'MUTED') : (this.lang === 'ar' ? 'يعمل' : 'ON'));
+    mute.addEventListener('click', function () {
+      self.toggleMute();
+      mute.textContent = g.muted ? (self.lang === 'ar' ? 'مكتوم' : 'MUTED') : (self.lang === 'ar' ? 'يعمل' : 'ON');
+    });
+    row(this.lang === 'ar' ? 'كتم الصوت' : 'Sound', mute);
 
     var inv = el('button', 'octo-btn-small', this.input.invertY ? 'ON' : 'OFF');
     inv.addEventListener('click', function () {
@@ -614,6 +633,26 @@
     wob.addEventListener('click', function () { g.player.enterRagdoll(1.5); });
     camRow.appendChild(wob);
     this.beta.appendChild(camRow);
+  };
+
+  /** One-tap mute, remembered between sessions. */
+  Ui.prototype.toggleMute = function (force) {
+    var g = this.game;
+    g.muted = force === undefined ? !g.muted : !!force;
+    if (g.audio) g.audio.setEnabled(!g.muted);
+    g.save.muted = g.muted;
+    g.persist();
+    this.syncMuteButton();
+    if (!g.muted && g.audio) { g.audio.init(); g.audio.resume(); }
+  };
+
+  Ui.prototype.syncMuteButton = function () {
+    if (!this.soundBtn) return;
+    var muted = !!this.game.muted;
+    this.soundBtn.classList.toggle('muted', muted);
+    this.soundBtn.textContent = muted ? '♪' : '♪';
+    this.soundBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+    this.soundBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
   };
 
   /**
