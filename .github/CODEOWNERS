@@ -1,0 +1,13 @@
+# AAA+ Engineering Empire ownership
+# Keep this file under .github so it can protect itself when Code Owner reviews are required.
+
+* @EVENTo0
+/.github/ @EVENTo0
+/AGENTS.md @EVENTo0
+/CLAUDE.md @EVENTo0
+/.agents/ @EVENTo0
+/.claude/ @EVENTo0
+/.codex/ @EVENTo0
+/docs/security/ @EVENTo0
+/docs/adr/ @EVENTo0
+/scripts/ @EVENTo0

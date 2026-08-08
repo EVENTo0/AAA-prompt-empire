@@ -1,0 +1,77 @@
+name: Empire Guard
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: empire-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  governance:
+    name: governance-and-skills
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Empire
+        run: python scripts/validate_empire.py
+      - name: Check YAML parseability
+        run: |
+          python - <<'PY'
+          import pathlib
+          for p in pathlib.Path('.github/workflows').glob('*.yml'):
+              text=p.read_text(encoding='utf-8')
+              if '\t' in text:
+                  raise SystemExit(f'tab character not allowed in {p}')
+          print('workflow text checks passed')
+          PY
+
+  sensitive-diff:
+    name: sensitive-diff-policy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Identify sensitive governance changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" | tee /tmp/changed.txt
+          python - <<'PY'
+          from pathlib import Path
+          sensitive_prefixes = (
+              'AGENTS.md', 'CLAUDE.md', '.agents/', '.claude/', '.codex/',
+              '.github/', 'docs/security/', 'docs/adr/', 'scripts/'
+          )
+          changed = [x.strip() for x in Path('/tmp/changed.txt').read_text().splitlines() if x.strip()]
+          hits = [x for x in changed if x == 'AGENTS.md' or x == 'CLAUDE.md' or x.startswith(sensitive_prefixes[2:])]
+          if hits:
+              print('Sensitive Empire control-plane files changed:')
+              print('\n'.join(f'- {x}' for x in hits))
+              print('CODEOWNERS + branch/ruleset protection should require owner review before merge.')
+          else:
+              print('No sensitive control-plane paths changed.')
+          PY
