@@ -13,6 +13,7 @@
     {"id":"E009","route":"game-narrative","input_tags":["game","narrative"],"expect_agents":["creative_director"],"expect_no_permission":"write_branch"},
     {"id":"E010","route":"design-prototype","input_tags":["design","prototype"],"expect_agents":["creative_director"],"expect_no_permission":"write_branch"},
     {"id":"E011","route":"portfolio-operations","input_tags":["portfolio","status"],"expect_agents":["portfolio_operator"],"expect_no_permission":"write_branch"},
-    {"id":"E012","route":"mobile-cross-platform","input_tags":["mobile"],"expect_agents":["mobile_builder","qa_verifier"]}
+    {"id":"E012","route":"mobile-cross-platform","input_tags":["mobile"],"expect_agents":["mobile_builder","qa_verifier"]},
+    {"id":"E013","route":"game-studio","input_tags":["game-studio","octorimal"],"expect_agents":["game_studio_director"]}
   ]
 }
