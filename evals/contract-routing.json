@@ -13,6 +13,11 @@
     {"id":"E009","route":"game-narrative","input_tags":["game","narrative"],"expect_agents":["creative_director"],"expect_no_permission":"write_branch"},
     {"id":"E010","route":"design-prototype","input_tags":["design","prototype"],"expect_agents":["creative_director"],"expect_no_permission":"write_branch"},
     {"id":"E011","route":"portfolio-operations","input_tags":["portfolio","status"],"expect_agents":["portfolio_operator"],"expect_no_permission":"write_branch"},
-    {"id":"E012","route":"mobile-cross-platform","input_tags":["mobile"],"expect_agents":["mobile_builder","qa_verifier"]}
+    {"id":"E012","route":"mobile-cross-platform","input_tags":["mobile"],"expect_agents":["mobile_builder","qa_verifier"]},
+    {"id":"E013","route":"technology-intelligence","input_tags":["technology","model"],"expect_agents":["technology_intelligence"],"expect_no_permission":"write_branch"},
+    {"id":"E014","route":"capability-curation","input_tags":["capability","regression"],"expect_agents":["capability_curator","qa_verifier"],"expect_no_permission":"deploy_preview"},
+    {"id":"E015","route":"project-continuity","input_tags":["resume","handoff"],"expect_agents":["continuity_analyst"],"expect_no_permission":"write_branch"},
+    {"id":"E016","route":"integration-planning","input_tags":["connector","webhook"],"expect_agents":["systems_optimizer"],"expect_no_permission":"write_branch"},
+    {"id":"E017","route":"systems-optimization","input_tags":["cost","reliability"],"expect_agents":["systems_optimizer"],"expect_no_permission":"write_branch"}
   ]
 }
