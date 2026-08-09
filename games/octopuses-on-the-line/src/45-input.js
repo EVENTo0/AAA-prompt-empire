@@ -292,9 +292,17 @@
       var t = e.changedTouches[0];
       stickId = t.identifier;
       var r = zone.getBoundingClientRect();
-      origin.x = t.clientX;
-      origin.y = t.clientY;
-      place(t.clientX - r.left, t.clientY - r.top);
+      // The stick follows the thumb, but its centre is clamped into the
+      // lower-left of the zone. Unclamped, touching high or far right in
+      // the zone dropped the stick near the middle of the screen, where
+      // half its travel ran off under the camera area and the character
+      // felt like it would barely move.
+      var pad = MAX + 12;
+      var cx = Math.max(r.left + pad, Math.min(t.clientX, r.right - pad));
+      var cy = Math.max(r.top + r.height * 0.34, Math.min(t.clientY, r.bottom - pad));
+      origin.x = cx;
+      origin.y = cy;
+      place(cx - r.left, cy - r.top);
       stick.classList.add('active');
       knob.style.transform = 'translate(-50%,-50%)';
       e.preventDefault();

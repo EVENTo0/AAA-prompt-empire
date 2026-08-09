@@ -286,9 +286,14 @@
     var wantMove = (move.x !== 0 || move.y !== 0);
 
     // camera-relative desired direction
+    // Camera-relative basis. The right vector is (-cos, sin), NOT
+    // (cos, -sin): the renderer's view matrix puts camera-right there, and
+    // the sign was flipped, so every left/right input drove the character
+    // the opposite way while forward/back behaved. Verified by dotting the
+    // real movement against row 0 of the live view matrix.
     var cy = camera ? camera.yaw : this.yaw;
     var fx = Math.sin(cy), fz = Math.cos(cy);
-    var rx = Math.cos(cy), rz = -Math.sin(cy);
+    var rx = -Math.cos(cy), rz = Math.sin(cy);
     var wishX = fx * move.y + rx * move.x;
     var wishZ = fz * move.y + rz * move.x;
     var wishLen = Math.sqrt(wishX * wishX + wishZ * wishZ);
@@ -1082,7 +1087,7 @@
       var move = input.moveAxis({ x: 0, y: 0 });
       var sp = (input.held('sprint') ? 26 : 9) * dt;
       var fx = Math.sin(this.yaw) * Math.cos(this.pitch), fy = -Math.sin(this.pitch), fz = Math.cos(this.yaw) * Math.cos(this.pitch);
-      var rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw);
+      var rx = -Math.cos(this.yaw), rz = Math.sin(this.yaw);   // see _updateWalk
       this.freePos.x += (fx * move.y + rx * move.x) * sp;
       this.freePos.z += (fz * move.y + rz * move.x) * sp;
       this.freePos.y += (fy * move.y + (input.held('jump') ? 1 : 0) - (input.held('grip') ? 1 : 0)) * sp;

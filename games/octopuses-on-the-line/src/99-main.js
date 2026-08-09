@@ -166,6 +166,14 @@
       if (ensureTouchControls()) game.toast(ui.lang === 'ar' ? 'تم تفعيل أزرار اللمس' : 'Touch controls enabled', 'info');
     }, { passive: true });
 
+    // Attach immediately on a touch device rather than waiting for the first
+    // touch. Waiting meant a phone spent its whole first screen showing the
+    // desktop keycap row and a "Click to begin" hint, which is what the
+    // player saw before they had touched anything.
+    if (!testMode && (('ontouchstart' in root) || (root.navigator && root.navigator.maxTouchPoints > 0))) {
+      ensureTouchControls();
+    }
+
     // The front of the game is staged: logo on black first, then the key
     // art with the progress bar once enough of the build is done that the
     // player has something to look at other than a number.

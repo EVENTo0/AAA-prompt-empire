@@ -4,6 +4,48 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] — 2026-08-09 — Left was right
+
+Four reports in, the "cannot control the character" complaint finally had a
+cause that was not ergonomic. It was arithmetic.
+
+### Fixed
+
+- **Left and right were inverted.** `_updateWalk` built its camera-relative
+  basis with a right vector of `(cos, -sin)`. The renderer's view matrix puts
+  camera-right at `(-cos, sin)` — the opposite. Forward and back were correct,
+  which is exactly why this survived four rounds of testing: the character
+  *did* respond, it just went the wrong way whenever the stick moved
+  sideways. Confirmed by dotting real movement against row 0 of the live view
+  matrix: stick right measured −2.5 m along camera-right. The same flipped
+  vector was in the photo-mode camera. Both fixed; `verify-rpg` now measures
+  all four directions against the view matrix on every run.
+- **The tappable HUD had never worked on a phone.** The touch look-overlay
+  (`z-index: 15`) sits above the HUD (`z-index: 10`) and covers the right 54%
+  of the screen, so every tap aimed at the minimap, the quest tracker, the
+  purse or the hero plate was swallowed by the camera-drag layer. This is why
+  the map would not open. The HUD now sits above the touch layer in touch
+  mode; its root stays `pointer-events: none`, so the look area loses nothing
+  but the few rectangles that are meant to be buttons.
+- **Touch controls now attach at boot on a touch device** instead of waiting
+  for the first touch. A phone previously spent its entire first screen
+  showing the desktop keycap row and a "Click to begin" hint.
+- **The floating joystick could materialise near the middle of the screen.**
+  Its centre is now clamped into the lower-left of the stick zone, so half its
+  travel can never fall outside the reachable area.
+
+### Changed
+
+- **The world map is organised.** The souq and the line quarter sit forty
+  metres apart, so their labels were drawn on top of each other and the map
+  read as one blur. Regions now have explicit radii and dashed boundaries,
+  names sit on leader lines in directions chosen not to collide, and a survey
+  grid gives the distances a scale. All eight Anchors are drawn with their
+  rank gate — a tick if open, the required level if sealed — and tapping an
+  open one travels there. Gates, the titan, pearls and the live objective are
+  marked, and a key explains every symbol. The canvas fills the panel instead
+  of floating in it.
+
 ## [1.2.0] — 2026-08-09 — The front of the game
 
 Seven screenshots of Ragnarok X: Next Generation, and the request to match how

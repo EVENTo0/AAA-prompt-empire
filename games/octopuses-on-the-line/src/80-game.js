@@ -14,7 +14,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.2.0';
+  var VERSION = '1.2.1';
 
   /* ------------------------------------------------------------ quality */
 

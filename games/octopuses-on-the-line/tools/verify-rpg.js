@@ -473,6 +473,132 @@ async function run() {
     record('select', 'the avatar is offset clear of the roster',
       Math.abs(framing.lateral) > 0.05, framing.lateral);
 
+    /* ------------------------------------------------ control + map */
+
+    // Left/right was inverted against the camera basis: the stick said
+    // right and the character went left, while forward/back behaved. The
+    // check dots real movement against row 0 of the live view matrix.
+    const dirs = await page.evaluate(() => {
+      const g = window.GAME.game, inp = window.GAME.input, r = window.GAME.renderer;
+      // the front-of-game probes above left the page on the select screen,
+      // where the camera orbits and the player is parked
+      const ui = window.GAME.ui;
+      ui.select.classList.add('hidden');
+      g.selecting = false;
+      g.camera.free = false;
+      ui.startGame();
+      g.paused = false;
+      const a = g.world.anchors.plaza;
+      function trial(mx, my) {
+        g.player.teleport(a.x, a.y + 1.0, a.z);
+        g.player.lineCooldown = 999;
+        g.player.vel.x = g.player.vel.y = g.player.vel.z = 0;
+        g.camera.yaw = 0.9;
+        for (let k = 0; k < 8; k++) { g.camera.yaw = 0.9; window.GAME.stepFrames(1); }
+        const cam = { x: g.camera.pos.x, y: g.camera.pos.y, z: g.camera.pos.z };
+        const tgt = { x: g.camera.target.x, y: g.camera.target.y, z: g.camera.target.z };
+        const p0 = { x: g.player.pos.x, z: g.player.pos.z };
+        inp.touch.active = true; inp.touch.move.x = mx; inp.touch.move.y = my;
+        for (let i = 0; i < 40; i++) {
+          // yaw must be pinned every frame: the player reads camera.yaw
+          // directly, and a yaw still damping toward its target rotates
+          // the movement basis under the measurement
+          g.camera.yaw = 0.9;
+          g.camera.pos.x = cam.x; g.camera.pos.y = cam.y; g.camera.pos.z = cam.z;
+          g.camera.target.x = tgt.x; g.camera.target.y = tgt.y; g.camera.target.z = tgt.z;
+          window.GAME.stepFrames(1);
+        }
+        inp.touch.move.x = 0; inp.touch.move.y = 0;
+        const d = { x: g.player.pos.x - p0.x, z: g.player.pos.z - p0.z };
+        const m = r.view;
+        return {
+          right: +(d.x * m[0] + d.z * m[8]).toFixed(2),
+          fwd: +(d.x * -m[2] + d.z * -m[10]).toFixed(2)
+        };
+      }
+      return { R: trial(1, 0), L: trial(-1, 0), U: trial(0, 1), D: trial(0, -1) };
+    });
+    record('control', 'stick right moves the character right', dirs.R.right > 1, dirs.R.right);
+    record('control', 'stick left moves the character left', dirs.L.right < -1, dirs.L.right);
+    record('control', 'stick up moves the character forward', dirs.U.fwd > 1, dirs.U.fwd);
+    record('control', 'stick down moves the character back', dirs.D.fwd < -1, dirs.D.fwd);
+
+    // The touch look-overlay used to sit on top of the HUD and swallow
+    // every tap aimed at the minimap, so none of the tappable HUD widgets
+    // had ever worked on a phone. Ask the document what is actually on top.
+    const tapTop = await page.evaluate(() => {
+      const ui = window.GAME.ui;
+      ui.closePanel();
+      window.GAME.forceTouchControls();
+      function topAt(sel) {
+        const r = document.querySelector(sel).getBoundingClientRect();
+        const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return el ? el.className : null;
+      }
+      return {
+        touchMode: document.getElementById('octo-root').classList.contains('octo-touch-mode'),
+        minimap: topAt('.octo-minimap'),
+        hero: topAt('.octo-hero'),
+        mission: topAt('.octo-mission')
+      };
+    });
+    record('control', 'touch mode is on', tapTop.touchMode, tapTop.touchMode);
+    record('control', 'the minimap is tappable, not covered',
+      String(tapTop.minimap).indexOf('octo-minimap') >= 0, tapTop.minimap);
+    record('control', 'the hero plate is tappable', String(tapTop.hero).indexOf('octo-hero') >= 0, tapTop.hero);
+    record('control', 'the quest tracker is tappable',
+      String(tapTop.mission).indexOf('octo-mission') >= 0, tapTop.mission);
+
+    const opened = await page.evaluate(() => {
+      const m = document.querySelector('.octo-minimap');
+      const r = m.getBoundingClientRect();
+      document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2).click();
+      return { screen: window.GAME.ui.screen, tab: window.GAME.ui.tab };
+    });
+    record('control', 'tapping the minimap opens the map',
+      opened.screen === 'panel' && opened.tab === 'map', opened.screen + '/' + opened.tab);
+
+    // Region labels used to be drawn at each district centre, which put the
+    // souq and the line quarter on top of each other. They now sit on
+    // leader lines; assert no two label anchors collide.
+    const labels = await page.evaluate(() => {
+      const g = window.GAME.game;
+      window.GAME.ui.openPanel('map');            // the canvas only exists here
+      const cv = document.querySelector('.octo-map-canvas');
+      const pts = [];
+      const D = g.world.districts;
+      const scale = cv.width / 620;
+      const R = { souq: [86, 0, 1], oasis: [68, -1, 0], line: [52, -0.9, -1], harbour: [66, 1, 0], towers: [104, 0, -1] };
+      Object.keys(D).forEach((k) => {
+        const d = D[k], reg = R[k];
+        const cx = d.center.x * scale + cv.width / 2;
+        const cz = (d.center.z + 30) * scale + cv.height / 2;
+        pts.push({ k, x: cx + reg[1] * (reg[0] * scale + 22), y: cz + reg[2] * (reg[0] * scale + 22) });
+      });
+      let worst = 1e9, pair = '';
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const dd = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+          if (dd < worst) { worst = dd; pair = pts[i].k + '/' + pts[j].k; }
+        }
+      }
+      return { worst: Math.round(worst), pair, hits: (window.GAME.ui.mapHits || []).length };
+    });
+    record('map', 'no two region labels collide', labels.worst > 70, labels.worst + 'px apart (' + labels.pair + ')');
+    record('map', 'anchors are hit-testable on the map', labels.hits === 8, labels.hits);
+
+    const travel = await page.evaluate(() => {
+      const g = window.GAME.game;
+      g.hero.level = 1;
+      const before = { x: g.player.pos.x, z: g.player.pos.z };
+      const hits = window.GAME.ui.mapHits;
+      const sealed = hits.find((h) => !h.open);
+      const open = hits.find((h) => h.open);
+      return { sealedExists: !!sealed, openExists: !!open, before };
+    });
+    record('map', 'the map shows both open and sealed anchors',
+      travel.sealedExists && travel.openExists, JSON.stringify(travel));
+
     await page.close();
   }
 

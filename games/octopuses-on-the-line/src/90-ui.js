@@ -1054,38 +1054,118 @@
   /* ------------------------------------------------------------ open map */
 
   Ui.prototype.renderMap = function (body) {
-    var self = this, g = this.game;
+    var self = this, g = this.game, ar = this.lang === 'ar';
     var wrap = el('div', 'octo-map-wrap');
     var cv = el('canvas', 'octo-map-canvas');
-    cv.width = 620; cv.height = 620;
+    cv.width = 760; cv.height = 760;
     wrap.appendChild(cv);
     body.appendChild(wrap);
     this.drawMap(cv.getContext('2d'), cv.width, cv.height, true);
+
+    // Tapping an Anchor on the map travels to it, the way a mobile RPG
+    // world map is also the travel screen. Hit tests use the canvas's own
+    // pixel space, so they stay correct however the element is scaled.
+    cv.addEventListener('click', function (ev) {
+      var r = cv.getBoundingClientRect();
+      var cx = (ev.clientX - r.left) * (cv.width / r.width);
+      var cy = (ev.clientY - r.top) * (cv.height / r.height);
+      var hits = self.mapHits || [];
+      for (var i = 0; i < hits.length; i++) {
+        var hit = hits[i];
+        if (Math.hypot(cx - hit.x, cy - hit.y) > hit.r) continue;
+        if (hit.open) {
+          g.travelToAnchor(hit.id);
+          self.closePanel();
+        } else {
+          var an = OCTO.progress.anchorById(hit.id);
+          g.audio && g.audio.play('fail');
+          g.toast((ar ? 'مختومة — تحتاج المستوى ' : 'Sealed — needs level ') + an.level, 'info');
+        }
+        return;
+      }
+    });
 
     var legend = el('div', 'octo-legend');
     var D = g.world.districts;
     Object.keys(D).forEach(function (k) {
       var d = D[k];
       var item = el('button', 'octo-legend-item');
-      item.innerHTML = '<i style="background:' + d.color + '"></i>' + (self.lang === 'ar' ? d.ar : d.en);
+      item.innerHTML = '<i style="background:' + d.color + '"></i>' + (ar ? d.ar : d.en);
       item.addEventListener('click', function () {
         g.teleportTo(k);
-        self.game.audio && self.game.audio.play('ui');
+        g.audio && g.audio.play('ui');
         self.closePanel();
-        g.toast((self.lang === 'ar' ? 'انتقلت إلى ' : 'Travelled to ') + (self.lang === 'ar' ? d.ar : d.en), 'info');
+        g.toast((ar ? 'انتقلت إلى ' : 'Travelled to ') + (ar ? d.ar : d.en), 'info');
       });
       legend.appendChild(item);
     });
     body.appendChild(legend);
-    body.appendChild(el('p', 'octo-note', this.t('fastTravel') + ' — ' + (this.lang === 'ar'
-      ? 'انقر على اسم الحي للانتقال إليه مباشرة لاختبار الخريطة.'
-      : 'Click a district to jump straight there and test the map.')));
+
+    // What the markers mean. Without this the map is a field of dots.
+    var key = el('div', 'octo-mapkey');
+    var open = OCTO.progress.unlockedAnchors(g.hero.level).length;
+    key.innerHTML =
+      '<span><b class="k-anchor-open">✓</b>' + (ar ? 'مرساة مفتوحة' : 'Anchor open') +
+        ' (' + open + '/' + OCTO.progress.ANCHORS.length + ')</span>' +
+      '<span><b class="k-anchor-lock">5</b>' + (ar ? 'مختومة — الرقم هو المستوى' : 'Sealed — number is the level') + '</span>' +
+      '<span><b class="k-quest"></b>' + (ar ? 'الهدف الحالي' : 'Current objective') + '</span>' +
+      '<span><b class="k-pearl"></b>' + (ar ? 'لؤلؤة' : 'Pearl') + '</span>' +
+      '<span><b class="k-you"></b>' + (ar ? 'أنت' : 'You') + '</span>';
+    body.appendChild(key);
+
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'انقر مرساة مفتوحة للانتقال إليها، أو اسم حي للقفز إلى مركزه.'
+      : 'Tap an open Anchor to travel to it, or a district name to jump to its centre.'));
   };
 
   /** Top-down map. Shared by the big map screen and the HUD minimap. */
+  /**
+   * Region layout for the map. The world generator places districts by
+   * gameplay need, which puts the souq and the line quarter forty metres
+   * apart — close enough that their labels sat on top of each other and
+   * the whole map read as one blur. Each region therefore carries an
+   * explicit radius and a label direction so the names never collide.
+   */
+  var REGIONS = {
+    souq:    { r: 86,  lx: 0,    lz: 1,  glyph: '⌂' },
+    oasis:   { r: 68,  lx: -1,   lz: 0,  glyph: '🌴' },
+    line:    { r: 52,  lx: -0.9, lz: -1, glyph: '⌇' },
+    harbour: { r: 66,  lx: 1,    lz: 0,  glyph: '⚓' },
+    towers:  { r: 104, lx: 0,    lz: -1, glyph: '🗼' }
+  };
+
+  /** Rounded pill behind a label so names stay readable over terrain. */
+  function labelPill(ctx, text, x, y, accent) {
+    ctx.font = '700 12px system-ui, sans-serif';
+    var tw = ctx.measureText(text).width;
+    var pw = tw + 16, ph = 20;
+    ctx.fillStyle = 'rgba(12,9,7,0.86)';
+    ctx.strokeStyle = accent || 'rgba(255,255,255,0.28)';
+    ctx.lineWidth = 1;
+    if (ctx.roundRect) {
+      ctx.beginPath(); ctx.roundRect(x - pw / 2, y - ph / 2, pw, ph, 9);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillRect(x - pw / 2, y - ph / 2, pw, ph);
+      ctx.strokeRect(x - pw / 2, y - ph / 2, pw, ph);
+    }
+    ctx.fillStyle = 'rgba(255,248,236,0.96)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x, y + 0.5);
+  }
+
+  /**
+   * Top-down map, shared by the big map screen and the HUD minimap.
+   *
+   * `full` draws the organised world map: bounded regions, named labels on
+   * leader lines, every Anchor with its rank gate, the gates, the titan and
+   * the live objective. The minimap draws the same world without the
+   * furniture, centred on the player.
+   */
   Ui.prototype.drawMap = function (ctx, w, h, full) {
-    var g = this.game;
-    var span = full ? 560 : 190;                 // world metres across the view
+    var g = this.game, ar = this.lang === 'ar';
+    var span = full ? 620 : 190;                 // world metres across the view
     var cxw = full ? 0 : g.player.pos.x;
     var czw = full ? -30 : g.player.pos.z;
     var scale = w / span;
@@ -1094,44 +1174,62 @@
     function pz(z) { return (z - czw) * scale + h / 2; }
 
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = full ? 'rgba(24,18,12,0.96)' : 'rgba(20,16,12,0.62)';
+    ctx.fillStyle = full ? '#191309' : 'rgba(20,16,12,0.62)';
     ctx.fillRect(0, 0, w, h);
 
-    // sand tone
-    ctx.fillStyle = 'rgba(120,96,62,0.35)';
-    ctx.fillRect(px(-OCTO.MAP_EXTENT), pz(-OCTO.MAP_EXTENT), OCTO.MAP_EXTENT * 2 * scale, OCTO.MAP_EXTENT * 2 * scale);
+    // the sand plate the whole city stands on
+    var E = OCTO.MAP_EXTENT;
+    ctx.fillStyle = full ? '#3a2c1a' : 'rgba(120,96,62,0.35)';
+    ctx.fillRect(px(-E), pz(-E), E * 2 * scale, E * 2 * scale);
 
-    // districts
+    if (full) {
+      // survey grid, so distances are readable instead of guessed
+      ctx.strokeStyle = 'rgba(255,232,180,0.07)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (var gx = -E; gx <= E; gx += 50) {
+        ctx.moveTo(px(gx), pz(-E)); ctx.lineTo(px(gx), pz(E));
+        ctx.moveTo(px(-E), pz(gx)); ctx.lineTo(px(E), pz(gx));
+      }
+      ctx.stroke();
+    }
+
+    // ---- regions: bounded areas rather than overlapping glows
     var D = g.world.districts;
     Object.keys(D).forEach(function (k) {
-      var d = D[k];
-      var r = (k === 'souq' ? 92 : k === 'towers' ? 110 : k === 'oasis' ? 70 : 60) * scale;
-      var grd = ctx.createRadialGradient(px(d.center.x), pz(d.center.z), 0, px(d.center.x), pz(d.center.z), r);
-      grd.addColorStop(0, d.color + (full ? '55' : '44'));
+      var d = D[k], reg = REGIONS[k] || { r: 60 };
+      var cx = px(d.center.x), cz = pz(d.center.z), r = reg.r * scale;
+      var grd = ctx.createRadialGradient(cx, cz, r * 0.25, cx, cz, r);
+      grd.addColorStop(0, d.color + (full ? '3a' : '38'));
       grd.addColorStop(1, d.color + '00');
       ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.arc(px(d.center.x), pz(d.center.z), r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cz, r, 0, Math.PI * 2); ctx.fill();
+      if (full) {
+        ctx.strokeStyle = d.color + '66';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.arc(cx, cz, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+      }
     });
 
-    // buildings as footprints
-    ctx.fillStyle = 'rgba(226,206,170,0.55)';
+    // ---- building footprints
     var boxes = g.world.physics.boxes;
     for (var i = 0; i < boxes.length; i++) {
       var b = boxes[i];
-      if (b.tag !== 'building' && b.tag !== 'tower' && b.tag !== 'mosque' && b.tag !== 'minaret' && b.tag !== 'platform') continue;
+      if (b.tag !== 'building' && b.tag !== 'tower' && b.tag !== 'mosque' &&
+          b.tag !== 'minaret' && b.tag !== 'platform') continue;
       var bw = b.hx * 2 * scale, bd = b.hz * 2 * scale;
       if (bw < 1.2 && bd < 1.2) continue;
-      ctx.fillStyle = b.tag === 'tower' ? 'rgba(180,150,235,0.6)'
-        : b.tag === 'platform' ? 'rgba(120,210,230,0.55)'
-        : 'rgba(226,206,170,0.5)';
+      ctx.fillStyle = b.tag === 'tower' ? 'rgba(180,150,235,0.55)'
+        : b.tag === 'platform' ? 'rgba(120,210,230,0.50)'
+        : 'rgba(226,206,170,0.42)';
       ctx.fillRect(px(b.x) - bw / 2, pz(b.z) - bd / 2, bw, bd);
     }
 
-    // ropes
-    ctx.strokeStyle = 'rgba(255,238,190,0.42)';
-    ctx.lineWidth = full ? 1.1 : 0.9;
+    // ---- ropes
+    ctx.strokeStyle = 'rgba(255,238,190,0.28)';
+    ctx.lineWidth = full ? 0.8 : 0.9;
     ctx.beginPath();
     for (var r2 = 0; r2 < g.ropes.length; r2++) {
       var rope = g.ropes[r2];
@@ -1140,17 +1238,55 @@
     }
     ctx.stroke();
 
-    // pearls
-    ctx.fillStyle = 'rgba(190,235,255,0.9)';
+    // ---- pearls
+    ctx.fillStyle = 'rgba(190,235,255,0.75)';
     for (var p = 0; p < g.pearls.length; p++) {
-      var pearl = g.pearls[p];
-      if (pearl.taken) continue;
+      if (g.pearls[p].taken) continue;
       ctx.beginPath();
-      ctx.arc(px(pearl.x), pz(pearl.z), full ? 2.2 : 1.6, 0, Math.PI * 2);
+      ctx.arc(px(g.pearls[p].x), pz(g.pearls[p].z), full ? 1.6 : 1.6, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // objective markers
+    // ---- Anchors: the rank gates, drawn on both maps because knowing where
+    // the next one is matters more than any other marker on the map.
+    this.mapHits = [];
+    var A = (OCTO.progress && OCTO.progress.ANCHORS) || [];
+    for (var a = 0; a < A.length; a++) {
+      var an = A[a];
+      if (!an.at) continue;
+      var ax = px(an.at[0]), az = pz(an.at[2]);
+      var open = g.hero.level >= an.level;
+      var rad = full ? 9 : 5;
+      ctx.beginPath();
+      ctx.arc(ax, az, rad, 0, Math.PI * 2);
+      ctx.fillStyle = open ? 'rgba(79,198,216,0.92)' : 'rgba(90,74,58,0.92)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = open ? 'rgba(214,252,255,0.95)' : 'rgba(180,160,130,0.55)';
+      ctx.stroke();
+      if (full) {
+        ctx.font = '800 10px system-ui, sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = open ? '#06242c' : '#e6dcc8';
+        ctx.fillText(open ? '✓' : String(an.level), ax, az + 0.5);
+        this.mapHits.push({ kind: 'anchor', id: an.id, x: ax, y: az, r: 16, open: open });
+      }
+    }
+
+    // ---- gates
+    if (g.world.gates) {
+      for (var gi = 0; gi < g.world.gates.length; gi++) {
+        var gt = g.world.gates[gi];
+        var gx2 = px(gt.x), gz2 = pz(gt.z);
+        ctx.strokeStyle = 'rgba(120,226,244,0.85)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gx2, gz2, full ? 6 : 3.5, Math.PI * 0.15, Math.PI * 0.85, true);
+        ctx.stroke();
+      }
+    }
+
+    // ---- live objective
     ctx.fillStyle = '#ffd24a';
     for (var m = 0; m < g.markers.length; m++) {
       var mk = g.markers[m];
@@ -1159,31 +1295,50 @@
       ctx.fill();
     }
 
-    // player arrow
+    // ---- region labels, on leader lines so they never sit on each other
+    if (full) {
+      Object.keys(D).forEach(function (k) {
+        var d = D[k], reg = REGIONS[k] || { r: 60, lx: 0, lz: -1 };
+        var cx = px(d.center.x), cz = pz(d.center.z);
+        var lx = cx + reg.lx * (reg.r * scale + 22);
+        var lz = cz + reg.lz * (reg.r * scale + 22);
+        ctx.strokeStyle = d.color + '99';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx, cz); ctx.lineTo(lx, lz); ctx.stroke();
+        ctx.fillStyle = d.color;
+        ctx.beginPath(); ctx.arc(cx, cz, 3, 0, Math.PI * 2); ctx.fill();
+        labelPill(ctx, ar ? d.ar : d.en, lx, lz, d.color + 'cc');
+      });
+
+      // the titan, named where it actually stands
+      if (g.world.titan && g.world.titan.centre) {
+        var t = g.world.titan.centre;
+        labelPill(ctx, ar ? 'رأس الخيط' : "Ra's al-Khayt",
+          px(t.x), pz(t.z), 'rgba(79,198,216,0.9)');
+      }
+    }
+
+    // ---- player pin
     var pxp = px(g.player.pos.x), pzp = pz(g.player.pos.z);
     ctx.save();
     ctx.translate(pxp, pzp);
+    if (full) {
+      ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,106,143,0.20)'; ctx.fill();
+    }
     ctx.rotate(-g.player.visualYaw + Math.PI);
     ctx.fillStyle = '#ff6a8f';
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(0, -8); ctx.lineTo(5.5, 6); ctx.lineTo(0, 3); ctx.lineTo(-5.5, 6);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(0, -9); ctx.lineTo(6, 7); ctx.lineTo(0, 3.5); ctx.lineTo(-6, 7);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.restore();
 
     if (full) {
-      // labels
-      ctx.font = '600 13px system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      var self = this;
-      Object.keys(D).forEach(function (k) {
-        var d = D[k];
-        ctx.fillStyle = 'rgba(255,255,255,0.92)';
-        ctx.fillText(self.lang === 'ar' ? d.ar : d.en, px(d.center.x), pz(d.center.z) - 6);
-      });
-      ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(px(-OCTO.MAP_EXTENT), pz(-OCTO.MAP_EXTENT), OCTO.MAP_EXTENT * 2 * scale, OCTO.MAP_EXTENT * 2 * scale);
+      ctx.strokeRect(px(-E), pz(-E), E * 2 * scale, E * 2 * scale);
     }
   };
 
