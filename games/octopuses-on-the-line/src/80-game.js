@@ -14,7 +14,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.2.1';
+  var VERSION = '1.3.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -191,6 +191,8 @@
     this.shop = SHOP;
     this.progress = this.save.progress || {};
     this.hero = new OCTO.progress.Progress(this.save.hero);
+    this.inventory = new OCTO.items.Inventory(this.save.inventory);
+    this.auction = new OCTO.items.Auction(this.save.auction);
     this.owned = this.save.owned || {};
     this.upgrades = this.save.upgrades || {};
     this.activeMission = null;
@@ -222,6 +224,10 @@
       delete w.meshData;
     }
 
+    // Combat needs the world (for ground height and rope queries) and the
+    // player (for vitals), so it is built here rather than in the ctor.
+    this.combat = new OCTO.combat.Combat(this);
+    this.combat.spawn(this.world, new OCTO.Rng((opts && opts.seed) || 20260807));
     var spawn = this.world.spawn;
     spawn.classId = this.save.classId || 'muqatil';
     spawn.form = 'human';
@@ -440,6 +446,9 @@
       }
     }
 
+    this.combat && this.combat.update(dt);
+    this._expireWovenLines(dt);
+    this.auction && this.auction.tick(this.hero.level, this.time);
     this._updateParticles(dt);
     this._updatePearls(dt);
     this._updateInteraction(input);
@@ -842,6 +851,68 @@
     }
   };
 
+  /* ------------------------------------------------------------ combat */
+
+  /** Woven lines fade after their timer; a permanent one is never touched. */
+  Game.prototype._expireWovenLines = function (dt) {
+    for (var i = this.ropes.length - 1; i >= 0; i--) {
+      var r = this.ropes[i];
+      if (!r.woven) continue;
+      r.woven -= dt;
+      if (r.woven > 0) continue;
+      if (this.player.line === r) this.player.detachLine(null, 0.6);
+      this.ropes.splice(i, 1);
+    }
+  };
+
+  Game.prototype.damagePlayer = function (n, source) {
+    return this.combat ? this.combat.hurtPlayer(n, source) : 0;
+  };
+
+  /** A foe died: pay experience, coin and whatever it was carrying. */
+  Game.prototype.onFoeKilled = function (foe) {
+    var ar = this.lang === 'ar';
+    this.awardXp(foe.def.xp + foe.level * 3, 'kill');
+    this.addDirhams(foe.def.coin + Math.round(foe.level * 0.8));
+    this.spawnSparkle({ x: foe.pos.x, y: foe.pos.y + 1.2, z: foe.pos.z }, foe.def.elite ? 30 : 12);
+    var drop = OCTO.items.rollDrop(foe);
+    if (drop) {
+      if (this.inventory.add(drop)) {
+        this.toast((ar ? 'غنيمة: ' : 'Loot: ') + (ar ? drop.ar : drop.en) +
+          ' · ' + (ar ? OCTO.items.RARITY[drop.rarity].ar : OCTO.items.RARITY[drop.rarity].en), 'pearl');
+      } else {
+        this.toast(ar ? 'الحقيبة ممتلئة' : 'Your pack is full', 'warn');
+      }
+    }
+    if (foe.def.elite) {
+      this.toast((ar ? 'سقط ' : 'Felled ') + (ar ? foe.def.ar : foe.def.en), 'success');
+    }
+    this.persist();
+  };
+
+  /**
+   * The Mage's Weave: conjure a temporary rope from where the player
+   * stands to a point ahead. It is a real rope in the real simulation —
+   * the same verlet chain everything else uses — so it can be walked,
+   * gripped and fallen off exactly like the permanent ones.
+   */
+  Game.prototype.weaveLine = function (range) {
+    var p = this.player;
+    var fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
+    var ax = p.pos.x, ay = p.pos.y + 2.2, az = p.pos.z;
+    var bx = p.pos.x + fx * range, bz = p.pos.z + fz * range;
+    var by = this.world.groundHeight(bx, bz) + 2.2;
+    if (!isFinite(by)) return false;
+    var rope = this.world.addRope
+      ? this.world.addRope({ x: ax, y: ay, z: az }, { x: bx, y: by, z: bz },
+          { slack: 0.04, district: 'line', name: 'woven line', kind: 'wire', woven: 12 })
+      : null;
+    if (!rope) return false;
+    this.ropes = this.world.ropes;
+    this.toast(this.lang === 'ar' ? 'نسجتَ خيطاً' : 'A line, woven from light', 'mission');
+    return true;
+  };
+
   /* -------------------------------------------------------- progression */
 
   /**
@@ -1139,6 +1210,8 @@
       this.save.dirhams = this.dirhams;
       this.save.progress = progress;
       this.save.hero = this.hero.toJSON();
+      this.save.inventory = this.inventory.toJSON();
+      this.save.auction = this.auction.toJSON();
       this.save.pearls = pearls;
       this.save.lanterns = lanterns;
       this.save.owned = this.owned;
@@ -1191,6 +1264,42 @@
           mesh: gt.mesh, model: gt.model,
           emissive: 2.4 + Math.sin(this.time * 1.3 + gi) * 0.6
         });
+      }
+    }
+
+    // Foes. One shared builder per frame keeps them to a single draw call.
+    if (this.combat) {
+      var fb = this.foeBuilder || (this.foeBuilder = new OCTO.MeshBuilder());
+      fb.reset();
+      var drew = 0;
+      for (var fi = 0; fi < this.combat.foes.length; fi++) {
+        var foe = this.combat.foes[fi];
+        if (foe.dead && foe.deadTimer <= 0) continue;
+        var fdx = foe.pos.x - cam.x, fdz = foe.pos.z - cam.z;
+        if (fdx * fdx + fdz * fdz > 170 * 170) continue;
+        OCTO.npc.buildFoeMesh(fb, foe, this.time);
+        drew++;
+      }
+      if (drew) {
+        var fd = fb.build();
+        if (!this.foeMesh) this.foeMesh = this.renderer.createMesh(fd.verts, fd.indices, true);
+        else this.foeMesh.update(fd.verts, fd.indices);
+        scene.items.push({ mesh: this.foeMesh, model: this.identity });
+      }
+
+      // projectiles in flight
+      if (this.combat.bolts.length) {
+        var bb = this.boltBuilder || (this.boltBuilder = new OCTO.MeshBuilder());
+        bb.reset();
+        bb.mat({ cell: CELL.NONE, color: [0.55, 0.92, 1.0], roughness: 0.1, emissive: 3.2 });
+        for (var bi = 0; bi < this.combat.bolts.length; bi++) {
+          var bo = this.combat.bolts[bi];
+          bb.push().translate(bo.pos.x, bo.pos.y, bo.pos.z).sphere(0.20, 8, 6).pop();
+        }
+        var bd = bb.build();
+        if (!this.boltMesh) this.boltMesh = this.renderer.createMesh(bd.verts, bd.indices, true);
+        else this.boltMesh.update(bd.verts, bd.indices);
+        scene.items.push({ mesh: this.boltMesh, model: this.identity, emissive: 3.2 });
       }
     }
 

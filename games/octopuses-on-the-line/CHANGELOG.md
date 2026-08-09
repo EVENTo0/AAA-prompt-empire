@@ -4,6 +4,57 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] — 2026-08-09 — The fight
+
+The skill wheel, the bag and the auction were asked for, and none of them
+mean anything without something to fight. So the combat layer came first.
+
+The rule it follows: combat must not become a second game bolted onto the
+first. Every skill reads the rope simulation the project is built around.
+
+### Added
+
+- **Combat** (`src/62-combat.js`). Health and focus scale from the
+  discipline's own axes and its level. Five foe archetypes across the five
+  districts in level bands, so walking outward *is* the difficulty curve, plus
+  an Anchor Warden standing at every rank gate from the third onward.
+- **Twenty skills — four per discipline**, unlocking at levels 1, 6, 14 and
+  26. Each is implemented against something that already existed: the Tank's
+  *Bridge the Line* drags a real rope down into a bridge, the Archer's *Line
+  Hook* reels you along one, the Mage's *Weave a Line* conjures a genuine
+  verlet rope that can be walked, gripped and fallen off, and expires.
+- **Being hit on a rope costs your footing before it costs health** — the
+  balance model is what combat is meant to threaten.
+- **Loot** (`src/64-items.js`): eleven bases across four slots, five
+  rarities. Every stat maps onto a number the simulation already reads, so a
+  Sand Hauberk genuinely sags the rope while it makes the fight easier, and
+  Souq Slippers trade defence for balance. No item carries a stat that only
+  exists on its own tooltip.
+- **The auction floor.** There is no server, so the other traders are the
+  city: listings regenerate every three minutes around your level. Selling is
+  real — price near an item's worth and it clears fast, above it and the city
+  takes its time. The floor keeps 5%.
+- **The action wheel**: a primary and three skills with unlock levels and
+  live cooldown countdowns, plus an AUTO toggle that fires the first ready
+  skill at your target.
+- **Vitals, a target plate and a tabbed quest log** (Quest / Party), the
+  latter also listing the next rank seal, because that is a quest too.
+- **Bag and Auction panels**, and casting now turns you to face your target —
+  aiming with a camera while steering with a thumb is a desktop assumption.
+
+### Fixed
+
+- The skill wheel and the traversal pad both wanted the bottom-right corner,
+  so every attack button sat on a jump button. The wheel now stacks above the
+  pad. Eleven touch targets in one corner is tight, and the density is a known
+  cost of putting traversal and combat on the same screen.
+- The minimap moved to the top-right — it was covering the wheel — and the old
+  quest tracker card is retired in favour of the quest log on the left.
+- The target plate collided first with the hero plate, then wrapped when
+  squeezed into the band between the plate and the minimap; it now sits under
+  the minimap.
+- Two skill buttons overlapped by 4px. `verify-rpg` now measures every pair.
+
 ## [1.2.1] — 2026-08-09 — Left was right
 
 Four reports in, the "cannot control the character" complaint finally had a

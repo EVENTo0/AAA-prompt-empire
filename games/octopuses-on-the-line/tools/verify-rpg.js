@@ -539,15 +539,15 @@ async function run() {
         touchMode: document.getElementById('octo-root').classList.contains('octo-touch-mode'),
         minimap: topAt('.octo-minimap'),
         hero: topAt('.octo-hero'),
-        mission: topAt('.octo-mission')
+        mission: topAt('.octo-qbody')
       };
     });
     record('control', 'touch mode is on', tapTop.touchMode, tapTop.touchMode);
     record('control', 'the minimap is tappable, not covered',
       String(tapTop.minimap).indexOf('octo-minimap') >= 0, tapTop.minimap);
     record('control', 'the hero plate is tappable', String(tapTop.hero).indexOf('octo-hero') >= 0, tapTop.hero);
-    record('control', 'the quest tracker is tappable',
-      String(tapTop.mission).indexOf('octo-mission') >= 0, tapTop.mission);
+    record('control', 'the quest log is tappable',
+      String(tapTop.mission).indexOf('octo-q') >= 0, tapTop.mission);
 
     const opened = await page.evaluate(() => {
       const m = document.querySelector('.octo-minimap');
@@ -598,6 +598,177 @@ async function run() {
     });
     record('map', 'the map shows both open and sealed anchors',
       travel.sealedExists && travel.openExists, JSON.stringify(travel));
+
+    /* ------------------------------------------------- combat + gear */
+    const fight = await page.evaluate(() => {
+      const g = window.GAME.game, ui = window.GAME.ui;
+      ui.closePanel();
+      g.hero.level = 30; g.combat.applyClass();
+      const c = g.combat;
+      const bar = c.bar();
+      // stage one foe beside the player on open ground
+      const f = c.foes.find((x) => !x.dead);
+      f.pos.x = g.player.pos.x + 2; f.pos.z = g.player.pos.z; f.pos.y = g.player.pos.y;
+      f.hp = f.maxHp = 100000;                 // survive the hit so we can measure it
+      c.target = f;
+      const before = f.hp, sp0 = c.sp;
+      const res = c.cast(0);
+      const spent = sp0 - c.sp;
+      const dealt = before - f.hp;
+      const second = c.cast(0);                // must be blocked by cooldown
+      return {
+        foes: c.foes.length,
+        skills: bar.length,
+        unlocked: bar.filter((b) => b.unlocked).length,
+        res, dealt, spent, second,
+        maxHp: c.maxHp, maxSp: c.maxSp,
+        floaters: c.floaters.length
+      };
+    });
+    record('fight', 'the world is populated with foes', fight.foes > 40, fight.foes);
+    record('fight', 'four skills per discipline', fight.skills === 4, fight.skills);
+    record('fight', 'skills unlock with level', fight.unlocked === 4, fight.unlocked + '/4 at Lv30');
+    record('fight', 'casting lands damage', fight.res === 'ok' && fight.dealt > 0, fight.dealt);
+    record('fight', 'casting spends focus', fight.spent > 0, fight.spent);
+    record('fight', 'a damage number is raised', fight.floaters > 0, fight.floaters);
+    record('fight', 'the cooldown blocks a second cast', fight.second === 'cooldown', fight.second);
+    record('fight', 'vitals scale with level', fight.maxHp > 800 && fight.maxSp > 200,
+      fight.maxHp + 'hp / ' + fight.maxSp + 'sp');
+
+    const dying = await page.evaluate(() => {
+      const g = window.GAME.game, c = g.combat;
+      c.hp = c.maxHp;
+      const took = g.damagePlayer(200, null);
+      c.hp = 1;
+      g.damagePlayer(500, null);
+      const died = c.dead;
+      c.deathTimer = 0; c.update(0.016);
+      return { took, died, revived: !c.dead, hpAfter: Math.round(c.hp) };
+    });
+    record('fight', 'the player can be hurt', dying.took > 0, dying.took);
+    record('fight', 'the player can go down', dying.died, dying.died);
+    record('fight', 'and gets back up', dying.revived && dying.hpAfter > 0, dying.hpAfter);
+
+    const loot = await page.evaluate(() => {
+      const g = window.GAME.game;
+      const inv0 = g.inventory.items.length, xp0 = g.hero.totalXp, coin0 = g.dirhams;
+      const f = g.combat.foes.find((x) => !x.dead && x.maxHp < 100000);
+      f.hp = 1;
+      f.takeDamage(50, g);
+      return {
+        xp: g.hero.totalXp - xp0,
+        coin: g.dirhams - coin0,
+        invDelta: g.inventory.items.length - inv0
+      };
+    });
+    record('fight', 'a kill pays experience', loot.xp > 0, loot.xp);
+    record('fight', 'a kill pays coin', loot.coin > 0, loot.coin);
+
+    const gear = await page.evaluate(() => {
+      const g = window.GAME.game;
+      const w0 = g.player.tune.lineWeight, b0 = g.player.tune.balanceControl;
+      const heavy = window.OCTO.items.makeItem('hauberk', 20, 'rare');
+      const light = window.OCTO.items.makeItem('slippers', 20, 'rare');
+      g.inventory.add(heavy); g.inventory.equip(heavy.uid);
+      g.player.applyClass();
+      const w1 = g.player.tune.lineWeight;
+      g.inventory.add(light); g.inventory.equip(light.uid);
+      g.player.applyClass();
+      const b1 = g.player.tune.balanceControl;
+      return { w0: +w0.toFixed(2), w1: +w1.toFixed(2), b0: +b0.toFixed(2), b1: +b1.toFixed(2),
+        bonuses: g.inventory.bonuses() };
+    });
+    record('gear', 'armour makes the rope sag more', gear.w1 > gear.w0, gear.w0 + ' -> ' + gear.w1);
+    record('gear', 'footwear improves balance', gear.b1 > gear.b0, gear.b0 + ' -> ' + gear.b1);
+    record('gear', 'worn gear reports its bonuses', gear.bonuses.def > 0, JSON.stringify(gear.bonuses));
+
+    const market = await page.evaluate(() => {
+      const g = window.GAME.game;
+      g.auction.refresh(g.hero.level, g.time);
+      const n = g.auction.listings.length;
+      const it = window.OCTO.items.makeItem('blade', 12, 'fine');
+      g.inventory.add(it);
+      const l = g.auction.list(it, Math.round(it.value * 1.2), g.time);
+      l.sold = true;
+      const coin0 = g.dirhams;
+      const got = g.auction.collect(0);
+      return { n, fee: l.fee, got, price: l.price, mine: g.auction.mine.length };
+    });
+    record('market', 'the auction floor has listings', market.n >= 8, market.n);
+    record('market', 'listing takes a floor fee', market.fee > 0, market.fee);
+    record('market', 'a sale pays out price minus fee',
+      market.got === market.price - market.fee, market.got + ' of ' + market.price);
+
+    /* -------------------------------------------------------- the HUD */
+    const wheel = await page.evaluate(() => {
+      const ui = window.GAME.ui, g = window.GAME.game;
+      ui.startGame();
+      ui.syncCombat(); ui.syncQuestLog();
+      const btns = document.querySelectorAll('.octo-skill');
+      const r = (sel) => document.querySelector(sel).getBoundingClientRect();
+      const hero = r('.octo-hero'), tgt = r('.octo-target'), mini = r('.octo-minimap');
+      const wheelBox = r('.octo-wheel');
+      // .octo-actions is a full-bleed container, so its own box is the whole
+      // screen — measure against the highest actual button instead
+      const padBtns = Array.from(document.querySelectorAll('.octo-actions .octo-btn'));
+      const padTop = padBtns.length
+        ? Math.min.apply(null, padBtns.map((b) => b.getBoundingClientRect().top))
+        : Infinity;
+      // do any two skill buttons or a skill and the traversal pad overlap?
+      let worst = 0;
+      const boxes = Array.from(btns).map((b) => b.getBoundingClientRect());
+      for (let i = 0; i < boxes.length; i++) {
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i], b2 = boxes[j];
+          const ox = Math.min(a.right, b2.right) - Math.max(a.left, b2.left);
+          const oy = Math.min(a.bottom, b2.bottom) - Math.max(a.top, b2.top);
+          if (ox > 0 && oy > 0) worst = Math.max(worst, Math.min(ox, oy));
+        }
+      }
+      return {
+        buttons: btns.length,
+        auto: !!document.querySelector('.octo-auto'),
+        smallest: Math.round(Math.min.apply(null, boxes.map((b) => b.height))),
+        overlap: Math.round(worst),
+        // real 2D intersection: the plates share an x-range but sit at
+        // different heights, so an x-only test reported a false collision
+        heroVsTarget: Math.round(Math.max(0,
+          Math.min(hero.right, tgt.right) - Math.max(hero.left, tgt.left)) *
+          Math.max(0, Math.min(hero.bottom, tgt.bottom) - Math.max(hero.top, tgt.top))),
+        miniTop: Math.round(mini.top),
+        wheelAbovePad: wheelBox.bottom <= padTop + 2, padTop: Math.round(padTop),
+        qtabs: document.querySelectorAll('.octo-qtab').length,
+        qentries: document.querySelectorAll('.octo-q').length,
+        hpWidth: document.querySelector('.octo-vital-hp i').style.width
+      };
+    });
+    record('wheel', 'four skill buttons and an auto toggle',
+      wheel.buttons === 4 && wheel.auto, wheel.buttons);
+    record('wheel', 'skill buttons are thumb-sized', wheel.smallest >= 44, wheel.smallest + 'px');
+    record('wheel', 'no two skill buttons overlap', wheel.overlap === 0, wheel.overlap + 'px');
+    record('wheel', 'the wheel sits clear of the traversal pad', wheel.wheelAbovePad,
+      'wheel bottom vs pad top ' + wheel.padTop);
+    record('wheel', 'the target plate clears the hero plate',
+      wheel.heroVsTarget === 0, wheel.heroVsTarget + 'px² overlap');
+    record('wheel', 'the minimap is in the top corner', wheel.miniTop < 120, wheel.miniTop);
+    record('wheel', 'the quest log has tabs and entries',
+      wheel.qtabs === 2 && wheel.qentries > 0, wheel.qtabs + ' tabs / ' + wheel.qentries + ' entries');
+    record('wheel', 'the health bar reads a real value', /%$/.test(wheel.hpWidth), wheel.hpWidth);
+    await page.screenshot({ path: path.join(SHOTS, 'combat-hud.png') });
+
+    const panels = await page.evaluate(() => {
+      const ui = window.GAME.ui, g = window.GAME.game;
+      ui.openPanel('bag');
+      const slots = document.querySelectorAll('.octo-slot').length;
+      const items = document.querySelectorAll('.octo-itemlist .octo-item').length;
+      ui.openPanel('auction');
+      const buys = document.querySelectorAll('.octo-item button').length;
+      return { slots, items, buys, tabs: document.querySelectorAll('.octo-tab').length };
+    });
+    record('panel', 'the bag shows every equipment slot', panels.slots === 4, panels.slots);
+    record('panel', 'the bag lists loose items', panels.items > 0, panels.items);
+    record('panel', 'the auction offers purchases', panels.buys > 0, panels.buys);
+    record('panel', 'bag and auction are tabs in the panel', panels.tabs === 8, panels.tabs);
 
     await page.close();
   }

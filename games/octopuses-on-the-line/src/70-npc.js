@@ -291,10 +291,56 @@
   }
 
   OCTO.Npc = Npc;
+  /**
+   * A foe, built into a shared builder. Deliberately not a humanoid: the
+   * city's people are humanoid and the things that hunt you should read
+   * as different at a glance, from any distance, in one silhouette. A
+   * hunched mass on stubby legs with a bright eye does that.
+   */
+  function buildFoeMesh(mb, foe, time) {
+    var d = foe.def, s = d.scale;
+    var bob = Math.sin(foe.phase * 2.2) * 0.06 * s;
+    var hurt = foe.hurt > 0 ? 1 : 0;
+    var dying = foe.dead ? (1 - foe.deadTimer / 1.1) : 0;
+
+    mb.push().translate(foe.pos.x, foe.pos.y + bob - dying * 0.9 * s, foe.pos.z)
+      .rotateY(foe.yaw)
+      .scale(1, 1 - dying * 0.7, 1);
+
+    // body
+    var body = hurt ? [1.0, 0.55, 0.5] : d.colour;
+    mb.mat({ cell: CELL.NONE, color: body, roughness: 0.86, emissive: hurt ? 0.9 : 0 });
+    mb.push().translate(0, 0.62 * s, 0).sphere(0.52 * s, 12, 9).pop();
+    mb.push().translate(0, 0.30 * s, 0.06 * s).sphere(0.40 * s, 10, 7).pop();
+
+    // legs
+    for (var l = -1; l <= 1; l += 2) {
+      var swing = Math.sin(foe.phase * 4 + (l > 0 ? 0 : Math.PI)) * 0.14 * s;
+      mb.push().translate(l * 0.24 * s, 0.16 * s, swing)
+        .box(0.16 * s, 0.34 * s, 0.18 * s).pop();
+    }
+
+    // crest / accents
+    mb.mat({ cell: CELL.NONE, color: d.accent, roughness: 0.4, emissive: d.elite ? 1.6 : 0.5 });
+    for (var c = 0; c < 4; c++) {
+      var ca = (c / 4) * TAU + foe.phase * 0.2;
+      mb.push().translate(Math.cos(ca) * 0.34 * s, 0.96 * s, Math.sin(ca) * 0.34 * s)
+        .rotateZ(Math.cos(ca) * 0.5).rotateX(Math.sin(ca) * 0.5)
+        .cylinder(0.07 * s, 0, 0.30 * s, 5, { capTop: false }).pop();
+    }
+
+    // the eye — the read at distance
+    mb.mat({ cell: CELL.NONE, color: [1, 1, 1], roughness: 0.05, emissive: d.elite ? 5.0 : 2.8 });
+    mb.push().translate(0, 0.68 * s, 0.44 * s).sphere(0.13 * s, 9, 7).pop();
+
+    mb.pop();
+  }
+
   OCTO.npc = {
     populate: populate,
     buildNpcMesh: buildNpcMesh,
-    buildDroneMesh: buildDroneMesh
+    buildDroneMesh: buildDroneMesh,
+    buildFoeMesh: buildFoeMesh
   };
 
 })(typeof window !== 'undefined' ? window : globalThis);

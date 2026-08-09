@@ -20,6 +20,8 @@
     settings:     { en: 'Settings',                ar: 'الإعدادات' },
     controls:     { en: 'Controls',                ar: 'التحكم' },
     hero:         { en: 'Hero',                    ar: 'البطل' },
+    bag:          { en: 'Bag',                     ar: 'الحقيبة' },
+    auction:      { en: 'Auction',                 ar: 'المزاد' },
     jobs:         { en: 'Jobs',                    ar: 'الأعمال' },
     shop:         { en: 'Shop',                    ar: 'المتجر' },
     map:          { en: 'Map',                     ar: 'الخريطة' },
@@ -200,6 +202,10 @@
       '    </div>' +
       '    <div class="octo-xp-flash"></div>' +
       '  </div>' +
+      '  <div class="octo-vitals">' +
+      '    <div class="octo-vital octo-vital-hp"><i></i><span></span></div>' +
+      '    <div class="octo-vital octo-vital-sp"><i></i><span></span></div>' +
+      '  </div>' +
       '  <div class="octo-money"><span class="octo-coin">◈</span><span class="octo-money-v">0</span></div>' +
       '  <div class="octo-district"></div>' +
       '  <div class="octo-clock"></div>' +
@@ -211,7 +217,17 @@
       '  <div class="octo-levelup-rank"></div>' +
       '  <div class="octo-levelup-unlock"></div>' +
       '</div>' +
+      '<div class="octo-target hidden">' +
+      '  <div class="octo-target-row"><b class="octo-target-lv"></b>' +
+      '    <span class="octo-target-name"></span></div>' +
+      '  <div class="octo-target-bar"><i></i></div>' +
+      '</div>' +
+      '<div class="octo-questlog">' +
+      '  <div class="octo-qtabs"></div>' +
+      '  <div class="octo-qbody"></div>' +
+      '</div>' +
       '<div class="octo-mission"></div>' +
+      '<div class="octo-wheel"></div>' +
       '<div class="octo-toasts"></div>' +
       '<div class="octo-balance hidden">' +
       '  <div class="octo-balance-label"></div>' +
@@ -255,6 +271,15 @@
     this.balanceLabel = this.hud.querySelector('.octo-balance-label');
     this.promptEl = this.hud.querySelector('.octo-prompt');
     this.abilityEl = this.hud.querySelector('.octo-abilities');
+    this.vitalsEl = this.hud.querySelector('.octo-vitals');
+    this.hpFill = this.hud.querySelector('.octo-vital-hp i');
+    this.hpText = this.hud.querySelector('.octo-vital-hp span');
+    this.spFill = this.hud.querySelector('.octo-vital-sp i');
+    this.spText = this.hud.querySelector('.octo-vital-sp span');
+    this.targetEl = this.hud.querySelector('.octo-target');
+    this.wheelEl = this.hud.querySelector('.octo-wheel');
+    this.qtabsEl = this.hud.querySelector('.octo-qtabs');
+    this.qbodyEl = this.hud.querySelector('.octo-qbody');
     this.minimap = this.hud.querySelector('.octo-minimap');
     this.minimapCtx = this.minimap.getContext('2d');
     this.heroEl = this.hud.querySelector('.octo-hero');
@@ -273,6 +298,7 @@
     // On touch there is no keyboard, so the HUD itself is the navigation:
     // tap the tracker for jobs, the minimap for the map, the purse for the shop.
     this.minimap.addEventListener('click', function () { self.openPanel('map'); });
+    this.qbodyEl.addEventListener('click', function () { self.openPanel('jobs'); });
     this.missionEl.addEventListener('click', function () { self.openPanel('jobs'); });
     this.hud.querySelector('.octo-money').addEventListener('click', function () { self.openPanel('shop'); });
 
@@ -789,6 +815,7 @@
     this.panel.classList.add('hidden');
     this.game.paused = false;
     if (this.game.audio && !this.game.muted) { this.game.audio.init(); this.game.audio.resume(); }
+    if (!this.wheelBuilt && this.game.combat) { this.wheelBuilt = true; this.buildWheel(); }
     if (!this.input.touch.active && !this.isTouchDevice()) this.input.requestLock();
     if (!this.shownIntro) {
       this.shownIntro = true;
@@ -824,7 +851,9 @@
     this.tab = tab;
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
-      ? [['hero', this.t('hero')], ['jobs', this.t('jobs')], ['shop', this.t('shop')], ['map', this.t('map')], ['controls', this.t('controls')], ['settings', this.t('settings')]]
+      ? [['hero', this.t('hero')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
+         ['auction', this.t('auction')], ['shop', this.t('shop')], ['map', this.t('map')],
+         ['controls', this.t('controls')], ['settings', this.t('settings')]]
       : [['controls', this.t('controls')], ['settings', this.t('settings')]];
     this.tabsEl.innerHTML = '';
     tabs.forEach(function (tt) {
@@ -837,6 +866,8 @@
     var body = this.bodyEl;
     body.innerHTML = '';
     if (tab === 'hero') this.renderHero(body);
+    else if (tab === 'bag') this.renderBag(body);
+    else if (tab === 'auction') this.renderAuction(body);
     else if (tab === 'jobs') this.renderJobs(body);
     else if (tab === 'shop') this.renderShop(body);
     else if (tab === 'map') this.renderMap(body);
@@ -917,6 +948,178 @@
     body.appendChild(el('p', 'octo-note', ar
       ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
       : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
+  };
+
+  /* --------------------------------------------------------- the bag */
+
+  function itemLine(it, ar) {
+    var out = [];
+    var names = {
+      atk: ar ? 'هجوم' : 'ATK', def: ar ? 'دفاع' : 'DEF',
+      hp: ar ? 'صحة' : 'HP', sp: ar ? 'طاقة' : 'SP',
+      grip: ar ? 'توازن' : 'Balance', weight: ar ? 'وزن' : 'Weight'
+    };
+    for (var k in it.stats) {
+      var v = it.stats[k];
+      out.push('<span class="' + (k === 'weight' && v > 0 ? 'neg' : 'pos') + '">' +
+        (v > 0 ? '+' : '') + v + ' ' + (names[k] || k) + '</span>');
+    }
+    return out.join(' ');
+  }
+
+  Ui.prototype.itemCard = function (it, extra) {
+    var ar = this.lang === 'ar';
+    var R = OCTO.items.RARITY[it.rarity];
+    return '<div class="octo-item-head" style="color:' + R.colour + '">' +
+      (ar ? it.ar : it.en) + ' <em>' + (ar ? R.ar : R.en) + '</em></div>' +
+      '<div class="octo-item-sub">' + (ar ? 'مستوى ' : 'Lv ') + it.level +
+      ' · ' + (ar ? 'قيمة ' : 'worth ') + it.value + '</div>' +
+      '<div class="octo-item-stats">' + itemLine(it, ar) + '</div>' + (extra || '');
+  };
+
+  /**
+   * The pack. Worn gear on the left, loose items on the right, and the
+   * summed bonuses underneath so the effect on the rope is visible rather
+   * than implied.
+   */
+  Ui.prototype.renderBag = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    var inv = g.inventory;
+
+    var worn = el('div', 'octo-worn');
+    OCTO.items.SLOTS.forEach(function (slot) {
+      var it = inv.equipped[slot.id];
+      var cell = el('div', 'octo-slot' + (it ? ' filled' : ''));
+      cell.innerHTML = '<div class="octo-slot-name">' + (ar ? slot.ar : slot.en) + '</div>' +
+        (it ? self.itemCard(it) : '<div class="octo-slot-empty">—</div>');
+      if (it) {
+        var off = el('button', 'octo-btn-small', ar ? 'انزع' : 'Remove');
+        off.addEventListener('click', function () {
+          if (!inv.unequip(slot.id)) { g.toast(ar ? 'الحقيبة ممتلئة' : 'Pack is full', 'warn'); return; }
+          g.player.applyClass(); g.persist(); self.renderPanel('bag');
+        });
+        cell.appendChild(off);
+      }
+      worn.appendChild(cell);
+    });
+    body.appendChild(worn);
+
+    var b = inv.bonuses();
+    body.appendChild(el('p', 'octo-note',
+      (ar ? 'من العتاد: ' : 'From gear: ') +
+      '+' + b.atk + ' ' + (ar ? 'هجوم' : 'ATK') + ' · +' + b.def + ' ' + (ar ? 'دفاع' : 'DEF') +
+      ' · +' + b.hp + ' HP · ' + (b.grip >= 0 ? '+' : '') + b.grip.toFixed(2) + ' ' + (ar ? 'توازن' : 'Balance') +
+      ' · ' + (b.weight >= 0 ? '+' : '') + b.weight.toFixed(1) + ' ' + (ar ? 'وزن على الخيط' : 'line weight')));
+
+    body.appendChild(el('h3', 'octo-sheet-h',
+      (ar ? 'الحقيبة ' : 'Pack ') + inv.items.length + ' / ' + inv.capacity));
+
+    if (!inv.items.length) {
+      body.appendChild(el('p', 'octo-note', ar
+        ? 'فارغة. الغنائم تسقط من الأعداء في الأحياء الخمسة.'
+        : 'Empty. Loot drops from the things that hunt you, in all five districts.'));
+      return;
+    }
+
+    var list = el('div', 'octo-itemlist');
+    inv.items.slice().sort(function (x, y) { return y.value - x.value; }).forEach(function (it) {
+      var row = el('div', 'octo-item');
+      row.innerHTML = self.itemCard(it);
+      var acts = el('div', 'octo-item-acts');
+      var eq = el('button', 'octo-btn-small', ar ? 'ارتدِ' : 'Equip');
+      eq.addEventListener('click', function () {
+        inv.equip(it.uid); g.player.applyClass(); g.audio && g.audio.play('coin');
+        g.persist(); self.renderPanel('bag');
+      });
+      var sell = el('button', 'octo-btn-small ghost', ar ? 'اعرض للمزاد' : 'List');
+      sell.addEventListener('click', function () {
+        var price = Math.round(it.value * 1.2);
+        g.inventory.remove(it.uid);
+        g.auction.list(it, price, g.time);
+        g.persist();
+        g.toast((ar ? 'عُرض بسعر ' : 'Listed at ') + price, 'ok');
+        self.renderPanel('auction');
+      });
+      acts.appendChild(eq); acts.appendChild(sell);
+      row.appendChild(acts);
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+  };
+
+  /* ------------------------------------------------------- the auction */
+
+  Ui.prototype.renderAuction = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    var a = g.auction;
+    if (!a.listings.length) a.refresh(g.hero.level, g.time);
+
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'معروضاتك' : 'Your listings'));
+    if (!a.mine.length) {
+      body.appendChild(el('p', 'octo-note', ar
+        ? 'لا شيء معروض. اعرض من الحقيبة.'
+        : 'Nothing listed. List something from your Bag.'));
+    } else {
+      var mine = el('div', 'octo-itemlist');
+      a.mine.forEach(function (l, i) {
+        var row = el('div', 'octo-item' + (l.sold ? ' sold' : ''));
+        row.innerHTML = self.itemCard(l.item,
+          '<div class="octo-item-sub">' + (ar ? 'السعر ' : 'Price ') + l.price +
+          ' · ' + (ar ? 'العمولة ' : 'fee ') + l.fee + '</div>');
+        if (l.sold) {
+          var take = el('button', 'octo-btn-small', ar ? 'اقبض' : 'Collect');
+          take.addEventListener('click', function () {
+            var got = a.collect(i);
+            g.addDirhams(got);
+            g.audio && g.audio.play('coin');
+            g.toast('+' + got + ' ' + self.t('dirhams'), 'success');
+            self.renderPanel('auction');
+          });
+          row.appendChild(take);
+        } else {
+          var left = Math.max(0, Math.ceil(l.clearsAt - g.time));
+          row.appendChild(el('span', 'octo-anchor-seal',
+            (ar ? 'قيد البيع · ' : 'On the floor · ') + left + 's'));
+        }
+        mine.appendChild(row);
+      });
+      body.appendChild(mine);
+    }
+
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'أرض المزاد' : 'The floor'));
+    var list = el('div', 'octo-itemlist');
+    a.listings.forEach(function (l, i) {
+      var row = el('div', 'octo-item');
+      row.innerHTML = self.itemCard(l.item,
+        '<div class="octo-item-sub">' + (ar ? 'البائع ' : 'Seller ') +
+        (ar ? l.sellerAr : l.sellerEn) + '</div>');
+      var buy = el('button', 'octo-btn-small' + (g.dirhams < l.price ? ' ghost' : ''),
+        (ar ? 'اشترِ ' : 'Buy ') + l.price);
+      buy.addEventListener('click', function () {
+        if (g.dirhams < l.price) {
+          g.audio && g.audio.play('fail');
+          g.toast(ar ? 'لا تكفي الدراهم' : 'Not enough dirhams', 'warn');
+          return;
+        }
+        if (g.inventory.full()) {
+          g.toast(ar ? 'الحقيبة ممتلئة' : 'Pack is full', 'warn');
+          return;
+        }
+        g.addDirhams(-l.price);
+        g.inventory.add(l.item);
+        a.listings.splice(i, 1);
+        g.audio && g.audio.play('coin');
+        g.persist();
+        g.toast((ar ? 'اشتريت ' : 'Bought ') + (ar ? l.item.ar : l.item.en), 'success');
+        self.renderPanel('auction');
+      });
+      row.appendChild(buy);
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'الأرض تتجدد كل ثلاث دقائق. سعّر قريباً من القيمة يُبَع أسرع؛ العمولة ٥٪.'
+      : 'The floor turns over every three minutes. Price near an item’s worth and it clears faster; the floor takes 5%.'));
   };
 
   Ui.prototype.renderJobs = function (body) {
@@ -1474,8 +1677,10 @@
       return;
     }
 
-    // hero plate + experience
+    // hero plate + experience + the fight
     this.syncHero();
+    this.syncCombat();
+    if ((g.frame % 6) === 0) this.syncQuestLog();
 
     // money + district + clock
     this.moneyEl.textContent = g.dirhams;
@@ -1536,6 +1741,204 @@
 
     if (this.betaOpen) this.updateBetaStats();
     if (this.diagOpen && (g.frame % 20) === 0) this.updateDiag();
+  };
+
+  /* ------------------------------------------------------ skill wheel */
+
+  var SKILL_GLYPH = {
+    strike: '<svg viewBox="0 0 24 24"><path d="M3 20l7-7 1.5 1.5L4.5 21.5 3 20zm5.5-8.5L18 2l4 4-9.5 9.5-4-4z"/></svg>',
+    burst:  '<svg viewBox="0 0 24 24"><path d="M12 2l2.2 6.2L21 9l-5 4.2L17.6 21 12 17.4 6.4 21 8 13.2 3 9l6.8-.8L12 2z"/></svg>',
+    bolt:   '<svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
+    hook:   '<svg viewBox="0 0 24 24"><path d="M17 3v9a5 5 0 01-10 0V9h3v3a2 2 0 004 0V3h3zM4 20h16v2H4z"/></svg>',
+    ward:   '<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3zm-1 5v3H8v2h3v3h2v-3h3v-2h-3V7h-2z"/></svg>',
+    sag:    '<svg viewBox="0 0 24 24"><path d="M2 7h2c0 5 3.6 9 8 9s8-4 8-9h2c0 6.6-4.9 11-10 11S2 13.6 2 7z"/></svg>',
+    weave:  '<svg viewBox="0 0 24 24"><path d="M3 17c4-8 14-8 18 0l-1.7 1c-3.2-6.4-11.4-6.4-14.6 0L3 17zm2-11h14v2H5V6z"/></svg>'
+  };
+
+  /**
+   * The action wheel: one big primary and four skills around it, each
+   * showing its unlock level and sweeping a cooldown. Built once and then
+   * only updated, because rebuilding it every frame under a thumb makes
+   * buttons miss their own taps.
+   */
+  Ui.prototype.buildWheel = function () {
+    var self = this, g = this.game;
+    if (!g.combat) return;
+    this.wheelEl.innerHTML = '';
+
+    var auto = el('button', 'octo-auto');
+    auto.innerHTML = '<b>AUTO</b>';
+    auto.addEventListener('click', function () {
+      g.combat.auto = !g.combat.auto;
+      auto.classList.toggle('on', g.combat.auto);
+      g.audio && g.audio.play('ui');
+      g.toast(g.combat.auto
+        ? (self.lang === 'ar' ? 'قتال تلقائي: يعمل' : 'Auto-attack on')
+        : (self.lang === 'ar' ? 'قتال تلقائي: متوقف' : 'Auto-attack off'), 'info');
+    });
+    this.wheelEl.appendChild(auto);
+    this.autoBtn = auto;
+
+    this.skillBtns = [];
+    var bar = g.combat.bar();
+    for (var i = 0; i < bar.length; i++) {
+      (function (idx) {
+        var b = el('button', 'octo-skill octo-skill-' + idx);
+        b.innerHTML =
+          '<span class="octo-skill-ico">' + (SKILL_GLYPH[bar[idx].skill.kind] || SKILL_GLYPH.strike) + '</span>' +
+          '<span class="octo-skill-sweep"></span>' +
+          '<span class="octo-skill-lv"></span>' +
+          '<span class="octo-skill-cd"></span>';
+        b.addEventListener('click', function () { self.fireSkill(idx); });
+        self.wheelEl.appendChild(b);
+        self.skillBtns.push(b);
+      })(i);
+    }
+    this.syncWheel(true);
+  };
+
+  Ui.prototype.fireSkill = function (index) {
+    var g = this.game, ar = this.lang === 'ar';
+    var res = g.combat.cast(index);
+    if (res === 'ok') return;
+    var why = {
+      locked: ar ? 'لم تتعلمها بعد' : 'Not learned yet',
+      sp: ar ? 'لا تكفي الطاقة' : 'Not enough focus',
+      cooldown: ar ? 'لم تجهز بعد' : 'Not ready',
+      target: ar ? 'لا هدف' : 'No target',
+      dead: ar ? 'أنت ساقط' : 'You are down'
+    }[res];
+    if (why) g.toast(why, 'info');
+    g.audio && g.audio.play('fail', 0.4);
+  };
+
+  Ui.prototype.syncWheel = function (force) {
+    var g = this.game;
+    if (!g.combat || !this.skillBtns) return;
+    var bar = g.combat.bar();
+    for (var i = 0; i < this.skillBtns.length; i++) {
+      var b = this.skillBtns[i], d = bar[i];
+      if (!d) continue;
+      var lv = b.querySelector('.octo-skill-lv');
+      var cdEl = b.querySelector('.octo-skill-cd');
+      var sweep = b.querySelector('.octo-skill-sweep');
+      b.classList.toggle('locked', !d.unlocked);
+      b.classList.toggle('cooling', d.cd > 0);
+      lv.textContent = d.unlocked ? 'Lv' + g.hero.level : 'Lv' + d.needs;
+      if (d.cd > 0) {
+        cdEl.textContent = d.cd > 1 ? Math.ceil(d.cd) : d.cd.toFixed(1);
+        sweep.style.opacity = String(Math.min(1, d.cd / Math.max(0.4, d.skill.cd)));
+      } else {
+        cdEl.textContent = '';
+        sweep.style.opacity = '0';
+      }
+      if (force) b.title = (this.lang === 'ar' ? d.skill.ar : d.skill.en);
+    }
+    if (this.autoBtn) this.autoBtn.classList.toggle('on', !!g.combat.auto);
+  };
+
+  /** HP / focus bars and the target plate. */
+  Ui.prototype.syncCombat = function () {
+    var g = this.game, c = g.combat, ar = this.lang === 'ar';
+    if (!c) return;
+    var hp = Math.max(0, Math.round(c.hp)), sp = Math.max(0, Math.round(c.sp));
+    this.hpFill.style.width = (hp / c.maxHp * 100).toFixed(1) + '%';
+    this.spFill.style.width = (sp / c.maxSp * 100).toFixed(1) + '%';
+    this.hpText.textContent = hp + ' / ' + c.maxHp;
+    this.spText.textContent = sp + ' / ' + c.maxSp;
+    this.vitalsEl.classList.toggle('low', hp / c.maxHp < 0.3);
+
+    var t = c.target;
+    if (t && !t.dead) {
+      this.targetEl.classList.remove('hidden');
+      this.targetEl.querySelector('.octo-target-lv').textContent = t.level;
+      this.targetEl.querySelector('.octo-target-name').textContent = ar ? t.def.ar : t.def.en;
+      this.targetEl.querySelector('.octo-target-bar i').style.width =
+        (t.hp / t.maxHp * 100).toFixed(1) + '%';
+      this.targetEl.classList.toggle('elite', !!t.def.elite);
+    } else {
+      this.targetEl.classList.add('hidden');
+    }
+    this.syncWheel(false);
+  };
+
+  /* ------------------------------------------------------- quest log */
+
+  /**
+   * The tracker on the left edge, with tabs. Mirrors the reference: each
+   * entry names its source and its target location, so a player who put
+   * the game down yesterday can pick the thread back up.
+   */
+  Ui.prototype.syncQuestLog = function () {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    if (this._qtab === undefined) this._qtab = 'quest';
+
+    if (!this.qtabsEl.childElementCount) {
+      [['quest', ar ? 'المهام' : 'Quest'], ['party', ar ? 'الرفاق' : 'Party']].forEach(function (t) {
+        var b = el('button', 'octo-qtab', t[1]);
+        b.dataset.tab = t[0];
+        b.addEventListener('click', function () {
+          self._qtab = t[0];
+          self._qlogKey = null;
+          g.audio && g.audio.play('ui');
+        });
+        self.qtabsEl.appendChild(b);
+      });
+    }
+    Array.prototype.forEach.call(this.qtabsEl.children, function (b) {
+      b.classList.toggle('active', b.dataset.tab === self._qtab);
+    });
+
+    // rebuild only when something actually changed
+    var key = this._qtab + '|' + this.lang + '|' + g.missions.map(function (m) {
+      return m.id + m.state + (m.count || 0);
+    }).join(',') + '|' + g.hero.level;
+    if (key === this._qlogKey) return;
+    this._qlogKey = key;
+
+    var html = '';
+    if (this._qtab === 'quest') {
+      var live = g.missions.filter(function (m) { return m.state !== 'complete'; })
+        .sort(function (a, b) { return (b.state === 'active') - (a.state === 'active') || a.order - b.order; })
+        .slice(0, 2);
+      live.forEach(function (m) {
+        var d = g.world.districts[m.district] || null;
+        html +=
+          '<div class="octo-q' + (m.state === 'active' ? ' on' : '') + '">' +
+          '  <div class="octo-q-head">' +
+          '    <b>' + (m.state === 'active' ? (ar ? '[جارٍ]' : '[Active]') : (ar ? '[متاح]' : '[Open]')) + '</b> ' +
+               (ar ? m.ar : m.en) + '</div>' +
+          '  <div class="octo-q-line">' + (ar ? 'التقدّم: ' : 'Progress: ') +
+               (m.count || 0) + ' / ' + m.target + '</div>' +
+          (d ? '  <div class="octo-q-line dim">' + (ar ? 'الموقع: ' : 'Location: ') +
+               (ar ? d.ar : d.en) + '</div>' : '') +
+          '</div>';
+      });
+      // the next rank gate reads like a quest, because it is one
+      var next = null, A = OCTO.progress.ANCHORS;
+      for (var i = 0; i < A.length; i++) if (g.hero.level < A[i].level) { next = A[i]; break; }
+      if (next) {
+        html +=
+          '<div class="octo-q seal">' +
+          '  <div class="octo-q-head"><b>' + (ar ? '[ختم]' : '[Seal]') + '</b> ' +
+               (ar ? next.ar : next.en) + '</div>' +
+          '  <div class="octo-q-line">' + (ar ? 'تحتاج المستوى ' : 'Reach level ') + next.level +
+               ' (' + (ar ? 'الآن ' : 'now ') + g.hero.level + ')</div>' +
+          '</div>';
+      }
+      if (!html) html = '<div class="octo-q dim">' + (ar ? 'لا مهام' : 'Nothing tracked') + '</div>';
+    } else {
+      var cls = OCTO.classById(g.save.classId || 'muqatil');
+      html =
+        '<div class="octo-q">' +
+        '  <div class="octo-q-head"><b>' + (ar ? '[أنت]' : '[You]') + '</b> ' +
+             (ar ? cls.ar : cls.en) + ' · ' + (ar ? 'مستوى ' : 'Lv ') + g.hero.level + '</div>' +
+        '  <div class="octo-q-line dim">' + (ar
+             ? 'اللعب الجماعي لم يُفتح في هذه النسخة.'
+             : 'Co-op is not open in this build.') + '</div>' +
+        '</div>';
+    }
+    this.qbodyEl.innerHTML = html;
   };
 
   /* ---------------------------------------------------- quest dialogue */

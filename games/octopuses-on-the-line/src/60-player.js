@@ -190,6 +190,16 @@
     if (this.upgrades.jump) t.jumpVelocity *= 1.17;
     if (this.upgrades.dash) t.dashCooldown = 0.85;
     if (this.upgrades.grip) t.balanceControl *= 1.25;
+
+    // Worn gear feeds the same two numbers the rope simulation reads, so a
+    // heavy hauberk genuinely makes the crossing harder while it makes the
+    // fight easier. No item carries a stat that only exists on its tooltip.
+    if (this.game && this.game.inventory) {
+      var b = this.game.inventory.bonuses();
+      t.balanceControl = Math.max(1.2, t.balanceControl + (b.grip || 0));
+      t.lineWeight = Math.max(12, t.lineWeight + (b.weight || 0));
+    }
+    if (this.game && this.game.combat) this.game.combat.applyClass();
     return this;
   };
 

@@ -383,6 +383,7 @@
   .octo-clock { font-size: 11px; opacity: 0.6; letter-spacing: 0.08em; padding-inline-start: 6px; }
 
   .octo-mission {
+    display: none;              /* superseded by the quest log on the left */
     position: absolute; top: 14px; inset-inline-end: 16px; width: min(250px, 46vw);
     background: rgba(14,10,7,0.62); border: 1px solid var(--edge);
     border-radius: 12px; padding: 10px 13px;
@@ -449,8 +450,11 @@
   .octo-ability-bar { width: 26px; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.16); overflow: hidden; }
   .octo-ability-bar i { display: block; height: 100%; background: var(--gold); }
 
+  /* Top-right, the way the reference does it: the bottom-right corner is
+     where both control clusters live and the minimap was sitting on top of
+     the skill wheel. */
   .octo-minimap {
-    position: absolute; bottom: 16px; inset-inline-end: 16px;
+    position: absolute; top: 14px; inset-inline-end: 14px;
     width: 148px; height: 148px; border-radius: 12px;
     border: 1px solid var(--edge); background: rgba(10,7,5,0.5);
     box-shadow: 0 6px 20px rgba(0,0,0,0.45);
@@ -784,6 +788,173 @@
     .octo-class-face { width: 38px; height: 38px; flex: 0 0 38px; }
   }
 
+  /* ---------------------------------------------------------- combat */
+  /* In the top-left column flow, under the hero plate: floating it
+     absolutely put it straight through the purse and the district name. */
+  .octo-vitals { display: flex; flex-direction: column; gap: 3px; width: min(198px, 46vw); }
+  .octo-vital {
+    position: relative; height: 15px; border-radius: 999px; overflow: hidden;
+    background: rgba(0,0,0,0.62); border: 1px solid rgba(255,255,255,0.18);
+  }
+  .octo-vital i {
+    display: block; height: 100%; width: 100%; border-radius: 999px;
+    transition: width 0.16s linear;
+  }
+  .octo-vital-hp i { background: linear-gradient(90deg, #7be08a, #46b862); }
+  .octo-vital-sp i { background: linear-gradient(90deg, #6fb6ff, #3f6fd8); }
+  .octo-vital span {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; color: #fff;
+    text-shadow: 0 0 3px rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.9);
+  }
+  .octo-vitals.low .octo-vital-hp i { background: linear-gradient(90deg, #ff8a6a, #d8443f); }
+  .octo-vitals.low .octo-vital-hp { animation: octo-pulse 0.9s ease-in-out infinite; }
+  @keyframes octo-pulse { 50% { box-shadow: 0 0 12px rgba(255,90,80,0.75); } }
+
+  /* Anchored into the band between the hero plate and the minimap rather
+     than centred on the viewport: centring put it straight through the
+     hero plate on a narrow phone, where 56vw is wider than the gap. */
+  /* Under the minimap. The band between the hero plate and the minimap is
+     only ~84 CSS px on a phone, which wrapped the foe's name onto two
+     lines and clipped it. */
+  .octo-target {
+    position: absolute; top: 172px; inset-inline-end: 14px;
+    width: min(190px, 46vw);
+    padding: 6px 12px 8px; border-radius: 12px;
+    background: rgba(14,10,7,0.80); border: 1px solid rgba(255,120,110,0.45);
+  }
+  .octo-target.elite { border-color: var(--teal); box-shadow: 0 0 16px rgba(79,198,216,0.35); }
+  .octo-target-row { display: flex; align-items: baseline; gap: 7px; }
+  .octo-target-lv {
+    font-size: 10px; font-weight: 800; color: #20150a; padding: 1px 6px; border-radius: 6px;
+    background: linear-gradient(180deg, #ffdc93, #c98a2c);
+  }
+  .octo-target-name { font-size: 12px; font-weight: 700; color: var(--sand); }
+  .octo-target-bar {
+    height: 6px; margin-top: 5px; border-radius: 999px; overflow: hidden;
+    background: rgba(0,0,0,0.6);
+  }
+  .octo-target-bar i {
+    display: block; height: 100%; background: linear-gradient(90deg, #ff8a6a, #d8443f);
+    transition: width 0.15s linear;
+  }
+
+  /* ---- the action wheel */
+  /* The traversal pad owns the very bottom-right corner, so the skill
+     wheel stacks above it. Two clusters in the same corner meant every
+     attack button sat on top of a jump button. */
+  /* Above the traversal pad, which reaches ~360px up from the bottom on a
+     phone. Eleven touch targets in one corner is genuinely tight — the two
+     clusters are stacked rather than merged for now, and the density is a
+     known cost of having both traversal and combat on one screen. */
+  .octo-wheel {
+    position: absolute; inset-inline-end: 10px; bottom: 372px;
+    width: 190px; height: 140px; pointer-events: none;
+  }
+  .octo-wheel > * { pointer-events: auto; }
+  .octo-skill {
+    position: absolute; border-radius: 50%; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 36% 30%, rgba(64,52,38,0.95), rgba(24,18,12,0.95));
+    border: 2px solid var(--edge); color: #f6ecd8; padding: 0;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+  }
+  .octo-skill-0 { width: 64px; height: 64px; inset-inline-end: 2px; bottom: 2px;
+    border-color: var(--gold); background: radial-gradient(circle at 36% 30%, rgba(120,92,44,0.95), rgba(40,28,14,0.95)); }
+  .octo-skill-1 { width: 48px; height: 48px; inset-inline-end: 72px; bottom: 4px; }
+  .octo-skill-2 { width: 48px; height: 48px; inset-inline-end: 74px; bottom: 68px; }
+  .octo-skill-3 { width: 48px; height: 48px; inset-inline-end: 8px; bottom: 74px; }
+  .octo-skill-ico { display: flex; }
+  .octo-skill-ico svg { width: 23px; height: 23px; fill: #f6ecd8; }
+  .octo-skill-0 .octo-skill-ico svg { width: 30px; height: 30px; fill: #ffe9b8; }
+  .octo-skill-lv {
+    position: absolute; bottom: -3px; inset-inline-end: -2px;
+    font-size: 9px; font-weight: 800; color: #20150a; padding: 1px 5px; border-radius: 7px;
+    background: linear-gradient(180deg, #ffdc93, #c98a2c); border: 1px solid rgba(0,0,0,0.4);
+  }
+  .octo-skill-sweep {
+    position: absolute; inset: 0; border-radius: 50%; opacity: 0;
+    background: rgba(6,4,3,0.66); transition: opacity 0.12s linear; pointer-events: none;
+  }
+  .octo-skill-cd {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    pointer-events: none;
+  }
+  .octo-skill.locked { opacity: 0.42; filter: grayscale(0.7); }
+  .octo-skill.locked .octo-skill-lv { background: rgba(255,255,255,0.22); color: #e6dcc8; }
+  .octo-skill:active { transform: translateY(1px); filter: brightness(1.2); }
+  .octo-auto {
+    position: absolute; inset-inline-end: 128px; bottom: 58px;
+    width: 46px; height: 46px; border-radius: 50%; cursor: pointer; font-family: inherit;
+    background: rgba(20,15,10,0.9); border: 2px dashed rgba(255,255,255,0.28);
+    color: #cdbfa8; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+  }
+  .octo-auto.on {
+    border-style: solid; border-color: var(--teal); color: #cdf4ff;
+    box-shadow: 0 0 14px rgba(79,198,216,0.45);
+  }
+
+  /* ---- quest log */
+  .octo-questlog {
+    position: absolute; top: 150px; inset-inline-start: 12px;
+    width: min(210px, 50vw); pointer-events: none;
+  }
+  .octo-qbody { cursor: pointer; }
+  .octo-qtabs { display: flex; gap: 4px; margin-bottom: 5px; pointer-events: auto; }
+  .octo-qtab {
+    padding: 4px 12px; border-radius: 999px 999px 0 0; cursor: pointer; font-family: inherit;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+    color: #cdbfa8; background: rgba(14,10,7,0.72); border: 1px solid var(--edge); border-bottom: none;
+  }
+  .octo-qtab.active { color: var(--gold); background: rgba(40,29,16,0.92); }
+  .octo-qbody { display: flex; flex-direction: column; gap: 5px; }
+  .octo-q {
+    background: rgba(14,10,7,0.66); border-inline-start: 3px solid rgba(255,255,255,0.18);
+    border-radius: 0 8px 8px 0; padding: 6px 9px;
+  }
+  .octo-q.on { border-inline-start-color: var(--gold); background: rgba(40,29,16,0.72); }
+  .octo-q.seal { border-inline-start-color: var(--teal); }
+  .octo-q-head { font-size: 11px; font-weight: 700; color: var(--sand); line-height: 1.35; }
+  .octo-q-head b { color: var(--gold); font-weight: 800; }
+  .octo-q.seal .octo-q-head b { color: var(--teal); }
+  .octo-q-line { font-size: 10px; opacity: 0.82; margin-top: 2px; }
+  .octo-q-line.dim, .octo-q.dim { opacity: 0.55; }
+
+  /* ---- bag + auction */
+  .octo-worn { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .octo-slot {
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 9px 11px;
+    background: rgba(255,255,255,0.03);
+  }
+  .octo-slot.filled { border-color: var(--edge); background: rgba(227,181,88,0.07); }
+  .octo-slot-name {
+    font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+    font-weight: 800; opacity: 0.6; margin-bottom: 4px;
+  }
+  .octo-slot-empty { opacity: 0.35; font-size: 18px; }
+  .octo-itemlist { display: flex; flex-direction: column; gap: 8px; }
+  .octo-item {
+    border: 1px solid rgba(255,255,255,0.10); border-radius: 12px; padding: 10px 13px;
+    background: rgba(255,255,255,0.03);
+  }
+  .octo-item.sold { border-color: #79e6a0; background: rgba(121,230,160,0.08); }
+  .octo-item-head { font-size: 14px; font-weight: 800; }
+  .octo-item-head em { font-size: 10px; font-style: normal; opacity: 0.75; letter-spacing: 0.1em; }
+  .octo-item-sub { font-size: 10.5px; opacity: 0.6; margin-top: 2px; }
+  .octo-item-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; margin-top: 5px; }
+  .octo-item-stats .pos { color: #9fe8b4; }
+  .octo-item-stats .neg { color: #ffb59a; }
+  .octo-item-acts { display: flex; gap: 8px; margin-top: 9px; }
+  .octo-btn-small.ghost { background: rgba(255,255,255,0.07); color: #d6c8b2; }
+
+  /* phones: the wheel owns the bottom-right, so the minimap moves up */
+
+  @media (max-width: 520px) {
+    .octo-questlog { width: min(180px, 48vw); top: 138px; }
+    .octo-vitals { width: min(170px, 44vw); }
+  }
+
   /* ------------------------------------------------------ beta panel */
   .octo-beta {
     position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 25;
@@ -864,7 +1035,7 @@
   .octo-btn-wobble { right: 6px;   bottom: 168px; width: 50px; height: 50px; }
   .octo-btn-wobble svg { width: 22px; height: 22px; }
 
-  .octo-touch-mode .octo-minimap { bottom: 250px; }
+
   .octo-touch-mode .octo-abilities { display: none; }
   .octo-touch-mode .octo-balance { bottom: 250px; }
   .octo-touch-mode .octo-prompt { bottom: 218px; }
@@ -875,11 +1046,11 @@
      The HUD root stays pointer-events: none, so raising it costs the look
      area nothing except the few rectangles that are meant to be buttons. */
   .octo-touch-mode .octo-hud { pointer-events: none; z-index: 16; }
-  .octo-touch-mode .octo-mission,
+  .octo-touch-mode .octo-qbody,
   .octo-touch-mode .octo-minimap,
   .octo-touch-mode .octo-hero,
   .octo-touch-mode .octo-money { pointer-events: auto; cursor: pointer; }
-  .octo-touch-mode .octo-mission:active,
+  .octo-touch-mode .octo-qbody:active,
   .octo-touch-mode .octo-minimap:active,
   .octo-touch-mode .octo-hero:active,
   .octo-touch-mode .octo-money:active { border-color: var(--gold); }
@@ -6095,6 +6266,9 @@
       world.ropes.push(rope);
       return rope;
     }
+    // Published so the Mage's Weave can add a real rope at runtime — the
+    // same verlet chain as every permanent line, not a special case.
+    world.addRope = addRope;
 
     // --- souq: dense local network between neighbouring rooftops
     var souqRoofs = roofs.filter(function (r) { return r.district === 'souq' && !r.high; });
@@ -6350,6 +6524,894 @@
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
+/* ===== src/62-combat.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 62-combat.js
+ *
+ * Combat, and the skills the action wheel fires.
+ *
+ * The rule this file follows: combat must not become a second game
+ * bolted onto the first. Everything here reads the rope simulation the
+ * rest of the project is built around. A Tank's skill sags the line into
+ * a bridge; an Archer's pins a hook and reels; a Mage's writes a rope
+ * out of light where none exists. Fighting on a rope is harder than
+ * fighting on the ground because the balance model is still running
+ * underneath you, and being hit costs you your footing before it costs
+ * you health.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+  var TAU = Math.PI * 2;
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function dist2(a, b) {
+    var dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  /* ------------------------------------------------------------ vitals */
+
+  /**
+   * Health and focus. Health scales with level and with the discipline's
+   * `power` axis; focus (the resource skills spend) scales with `support`
+   * so a Healer can actually keep casting.
+   */
+  function vitalsFor(cls, level) {
+    var b = cls.bars || {};
+    return {
+      maxHp: Math.round(220 + level * 46 + (b.power || 3) * 55 + (b.balance || 3) * 18),
+      maxSp: Math.round(80 + level * 11 + (b.support || 2) * 34),
+      hpRegen: 2.2 + level * 0.16,
+      spRegen: 3.4 + (b.support || 2) * 0.9,
+      attack: Math.round(14 + level * 3.4 + (b.power || 3) * 6),
+      defence: Math.round(4 + level * 1.3 + (b.balance || 3) * 2.6)
+    };
+  }
+
+  /* ------------------------------------------------------------ skills */
+
+  /**
+   * Four skills per discipline. `kind` is what the skill physically does,
+   * and every kind is implemented against systems that already existed:
+   *
+   *   strike  — damage in an arc in front of you
+   *   burst   — damage in a radius around you
+   *   bolt    — a travelling projectile
+   *   hook    — pulls you along a line toward a target
+   *   ward    — heals, or steadies balance, on you and nearby allies
+   *   sag     — drags the nearest rope down into a bridge
+   *   weave   — conjures a temporary rope between you and where you aim
+   */
+  var SKILLS = {
+    sayyad: [
+      { id: 'volley',  en: 'Arrow Volley',  ar: 'وابل السهام',  kind: 'bolt',   sp: 14, cd: 1.1, power: 1.35, range: 26 },
+      { id: 'pin',     en: 'Pinning Shot',  ar: 'سهم التثبيت',  kind: 'bolt',   sp: 22, cd: 5.0, power: 1.10, range: 30, slow: 0.45 },
+      { id: 'reel',    en: 'Line Hook',     ar: 'خطاف الخيط',   kind: 'hook',   sp: 18, cd: 6.5, power: 0,    range: 34 },
+      { id: 'rain',    en: 'Falling Star',  ar: 'النجم الساقط', kind: 'burst',  sp: 34, cd: 12,  power: 2.10, range: 9 }
+    ],
+    muqatil: [
+      { id: 'cleave',  en: 'Cleave',        ar: 'الشطر',        kind: 'strike', sp: 10, cd: 0.8, power: 1.45, range: 3.4, arc: 1.5 },
+      { id: 'lunge',   en: 'Lunge',         ar: 'الاندفاع',     kind: 'strike', sp: 18, cd: 4.5, power: 1.85, range: 5.2, arc: 0.9, dash: 5 },
+      { id: 'whirl',   en: 'Whirlwind',     ar: 'الزوبعة',      kind: 'burst',  sp: 26, cd: 8,   power: 1.70, range: 4.6 },
+      { id: 'resolve', en: 'Second Wind',   ar: 'النفَس الثاني', kind: 'ward',   sp: 30, cd: 16,  heal: 0.28, steady: 1 }
+    ],
+    dir: [
+      { id: 'bash',    en: 'Shield Bash',   ar: 'ضربة الدرع',   kind: 'strike', sp: 12, cd: 1.2, power: 1.30, range: 3.0, arc: 1.2, stagger: 1 },
+      { id: 'anchor',  en: 'Hold Fast',     ar: 'الثبات',       kind: 'ward',   sp: 20, cd: 10,  shield: 0.35, steady: 2 },
+      { id: 'sag',     en: 'Bridge the Line', ar: 'جسر الخيط',  kind: 'sag',    sp: 24, cd: 9,   range: 8 },
+      { id: 'quake',   en: 'Ground Quake',  ar: 'الرجفة',       kind: 'burst',  sp: 32, cd: 14,  power: 1.55, range: 6.5, stagger: 1 }
+    ],
+    shafi: [
+      { id: 'mend',    en: 'Mend',          ar: 'الرأب',        kind: 'ward',   sp: 16, cd: 1.6, heal: 0.16 },
+      { id: 'steady',  en: 'Steady Hand',   ar: 'اليد الثابتة', kind: 'ward',   sp: 20, cd: 7,   steady: 3, radius: 12 },
+      { id: 'smite',   en: 'Dawn Lance',    ar: 'رمح الفجر',    kind: 'bolt',   sp: 18, cd: 2.2, power: 1.15, range: 20 },
+      { id: 'revive',  en: 'Catch a Fall',  ar: 'إنقاذ الساقط', kind: 'ward',   sp: 38, cd: 20,  heal: 0.42, radius: 14, steady: 4 }
+    ],
+    sahir: [
+      { id: 'ember',   en: 'Ember',         ar: 'الجمرة',       kind: 'bolt',   sp: 12, cd: 0.9, power: 1.40, range: 24 },
+      { id: 'weave',   en: 'Weave a Line',  ar: 'نسج الخيط',    kind: 'weave',  sp: 26, cd: 11,  range: 30 },
+      { id: 'nova',    en: 'Falak Nova',    ar: 'انفجار فلك',   kind: 'burst',  sp: 34, cd: 10,  power: 2.00, range: 8 },
+      { id: 'sever',   en: 'Sever',         ar: 'القطع',        kind: 'bolt',   sp: 28, cd: 6,   power: 1.75, range: 22, slow: 0.35 }
+    ]
+  };
+
+  function skillsFor(classId) { return SKILLS[classId] || SKILLS.muqatil; }
+
+  /** A skill unlocks at these levels, in order. */
+  var SKILL_LEVELS = [1, 6, 14, 26];
+
+  /* ----------------------------------------------------------- enemies */
+
+  /**
+   * Enemy archetypes. `line` marks the ones that live on the ropes —
+   * they are the reason combat and traversal are the same game.
+   */
+  var FOES = {
+    knot: {
+      en: 'Knot Crawler', ar: 'زاحف العُقد',
+      hp: 60, dmg: 8, speed: 2.6, aggro: 14, reach: 2.0, xp: 24, coin: 7,
+      colour: [0.62, 0.44, 0.26], accent: [0.92, 0.74, 0.36], scale: 0.72, line: true
+    },
+    husk: {
+      en: 'Sand Husk', ar: 'قشرة الرمل',
+      hp: 110, dmg: 14, speed: 2.2, aggro: 16, reach: 2.3, xp: 40, coin: 12,
+      colour: [0.74, 0.62, 0.42], accent: [0.52, 0.40, 0.24], scale: 0.95
+    },
+    lamp: {
+      en: 'Lamp Wraith', ar: 'شبح القنديل',
+      hp: 90, dmg: 18, speed: 3.4, aggro: 20, reach: 12, ranged: true, xp: 52, coin: 16,
+      colour: [0.30, 0.34, 0.52], accent: [1.00, 0.82, 0.42], scale: 0.88
+    },
+    drifter: {
+      en: 'Falak Drifter', ar: 'هائم فلك',
+      hp: 170, dmg: 22, speed: 3.0, aggro: 22, reach: 14, ranged: true, xp: 78, coin: 24,
+      colour: [0.34, 0.26, 0.52], accent: [0.52, 0.90, 1.00], scale: 1.05, line: true
+    },
+    warden: {
+      en: 'Anchor Warden', ar: 'حارس المرساة',
+      hp: 420, dmg: 34, speed: 2.4, aggro: 24, reach: 3.2, xp: 220, coin: 90,
+      colour: [0.24, 0.20, 0.24], accent: [0.40, 0.94, 1.00], scale: 1.45, elite: true
+    }
+  };
+
+  function Foe(type, x, y, z, level, id) {
+    var t = FOES[type];
+    this.type = type;
+    this.def = t;
+    this.id = id;
+    this.pos = { x: x, y: y, z: z };
+    this.home = { x: x, y: y, z: z };
+    this.vel = { x: 0, y: 0, z: 0 };
+    this.yaw = Math.random() * TAU;
+    this.level = level;
+    // A foe five levels above you hits about twice as hard as one at your
+    // level; the curve is deliberately gentle so wandering into a high
+    // district is a warning rather than an instant death.
+    var s = 1 + (level - 1) * 0.16;
+    this.maxHp = Math.round(t.hp * s);
+    this.hp = this.maxHp;
+    this.damage = Math.round(t.dmg * s);
+    this.state = 'idle';
+    this.attackCd = 0;
+    this.hurt = 0;
+    this.stagger = 0;
+    this.slow = 0;
+    this.dead = false;
+    this.deadTimer = 0;
+    this.respawn = 0;
+    this.phase = Math.random() * TAU;
+  }
+
+  Foe.prototype.takeDamage = function (n, game) {
+    if (this.dead) return 0;
+    var dealt = Math.max(1, Math.round(n));
+    this.hp -= dealt;
+    this.hurt = 0.22;
+    this.state = 'chase';
+    if (this.hp <= 0) {
+      this.hp = 0;
+      this.dead = true;
+      this.deadTimer = 1.1;
+      this.respawn = 22 + Math.random() * 14;
+      game.onFoeKilled(this);
+    }
+    return dealt;
+  };
+
+  Foe.prototype.update = function (dt, game) {
+    this.phase += dt;
+    this.hurt = Math.max(0, this.hurt - dt);
+    this.stagger = Math.max(0, this.stagger - dt);
+    this.slow = Math.max(0, this.slow - dt);
+    this.attackCd = Math.max(0, this.attackCd - dt);
+
+    if (this.dead) {
+      this.deadTimer = Math.max(0, this.deadTimer - dt);
+      this.respawn -= dt;
+      if (this.respawn <= 0) {
+        this.dead = false;
+        this.hp = this.maxHp;
+        this.pos.x = this.home.x; this.pos.y = this.home.y; this.pos.z = this.home.z;
+        this.state = 'idle';
+      }
+      return;
+    }
+    if (this.stagger > 0) return;
+
+    var p = game.player.pos;
+    var d2 = dist2(this.pos, p);
+    var t = this.def;
+    var aggro = t.aggro * t.aggro;
+
+    if (d2 < aggro) this.state = 'chase';
+    else if (d2 > aggro * 4) this.state = 'idle';
+
+    if (this.state === 'chase') {
+      var d = Math.sqrt(d2);
+      var reach = t.reach;
+      this.yaw = Math.atan2(p.x - this.pos.x, p.z - this.pos.z);
+      if (d > reach) {
+        var sp = t.speed * (this.slow > 0 ? 0.5 : 1) * dt;
+        var inv = 1 / Math.max(d, 0.001);
+        this.pos.x += (p.x - this.pos.x) * inv * sp;
+        this.pos.z += (p.z - this.pos.z) * inv * sp;
+        // ranged foes hover; grounded ones follow the terrain
+        var gy = game.world.groundHeight(this.pos.x, this.pos.z);
+        this.pos.y = t.ranged ? Math.max(gy + 1.6, this.pos.y + (p.y - this.pos.y) * dt * 1.2) : gy;
+      } else if (this.attackCd <= 0) {
+        this.attackCd = t.ranged ? 2.2 : 1.5;
+        game.damagePlayer(this.damage, this);
+      }
+    } else {
+      // drift around home so the world is not full of statues
+      var hx = this.home.x + Math.sin(this.phase * 0.5) * 2.4;
+      var hz = this.home.z + Math.cos(this.phase * 0.37) * 2.4;
+      this.pos.x += (hx - this.pos.x) * dt * 0.8;
+      this.pos.z += (hz - this.pos.z) * dt * 0.8;
+      this.pos.y = t.ranged
+        ? game.world.groundHeight(this.pos.x, this.pos.z) + 1.6 + Math.sin(this.phase) * 0.2
+        : game.world.groundHeight(this.pos.x, this.pos.z);
+      this.yaw += dt * 0.4;
+    }
+  };
+
+  /* -------------------------------------------------------- projectiles */
+
+  function Bolt(x, y, z, dx, dy, dz, speed, dmg, skill, owner) {
+    this.pos = { x: x, y: y, z: z };
+    this.vel = { x: dx * speed, y: dy * speed, z: dz * speed };
+    this.life = 2.0;
+    this.dmg = dmg;
+    this.skill = skill;
+    this.owner = owner;
+    this.dead = false;
+  }
+
+  /* -------------------------------------------------------------- combat */
+
+  /**
+   * Owns the fight: the foe population, the player's vitals, the skill
+   * bar and everything in flight. The Game delegates to it rather than
+   * growing another thousand lines.
+   */
+  function Combat(game) {
+    this.game = game;
+    this.foes = [];
+    this.bolts = [];
+    this.floaters = [];        // damage numbers
+    this.target = null;
+    this.auto = false;
+    this.cooldowns = {};
+    this.globalCd = 0;
+    this.shield = 0;
+    this.steady = 0;
+    this.deathTimer = 0;
+    this.dead = false;
+    this.applyClass();
+  }
+
+  /** Recompute vitals from the current discipline and level. */
+  Combat.prototype.applyClass = function () {
+    var g = this.game;
+    var cls = OCTO.classById(g.save.classId || 'muqatil');
+    var v = vitalsFor(cls, g.hero.level);
+    var hpFrac = this.maxHp ? this.hp / this.maxHp : 1;
+    var spFrac = this.maxSp ? this.sp / this.maxSp : 1;
+    this.vitals = v;
+    this.maxHp = v.maxHp; this.maxSp = v.maxSp;
+    this.hp = Math.round(v.maxHp * hpFrac);
+    this.sp = Math.round(v.maxSp * spFrac);
+    this.skills = skillsFor(cls.id);
+  };
+
+  /** Skills the player has unlocked, in bar order. */
+  Combat.prototype.bar = function () {
+    var lvl = this.game.hero.level, out = [];
+    for (var i = 0; i < this.skills.length; i++) {
+      out.push({
+        skill: this.skills[i],
+        unlocked: lvl >= SKILL_LEVELS[i],
+        needs: SKILL_LEVELS[i],
+        cd: this.cooldowns[this.skills[i].id] || 0
+      });
+    }
+    return out;
+  };
+
+  Combat.prototype.spawn = function (world, rng) {
+    this.foes.length = 0;
+    var D = world.districts, id = 0;
+    // Each district gets a population and a level band, so walking
+    // outward is the difficulty curve.
+    var plan = [
+      { d: 'souq',    types: ['knot', 'husk'],           n: 10, lo: 1,  hi: 5 },
+      { d: 'oasis',   types: ['husk', 'knot'],           n: 10, lo: 4,  hi: 9 },
+      { d: 'line',    types: ['knot', 'lamp'],           n: 9,  lo: 8,  hi: 14 },
+      { d: 'harbour', types: ['lamp', 'drifter'],        n: 10, lo: 13, hi: 22 },
+      { d: 'towers',  types: ['drifter', 'lamp'],        n: 12, lo: 20, hi: 34 }
+    ];
+    for (var i = 0; i < plan.length; i++) {
+      var pl = plan[i], c = D[pl.d].center;
+      for (var k = 0; k < pl.n; k++) {
+        var ang = rng.next() * TAU, rad = 18 + rng.next() * 52;
+        var x = c.x + Math.cos(ang) * rad, z = c.z + Math.sin(ang) * rad;
+        var y = world.groundHeight(x, z);
+        var type = pl.types[Math.floor(rng.next() * pl.types.length)];
+        var lvl = Math.round(pl.lo + rng.next() * (pl.hi - pl.lo));
+        this.foes.push(new Foe(type, x, y, z, lvl, ++id));
+      }
+    }
+    // One elite standing at each Anchor from the third onward: the reason
+    // a rank gate is worth passing.
+    var A = OCTO.progress.ANCHORS;
+    for (var a = 2; a < A.length; a++) {
+      var an = A[a];
+      if (!an.at) continue;
+      this.foes.push(new Foe('warden', an.at[0] + 5, an.at[1], an.at[2] + 5, an.level + 2, ++id));
+    }
+    return this.foes.length;
+  };
+
+  /* --------------------------------------------------------- targeting */
+
+  /** Nearest live foe inside `range` and roughly in front of the camera. */
+  Combat.prototype.pickTarget = function (range) {
+    var g = this.game, p = g.player.pos, best = null, bestD = range * range;
+    for (var i = 0; i < this.foes.length; i++) {
+      var f = this.foes[i];
+      if (f.dead) continue;
+      var d2 = dist2(f.pos, p);
+      if (d2 < bestD) { bestD = d2; best = f; }
+    }
+    return best;
+  };
+
+  Combat.prototype.syncTarget = function () {
+    if (this.target && (this.target.dead || dist2(this.target.pos, this.game.player.pos) > 36 * 36)) {
+      this.target = null;
+    }
+    if (!this.target) this.target = this.pickTarget(24);
+    return this.target;
+  };
+
+  /* ------------------------------------------------------------ casting */
+
+  Combat.prototype.canCast = function (index) {
+    var b = this.bar()[index];
+    if (!b || !b.unlocked) return false;
+    if (this.dead) return false;
+    return b.cd <= 0 && this.globalCd <= 0 && this.sp >= b.skill.sp;
+  };
+
+  /**
+   * Fire skill `index`. Returns a reason string when it cannot, so the UI
+   * can say why rather than silently doing nothing.
+   */
+  Combat.prototype.cast = function (index) {
+    var b = this.bar()[index];
+    if (!b) return 'none';
+    if (this.dead) return 'dead';
+    if (!b.unlocked) return 'locked';
+    if (b.cd > 0 || this.globalCd > 0) return 'cooldown';
+    if (this.sp < b.skill.sp) return 'sp';
+
+    var s = b.skill, g = this.game, p = g.player;
+    this.sp -= s.sp;
+    this.cooldowns[s.id] = s.cd;
+    this.globalCd = 0.35;
+
+    var atk = this.vitals.attack;
+    var tgt = this.syncTarget();
+    // Turn to face the target before swinging. Requiring the player to aim
+    // with the camera while also steering with a thumb-stick is a desktop
+    // assumption; every mobile action-RPG snaps the facing on the cast, and
+    // without it a melee arc misses a foe standing right beside you.
+    if (tgt) {
+      p.yaw = Math.atan2(tgt.pos.x - p.pos.x, tgt.pos.z - p.pos.z);
+      p.visualYaw = p.yaw;
+    }
+    var fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
+
+    if (s.kind === 'strike') {
+      if (s.dash) {
+        p.vel.x += fx * s.dash; p.vel.z += fz * s.dash;
+      }
+      this._arc(p.pos, fx, fz, s.range, s.arc || 1.2, atk * s.power, s);
+    } else if (s.kind === 'burst') {
+      this._arc(p.pos, fx, fz, s.range, Math.PI, atk * s.power, s);
+      g.spawnSparkle({ x: p.pos.x, y: p.pos.y + 1, z: p.pos.z }, 20);
+    } else if (s.kind === 'bolt') {
+      var dx = fx, dy = 0.02, dz = fz;
+      if (tgt) {
+        dx = tgt.pos.x - p.pos.x; dy = (tgt.pos.y + 0.9) - (p.pos.y + 1.1); dz = tgt.pos.z - p.pos.z;
+        var l = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+        dx /= l; dy /= l; dz /= l;
+      }
+      this.bolts.push(new Bolt(p.pos.x, p.pos.y + 1.1, p.pos.z, dx, dy, dz, 34, atk * s.power, s, 'player'));
+    } else if (s.kind === 'hook') {
+      if (tgt) {
+        var hx = tgt.pos.x - p.pos.x, hz = tgt.pos.z - p.pos.z;
+        var hl = Math.sqrt(hx * hx + hz * hz) || 1;
+        p.vel.x = (hx / hl) * 18; p.vel.z = (hz / hl) * 18; p.vel.y = Math.max(p.vel.y, 5);
+        g.toast(g.lang === 'ar' ? 'خطاف!' : 'Hooked!', 'ok');
+      } else return 'target';
+    } else if (s.kind === 'ward') {
+      if (s.heal) {
+        var healed = Math.round(this.maxHp * s.heal);
+        this.hp = Math.min(this.maxHp, this.hp + healed);
+        this.floaters.push({ x: p.pos.x, y: p.pos.y + 2, z: p.pos.z, n: healed, kind: 'heal', t: 0 });
+      }
+      if (s.shield) this.shield = Math.max(this.shield, s.shield);
+      if (s.steady) this.steady = Math.max(this.steady, s.steady);
+      g.spawnSparkle({ x: p.pos.x, y: p.pos.y + 1, z: p.pos.z }, 14);
+    } else if (s.kind === 'sag') {
+      // drag the nearest rope down into a bridge
+      var rope = this._nearestRope(s.range);
+      if (rope) {
+        rope.extraLoad = (rope.extraLoad || 0) + 40;
+        rope.loadTimer = 8;
+        g.toast(g.lang === 'ar' ? 'انحنى الخيط' : 'The line bows', 'ok');
+      } else return 'target';
+    } else if (s.kind === 'weave') {
+      if (!g.weaveLine(s.range)) return 'target';
+    }
+
+    g.audio && g.audio.play(s.kind === 'ward' ? 'success' : 'grab', 0.55);
+    return 'ok';
+  };
+
+  /** Damage every live foe inside a cone. */
+  Combat.prototype._arc = function (origin, fx, fz, range, arc, dmg, skill) {
+    var hits = 0;
+    for (var i = 0; i < this.foes.length; i++) {
+      var f = this.foes[i];
+      if (f.dead) continue;
+      var dx = f.pos.x - origin.x, dz = f.pos.z - origin.z;
+      var d = Math.sqrt(dx * dx + dz * dz);
+      if (d > range) continue;
+      if (arc < Math.PI) {
+        var dot = (dx / (d || 1)) * fx + (dz / (d || 1)) * fz;
+        if (dot < Math.cos(arc)) continue;
+      }
+      this._hit(f, dmg, skill);
+      hits++;
+    }
+    return hits;
+  };
+
+  Combat.prototype._hit = function (foe, dmg, skill) {
+    // a small spread so repeated hits do not read as a fixed number
+    var roll = dmg * (0.88 + Math.random() * 0.24);
+    var crit = Math.random() < 0.14;
+    if (crit) roll *= 1.7;
+    var dealt = foe.takeDamage(roll, this.game);
+    this.floaters.push({
+      x: foe.pos.x, y: foe.pos.y + 1.6, z: foe.pos.z,
+      n: dealt, kind: crit ? 'crit' : 'hit', t: 0
+    });
+    if (skill && skill.slow) foe.slow = 3;
+    if (skill && skill.stagger) foe.stagger = 0.8;
+  };
+
+  Combat.prototype._nearestRope = function (range) {
+    var g = this.game, p = g.player.pos, best = null, bestD = range * range;
+    for (var i = 0; i < g.ropes.length; i++) {
+      var r = g.ropes[i];
+      var mx = (r.a.x + r.b.x) * 0.5, my = (r.a.y + r.b.y) * 0.5, mz = (r.a.z + r.b.z) * 0.5;
+      var d2 = (mx - p.x) * (mx - p.x) + (my - p.y) * (my - p.y) + (mz - p.z) * (mz - p.z);
+      if (d2 < bestD) { bestD = d2; best = r; }
+    }
+    return best;
+  };
+
+  /* ------------------------------------------------------------- update */
+
+  Combat.prototype.update = function (dt) {
+    var g = this.game;
+
+    for (var k in this.cooldowns) {
+      if (this.cooldowns[k] > 0) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
+    }
+    this.globalCd = Math.max(0, this.globalCd - dt);
+    this.shield = Math.max(0, this.shield - dt * 0.1);
+    this.steady = Math.max(0, this.steady - dt);
+
+    if (this.dead) {
+      this.deathTimer -= dt;
+      if (this.deathTimer <= 0) this.revive();
+      return;
+    }
+
+    // regeneration, slower while something is actively hunting you
+    var hunted = false;
+    for (var i = 0; i < this.foes.length; i++) {
+      this.foes[i].update(dt, g);
+      if (!this.foes[i].dead && this.foes[i].state === 'chase') hunted = true;
+    }
+    var rate = hunted ? 0.35 : 1;
+    this.hp = Math.min(this.maxHp, this.hp + this.vitals.hpRegen * rate * dt);
+    this.sp = Math.min(this.maxSp, this.sp + this.vitals.spRegen * rate * dt);
+
+    // projectiles
+    for (var b = this.bolts.length - 1; b >= 0; b--) {
+      var bolt = this.bolts[b];
+      bolt.life -= dt;
+      bolt.pos.x += bolt.vel.x * dt;
+      bolt.pos.y += bolt.vel.y * dt;
+      bolt.pos.z += bolt.vel.z * dt;
+      if (bolt.life <= 0) { this.bolts.splice(b, 1); continue; }
+      for (var f2 = 0; f2 < this.foes.length; f2++) {
+        var foe = this.foes[f2];
+        if (foe.dead) continue;
+        if (dist2(foe.pos, bolt.pos) < 1.8 * 1.8) {
+          this._hit(foe, bolt.dmg, bolt.skill);
+          this.bolts.splice(b, 1);
+          break;
+        }
+      }
+    }
+
+    // floating numbers rise and fade
+    for (var fl = this.floaters.length - 1; fl >= 0; fl--) {
+      this.floaters[fl].t += dt;
+      if (this.floaters[fl].t > 1.1) this.floaters.splice(fl, 1);
+    }
+
+    this.syncTarget();
+
+    // auto-attack: fires the first unlocked skill whenever it is ready
+    if (this.auto && this.target && this.globalCd <= 0) {
+      for (var s = 0; s < this.skills.length; s++) {
+        if (this.canCast(s)) { this.cast(s); break; }
+      }
+    }
+  };
+
+  Combat.prototype.hurtPlayer = function (n, source) {
+    if (this.dead) return 0;
+    var reduced = n * (1 - Math.min(0.6, this.vitals.defence / (this.vitals.defence + 90)));
+    if (this.shield > 0) reduced *= (1 - this.shield);
+    var dealt = Math.max(1, Math.round(reduced));
+    this.hp -= dealt;
+    var p = this.game.player;
+    this.floaters.push({ x: p.pos.x, y: p.pos.y + 2.1, z: p.pos.z, n: dealt, kind: 'take', t: 0 });
+    this.game.camera && this.game.camera.addShake(0.35);
+    // Being hit on a rope costs footing before it costs health — the
+    // balance model is the thing combat is supposed to threaten.
+    if (p.state === 'line' && this.steady <= 0) {
+      p.tiltVel += (Math.random() < 0.5 ? -1 : 1) * 2.6;
+    }
+    if (this.hp <= 0) {
+      this.hp = 0;
+      this.dead = true;
+      this.deathTimer = 3.0;
+      this.game.audio && this.game.audio.play('fail');
+      this.game.toast(this.game.lang === 'ar' ? 'سقطت…' : 'You went down…', 'warn');
+    }
+    return dealt;
+  };
+
+  Combat.prototype.revive = function () {
+    this.dead = false;
+    this.hp = Math.round(this.maxHp * 0.55);
+    this.sp = Math.round(this.maxSp * 0.4);
+    var g = this.game;
+    var cp = g.lastCheckpoint;
+    if (cp) g.player.teleport(cp.x, cp.y + 0.6, cp.z, cp.yaw);
+    g.camera.free = false;
+    g.frameCamera();
+    g.toast(g.lang === 'ar' ? 'نهضت من جديد' : 'Back on your feet', 'ok');
+  };
+
+  OCTO.combat = {
+    Combat: Combat,
+    Foe: Foe,
+    FOES: FOES,
+    SKILLS: SKILLS,
+    SKILL_LEVELS: SKILL_LEVELS,
+    skillsFor: skillsFor,
+    vitalsFor: vitalsFor
+  };
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ===== src/64-items.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 64-items.js
+ *
+ * Loot, the pack, and the auction floor.
+ *
+ * Items exist to feed the two things the game already measures: how you
+ * cross a rope, and how hard you hit. Every stat an item carries maps
+ * onto a number the simulation is already reading — `lineWeight` and
+ * `balanceControl` go straight into the inverted-pendulum model, so a
+ * heavy hauberk genuinely makes the crossing harder while it makes the
+ * fight easier. Nothing here is a stat that only appears on its own
+ * tooltip.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+
+  /* -------------------------------------------------------- rarities */
+
+  var RARITY = {
+    common:    { en: 'Common',    ar: 'عادي',   mult: 1.00, colour: '#cbbfa8', weight: 58 },
+    fine:      { en: 'Fine',      ar: 'جيّد',   mult: 1.35, colour: '#79e6a0', weight: 26 },
+    rare:      { en: 'Rare',      ar: 'نادر',   mult: 1.85, colour: '#6fc0ff', weight: 12 },
+    relic:     { en: 'Relic',     ar: 'أثري',   mult: 2.60, colour: '#c79bff', weight: 3.4 },
+    thread:    { en: 'Thread',    ar: 'خيطي',   mult: 3.80, colour: '#ffd24a', weight: 0.6 }
+  };
+  var RARITY_ORDER = ['common', 'fine', 'rare', 'relic', 'thread'];
+
+  /* ---------------------------------------------------------- bases */
+
+  /**
+   * Item bases. `slot` is where it equips; `stats` are per-level-1
+   * values scaled by level and rarity when the item is rolled.
+   *
+   *   atk      — added to the attack the skills scale from
+   *   def      — flat damage reduction
+   *   hp / sp  — added to the pools
+   *   grip     — balance control, straight into the pendulum
+   *   weight   — line weight; positive sags the rope more
+   */
+  var BASES = [
+    { id: 'wrap',    slot: 'body',  en: 'Rope Wrap',      ar: 'لفافة الحبل',   stats: { def: 3, grip: 0.35, weight: 2 } },
+    { id: 'hauberk', slot: 'body',  en: 'Sand Hauberk',   ar: 'درع الرمل',     stats: { def: 8, hp: 40, weight: 9 } },
+    { id: 'silks',   slot: 'body',  en: 'Falak Silks',    ar: 'حرير فلك',      stats: { def: 4, sp: 26, grip: 0.5, weight: -2 } },
+    { id: 'blade',   slot: 'hand',  en: 'Curved Blade',   ar: 'نصل معقوف',     stats: { atk: 9 } },
+    { id: 'bow',     slot: 'hand',  en: 'Horn Bow',       ar: 'قوس القرن',     stats: { atk: 7, grip: 0.3 } },
+    { id: 'stave',   slot: 'hand',  en: 'Reed Stave',     ar: 'عصا القصب',     stats: { atk: 5, sp: 22 } },
+    { id: 'buckler', slot: 'hand',  en: 'Anchor Buckler', ar: 'ترس المرساة',   stats: { atk: 3, def: 7, weight: 5 } },
+    { id: 'slippers',slot: 'feet',  en: 'Souq Slippers',  ar: 'خف السوق',      stats: { grip: 0.8, weight: -3 } },
+    { id: 'boots',   slot: 'feet',  en: 'Harbour Boots',  ar: 'حذاء الميناء',  stats: { def: 4, grip: 0.4, hp: 18 } },
+    { id: 'charm',   slot: 'charm', en: 'Pearl Charm',    ar: 'تعويذة اللؤلؤ', stats: { sp: 18, grip: 0.25 } },
+    { id: 'sigil',   slot: 'charm', en: 'Thread Sigil',   ar: 'ختم الخيط',     stats: { atk: 4, sp: 14 } }
+  ];
+
+  var SLOTS = [
+    { id: 'hand',  en: 'Hand',  ar: 'اليد' },
+    { id: 'body',  en: 'Body',  ar: 'الجسد' },
+    { id: 'feet',  en: 'Feet',  ar: 'القدم' },
+    { id: 'charm', en: 'Charm', ar: 'التعويذة' }
+  ];
+
+  function baseById(id) {
+    for (var i = 0; i < BASES.length; i++) if (BASES[i].id === id) return BASES[i];
+    return BASES[0];
+  }
+
+  /** Weighted rarity roll, nudged upward by the source's level. */
+  function rollRarity(level, luck) {
+    var total = 0, i;
+    var w = {};
+    for (i = 0; i < RARITY_ORDER.length; i++) {
+      var k = RARITY_ORDER[i];
+      // higher tiers get commoner with level, so late loot feels different
+      w[k] = RARITY[k].weight * (1 + (i > 0 ? level * 0.018 * i : 0)) * (1 + (luck || 0));
+      total += w[k];
+    }
+    var r = Math.random() * total;
+    for (i = 0; i < RARITY_ORDER.length; i++) {
+      r -= w[RARITY_ORDER[i]];
+      if (r <= 0) return RARITY_ORDER[i];
+    }
+    return 'common';
+  }
+
+  var nextUid = 1;
+
+  /** Roll a concrete item from a base at a level. */
+  function makeItem(baseId, level, rarity) {
+    var base = baseById(baseId);
+    rarity = rarity || 'common';
+    var mult = RARITY[rarity].mult;
+    var lv = Math.max(1, level | 0);
+    var stats = {};
+    for (var k in base.stats) {
+      var v = base.stats[k];
+      if (k === 'grip' || k === 'weight') {
+        stats[k] = Math.round(v * mult * 100) / 100;          // flat-ish
+      } else {
+        stats[k] = Math.round(v * mult * (1 + (lv - 1) * 0.16));
+      }
+    }
+    var worth = 24 + lv * 9;
+    for (var s in stats) worth += Math.abs(stats[s]) * (s === 'hp' ? 0.6 : 3);
+    return {
+      uid: nextUid++,
+      base: base.id, slot: base.slot, level: lv, rarity: rarity,
+      en: base.en, ar: base.ar, stats: stats,
+      value: Math.round(worth * mult)
+    };
+  }
+
+  /** What a foe drops. Elites always give something. */
+  function rollDrop(foe) {
+    var chance = foe.def.elite ? 1 : 0.34;
+    if (Math.random() > chance) return null;
+    var pool = BASES[Math.floor(Math.random() * BASES.length)];
+    var rarity = rollRarity(foe.level, foe.def.elite ? 0.9 : 0);
+    return makeItem(pool.id, foe.level, rarity);
+  }
+
+  /* ------------------------------------------------------------ pack */
+
+  function Inventory(state) {
+    state = state || {};
+    this.capacity = 40;
+    this.items = (state.items || []).slice();
+    this.equipped = state.equipped ? JSON.parse(JSON.stringify(state.equipped)) : {};
+    var maxUid = 0;
+    this.items.concat(this.equippedList()).forEach(function (it) {
+      if (it && it.uid > maxUid) maxUid = it.uid;
+    });
+    if (maxUid >= nextUid) nextUid = maxUid + 1;
+  }
+
+  Inventory.prototype.equippedList = function () {
+    var out = [];
+    for (var k in this.equipped) if (this.equipped[k]) out.push(this.equipped[k]);
+    return out;
+  };
+
+  Inventory.prototype.full = function () { return this.items.length >= this.capacity; };
+
+  Inventory.prototype.add = function (item) {
+    if (!item || this.full()) return false;
+    this.items.push(item);
+    return true;
+  };
+
+  Inventory.prototype.remove = function (uid) {
+    for (var i = 0; i < this.items.length; i++) {
+      if (this.items[i].uid === uid) return this.items.splice(i, 1)[0];
+    }
+    return null;
+  };
+
+  Inventory.prototype.byUid = function (uid) {
+    for (var i = 0; i < this.items.length; i++) if (this.items[i].uid === uid) return this.items[i];
+    return null;
+  };
+
+  /** Equip from the pack; whatever was in the slot goes back to the pack. */
+  Inventory.prototype.equip = function (uid) {
+    var item = this.remove(uid);
+    if (!item) return null;
+    var old = this.equipped[item.slot] || null;
+    this.equipped[item.slot] = item;
+    if (old) this.items.push(old);
+    return item;
+  };
+
+  Inventory.prototype.unequip = function (slot) {
+    var item = this.equipped[slot];
+    if (!item) return null;
+    if (this.full()) return null;
+    this.equipped[slot] = null;
+    this.items.push(item);
+    return item;
+  };
+
+  /** Summed stats from everything worn. */
+  Inventory.prototype.bonuses = function () {
+    var out = { atk: 0, def: 0, hp: 0, sp: 0, grip: 0, weight: 0 };
+    var worn = this.equippedList();
+    for (var i = 0; i < worn.length; i++) {
+      for (var k in worn[i].stats) {
+        if (out[k] === undefined) out[k] = 0;
+        out[k] += worn[i].stats[k];
+      }
+    }
+    return out;
+  };
+
+  Inventory.prototype.toJSON = function () {
+    return { items: this.items, equipped: this.equipped };
+  };
+
+  /* --------------------------------------------------------- auction */
+
+  var SELLER_NAMES = [
+    { en: 'Umm Layla', ar: 'أم ليلى' }, { en: 'Faris', ar: 'فارس' },
+    { en: 'Hadi', ar: 'هادي' }, { en: 'Nura', ar: 'نورة' },
+    { en: 'Zayd', ar: 'زيد' }, { en: 'The old diver', ar: 'الغوّاص العجوز' },
+    { en: 'A masked walker', ar: 'ماشٍ مقنّع' }, { en: 'Eleanor', ar: 'إلينور' }
+  ];
+
+  /**
+   * The auction floor. There is no server, so the other bidders are the
+   * city itself: listings are generated from a seeded roll and refresh on
+   * a timer. Selling is real — the item leaves your pack and the dirhams
+   * arrive when it clears.
+   */
+  function Auction(state) {
+    state = state || {};
+    this.listings = state.listings || [];
+    this.mine = state.mine || [];
+    this.refreshAt = state.refreshAt || 0;
+    this.seed = state.seed || 1;
+  }
+
+  /** Regenerate the floor around the player's level. */
+  Auction.prototype.refresh = function (level, now) {
+    this.listings = [];
+    var n = 8 + Math.floor(Math.random() * 5);
+    for (var i = 0; i < n; i++) {
+      var lv = Math.max(1, level + Math.round((Math.random() - 0.35) * 8));
+      var base = BASES[Math.floor(Math.random() * BASES.length)];
+      var item = makeItem(base.id, lv, rollRarity(lv, 0.25));
+      var who = SELLER_NAMES[Math.floor(Math.random() * SELLER_NAMES.length)];
+      this.listings.push({
+        item: item,
+        price: Math.round(item.value * (1.1 + Math.random() * 0.9)),
+        sellerEn: who.en, sellerAr: who.ar
+      });
+    }
+    this.refreshAt = now + 180;      // three minutes of game time
+    return this.listings.length;
+  };
+
+  Auction.prototype.tick = function (level, now) {
+    if (now >= this.refreshAt) this.refresh(level, now);
+    // resolve the player's own listings
+    for (var i = this.mine.length - 1; i >= 0; i--) {
+      var l = this.mine[i];
+      if (now >= l.clearsAt) {
+        l.sold = true;
+      }
+    }
+  };
+
+  /**
+   * List an item. Price it above about 1.6× its worth and the city takes
+   * longer to bite; price it low and it clears fast. A 5% floor fee comes
+   * off the top, which is what stops listing being free money.
+   */
+  Auction.prototype.list = function (item, price, now) {
+    var ratio = price / Math.max(1, item.value);
+    var wait = 20 + Math.max(0, ratio - 0.8) * 110;
+    var l = {
+      item: item, price: Math.round(price),
+      fee: Math.max(1, Math.round(price * 0.05)),
+      listedAt: now, clearsAt: now + wait, sold: false, collected: false
+    };
+    this.mine.push(l);
+    return l;
+  };
+
+  Auction.prototype.collect = function (index) {
+    var l = this.mine[index];
+    if (!l || !l.sold || l.collected) return 0;
+    l.collected = true;
+    this.mine.splice(index, 1);
+    return l.price - l.fee;
+  };
+
+  Auction.prototype.toJSON = function () {
+    return { listings: this.listings, mine: this.mine, refreshAt: this.refreshAt };
+  };
+
+  OCTO.items = {
+    RARITY: RARITY,
+    RARITY_ORDER: RARITY_ORDER,
+    BASES: BASES,
+    SLOTS: SLOTS,
+    Inventory: Inventory,
+    Auction: Auction,
+    makeItem: makeItem,
+    rollDrop: rollDrop,
+    rollRarity: rollRarity,
+    baseById: baseById
+  };
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
 /* ===== src/60-player.js ===== */
 /* =====================================================================
  * OCTOPUSES ON THE LINE — 60-player.js
@@ -6543,6 +7605,16 @@
     if (this.upgrades.jump) t.jumpVelocity *= 1.17;
     if (this.upgrades.dash) t.dashCooldown = 0.85;
     if (this.upgrades.grip) t.balanceControl *= 1.25;
+
+    // Worn gear feeds the same two numbers the rope simulation reads, so a
+    // heavy hauberk genuinely makes the crossing harder while it makes the
+    // fight easier. No item carries a stat that only exists on its tooltip.
+    if (this.game && this.game.inventory) {
+      var b = this.game.inventory.bonuses();
+      t.balanceControl = Math.max(1.2, t.balanceControl + (b.grip || 0));
+      t.lineWeight = Math.max(12, t.lineWeight + (b.weight || 0));
+    }
+    if (this.game && this.game.combat) this.game.combat.applyClass();
     return this;
   };
 
@@ -7805,10 +8877,56 @@
   }
 
   OCTO.Npc = Npc;
+  /**
+   * A foe, built into a shared builder. Deliberately not a humanoid: the
+   * city's people are humanoid and the things that hunt you should read
+   * as different at a glance, from any distance, in one silhouette. A
+   * hunched mass on stubby legs with a bright eye does that.
+   */
+  function buildFoeMesh(mb, foe, time) {
+    var d = foe.def, s = d.scale;
+    var bob = Math.sin(foe.phase * 2.2) * 0.06 * s;
+    var hurt = foe.hurt > 0 ? 1 : 0;
+    var dying = foe.dead ? (1 - foe.deadTimer / 1.1) : 0;
+
+    mb.push().translate(foe.pos.x, foe.pos.y + bob - dying * 0.9 * s, foe.pos.z)
+      .rotateY(foe.yaw)
+      .scale(1, 1 - dying * 0.7, 1);
+
+    // body
+    var body = hurt ? [1.0, 0.55, 0.5] : d.colour;
+    mb.mat({ cell: CELL.NONE, color: body, roughness: 0.86, emissive: hurt ? 0.9 : 0 });
+    mb.push().translate(0, 0.62 * s, 0).sphere(0.52 * s, 12, 9).pop();
+    mb.push().translate(0, 0.30 * s, 0.06 * s).sphere(0.40 * s, 10, 7).pop();
+
+    // legs
+    for (var l = -1; l <= 1; l += 2) {
+      var swing = Math.sin(foe.phase * 4 + (l > 0 ? 0 : Math.PI)) * 0.14 * s;
+      mb.push().translate(l * 0.24 * s, 0.16 * s, swing)
+        .box(0.16 * s, 0.34 * s, 0.18 * s).pop();
+    }
+
+    // crest / accents
+    mb.mat({ cell: CELL.NONE, color: d.accent, roughness: 0.4, emissive: d.elite ? 1.6 : 0.5 });
+    for (var c = 0; c < 4; c++) {
+      var ca = (c / 4) * TAU + foe.phase * 0.2;
+      mb.push().translate(Math.cos(ca) * 0.34 * s, 0.96 * s, Math.sin(ca) * 0.34 * s)
+        .rotateZ(Math.cos(ca) * 0.5).rotateX(Math.sin(ca) * 0.5)
+        .cylinder(0.07 * s, 0, 0.30 * s, 5, { capTop: false }).pop();
+    }
+
+    // the eye — the read at distance
+    mb.mat({ cell: CELL.NONE, color: [1, 1, 1], roughness: 0.05, emissive: d.elite ? 5.0 : 2.8 });
+    mb.push().translate(0, 0.68 * s, 0.44 * s).sphere(0.13 * s, 9, 7).pop();
+
+    mb.pop();
+  }
+
   OCTO.npc = {
     populate: populate,
     buildNpcMesh: buildNpcMesh,
-    buildDroneMesh: buildDroneMesh
+    buildDroneMesh: buildDroneMesh,
+    buildFoeMesh: buildFoeMesh
   };
 
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -7830,7 +8948,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.2.1';
+  var VERSION = '1.3.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -8007,6 +9125,8 @@
     this.shop = SHOP;
     this.progress = this.save.progress || {};
     this.hero = new OCTO.progress.Progress(this.save.hero);
+    this.inventory = new OCTO.items.Inventory(this.save.inventory);
+    this.auction = new OCTO.items.Auction(this.save.auction);
     this.owned = this.save.owned || {};
     this.upgrades = this.save.upgrades || {};
     this.activeMission = null;
@@ -8038,6 +9158,10 @@
       delete w.meshData;
     }
 
+    // Combat needs the world (for ground height and rope queries) and the
+    // player (for vitals), so it is built here rather than in the ctor.
+    this.combat = new OCTO.combat.Combat(this);
+    this.combat.spawn(this.world, new OCTO.Rng((opts && opts.seed) || 20260807));
     var spawn = this.world.spawn;
     spawn.classId = this.save.classId || 'muqatil';
     spawn.form = 'human';
@@ -8256,6 +9380,9 @@
       }
     }
 
+    this.combat && this.combat.update(dt);
+    this._expireWovenLines(dt);
+    this.auction && this.auction.tick(this.hero.level, this.time);
     this._updateParticles(dt);
     this._updatePearls(dt);
     this._updateInteraction(input);
@@ -8658,6 +9785,68 @@
     }
   };
 
+  /* ------------------------------------------------------------ combat */
+
+  /** Woven lines fade after their timer; a permanent one is never touched. */
+  Game.prototype._expireWovenLines = function (dt) {
+    for (var i = this.ropes.length - 1; i >= 0; i--) {
+      var r = this.ropes[i];
+      if (!r.woven) continue;
+      r.woven -= dt;
+      if (r.woven > 0) continue;
+      if (this.player.line === r) this.player.detachLine(null, 0.6);
+      this.ropes.splice(i, 1);
+    }
+  };
+
+  Game.prototype.damagePlayer = function (n, source) {
+    return this.combat ? this.combat.hurtPlayer(n, source) : 0;
+  };
+
+  /** A foe died: pay experience, coin and whatever it was carrying. */
+  Game.prototype.onFoeKilled = function (foe) {
+    var ar = this.lang === 'ar';
+    this.awardXp(foe.def.xp + foe.level * 3, 'kill');
+    this.addDirhams(foe.def.coin + Math.round(foe.level * 0.8));
+    this.spawnSparkle({ x: foe.pos.x, y: foe.pos.y + 1.2, z: foe.pos.z }, foe.def.elite ? 30 : 12);
+    var drop = OCTO.items.rollDrop(foe);
+    if (drop) {
+      if (this.inventory.add(drop)) {
+        this.toast((ar ? 'غنيمة: ' : 'Loot: ') + (ar ? drop.ar : drop.en) +
+          ' · ' + (ar ? OCTO.items.RARITY[drop.rarity].ar : OCTO.items.RARITY[drop.rarity].en), 'pearl');
+      } else {
+        this.toast(ar ? 'الحقيبة ممتلئة' : 'Your pack is full', 'warn');
+      }
+    }
+    if (foe.def.elite) {
+      this.toast((ar ? 'سقط ' : 'Felled ') + (ar ? foe.def.ar : foe.def.en), 'success');
+    }
+    this.persist();
+  };
+
+  /**
+   * The Mage's Weave: conjure a temporary rope from where the player
+   * stands to a point ahead. It is a real rope in the real simulation —
+   * the same verlet chain everything else uses — so it can be walked,
+   * gripped and fallen off exactly like the permanent ones.
+   */
+  Game.prototype.weaveLine = function (range) {
+    var p = this.player;
+    var fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
+    var ax = p.pos.x, ay = p.pos.y + 2.2, az = p.pos.z;
+    var bx = p.pos.x + fx * range, bz = p.pos.z + fz * range;
+    var by = this.world.groundHeight(bx, bz) + 2.2;
+    if (!isFinite(by)) return false;
+    var rope = this.world.addRope
+      ? this.world.addRope({ x: ax, y: ay, z: az }, { x: bx, y: by, z: bz },
+          { slack: 0.04, district: 'line', name: 'woven line', kind: 'wire', woven: 12 })
+      : null;
+    if (!rope) return false;
+    this.ropes = this.world.ropes;
+    this.toast(this.lang === 'ar' ? 'نسجتَ خيطاً' : 'A line, woven from light', 'mission');
+    return true;
+  };
+
   /* -------------------------------------------------------- progression */
 
   /**
@@ -8955,6 +10144,8 @@
       this.save.dirhams = this.dirhams;
       this.save.progress = progress;
       this.save.hero = this.hero.toJSON();
+      this.save.inventory = this.inventory.toJSON();
+      this.save.auction = this.auction.toJSON();
       this.save.pearls = pearls;
       this.save.lanterns = lanterns;
       this.save.owned = this.owned;
@@ -9007,6 +10198,42 @@
           mesh: gt.mesh, model: gt.model,
           emissive: 2.4 + Math.sin(this.time * 1.3 + gi) * 0.6
         });
+      }
+    }
+
+    // Foes. One shared builder per frame keeps them to a single draw call.
+    if (this.combat) {
+      var fb = this.foeBuilder || (this.foeBuilder = new OCTO.MeshBuilder());
+      fb.reset();
+      var drew = 0;
+      for (var fi = 0; fi < this.combat.foes.length; fi++) {
+        var foe = this.combat.foes[fi];
+        if (foe.dead && foe.deadTimer <= 0) continue;
+        var fdx = foe.pos.x - cam.x, fdz = foe.pos.z - cam.z;
+        if (fdx * fdx + fdz * fdz > 170 * 170) continue;
+        OCTO.npc.buildFoeMesh(fb, foe, this.time);
+        drew++;
+      }
+      if (drew) {
+        var fd = fb.build();
+        if (!this.foeMesh) this.foeMesh = this.renderer.createMesh(fd.verts, fd.indices, true);
+        else this.foeMesh.update(fd.verts, fd.indices);
+        scene.items.push({ mesh: this.foeMesh, model: this.identity });
+      }
+
+      // projectiles in flight
+      if (this.combat.bolts.length) {
+        var bb = this.boltBuilder || (this.boltBuilder = new OCTO.MeshBuilder());
+        bb.reset();
+        bb.mat({ cell: CELL.NONE, color: [0.55, 0.92, 1.0], roughness: 0.1, emissive: 3.2 });
+        for (var bi = 0; bi < this.combat.bolts.length; bi++) {
+          var bo = this.combat.bolts[bi];
+          bb.push().translate(bo.pos.x, bo.pos.y, bo.pos.z).sphere(0.20, 8, 6).pop();
+        }
+        var bd = bb.build();
+        if (!this.boltMesh) this.boltMesh = this.renderer.createMesh(bd.verts, bd.indices, true);
+        else this.boltMesh.update(bd.verts, bd.indices);
+        scene.items.push({ mesh: this.boltMesh, model: this.identity, emissive: 3.2 });
       }
     }
 
@@ -9763,6 +10990,8 @@
     settings:     { en: 'Settings',                ar: 'الإعدادات' },
     controls:     { en: 'Controls',                ar: 'التحكم' },
     hero:         { en: 'Hero',                    ar: 'البطل' },
+    bag:          { en: 'Bag',                     ar: 'الحقيبة' },
+    auction:      { en: 'Auction',                 ar: 'المزاد' },
     jobs:         { en: 'Jobs',                    ar: 'الأعمال' },
     shop:         { en: 'Shop',                    ar: 'المتجر' },
     map:          { en: 'Map',                     ar: 'الخريطة' },
@@ -9943,6 +11172,10 @@
       '    </div>' +
       '    <div class="octo-xp-flash"></div>' +
       '  </div>' +
+      '  <div class="octo-vitals">' +
+      '    <div class="octo-vital octo-vital-hp"><i></i><span></span></div>' +
+      '    <div class="octo-vital octo-vital-sp"><i></i><span></span></div>' +
+      '  </div>' +
       '  <div class="octo-money"><span class="octo-coin">◈</span><span class="octo-money-v">0</span></div>' +
       '  <div class="octo-district"></div>' +
       '  <div class="octo-clock"></div>' +
@@ -9954,7 +11187,17 @@
       '  <div class="octo-levelup-rank"></div>' +
       '  <div class="octo-levelup-unlock"></div>' +
       '</div>' +
+      '<div class="octo-target hidden">' +
+      '  <div class="octo-target-row"><b class="octo-target-lv"></b>' +
+      '    <span class="octo-target-name"></span></div>' +
+      '  <div class="octo-target-bar"><i></i></div>' +
+      '</div>' +
+      '<div class="octo-questlog">' +
+      '  <div class="octo-qtabs"></div>' +
+      '  <div class="octo-qbody"></div>' +
+      '</div>' +
       '<div class="octo-mission"></div>' +
+      '<div class="octo-wheel"></div>' +
       '<div class="octo-toasts"></div>' +
       '<div class="octo-balance hidden">' +
       '  <div class="octo-balance-label"></div>' +
@@ -9998,6 +11241,15 @@
     this.balanceLabel = this.hud.querySelector('.octo-balance-label');
     this.promptEl = this.hud.querySelector('.octo-prompt');
     this.abilityEl = this.hud.querySelector('.octo-abilities');
+    this.vitalsEl = this.hud.querySelector('.octo-vitals');
+    this.hpFill = this.hud.querySelector('.octo-vital-hp i');
+    this.hpText = this.hud.querySelector('.octo-vital-hp span');
+    this.spFill = this.hud.querySelector('.octo-vital-sp i');
+    this.spText = this.hud.querySelector('.octo-vital-sp span');
+    this.targetEl = this.hud.querySelector('.octo-target');
+    this.wheelEl = this.hud.querySelector('.octo-wheel');
+    this.qtabsEl = this.hud.querySelector('.octo-qtabs');
+    this.qbodyEl = this.hud.querySelector('.octo-qbody');
     this.minimap = this.hud.querySelector('.octo-minimap');
     this.minimapCtx = this.minimap.getContext('2d');
     this.heroEl = this.hud.querySelector('.octo-hero');
@@ -10016,6 +11268,7 @@
     // On touch there is no keyboard, so the HUD itself is the navigation:
     // tap the tracker for jobs, the minimap for the map, the purse for the shop.
     this.minimap.addEventListener('click', function () { self.openPanel('map'); });
+    this.qbodyEl.addEventListener('click', function () { self.openPanel('jobs'); });
     this.missionEl.addEventListener('click', function () { self.openPanel('jobs'); });
     this.hud.querySelector('.octo-money').addEventListener('click', function () { self.openPanel('shop'); });
 
@@ -10532,6 +11785,7 @@
     this.panel.classList.add('hidden');
     this.game.paused = false;
     if (this.game.audio && !this.game.muted) { this.game.audio.init(); this.game.audio.resume(); }
+    if (!this.wheelBuilt && this.game.combat) { this.wheelBuilt = true; this.buildWheel(); }
     if (!this.input.touch.active && !this.isTouchDevice()) this.input.requestLock();
     if (!this.shownIntro) {
       this.shownIntro = true;
@@ -10567,7 +11821,9 @@
     this.tab = tab;
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
-      ? [['hero', this.t('hero')], ['jobs', this.t('jobs')], ['shop', this.t('shop')], ['map', this.t('map')], ['controls', this.t('controls')], ['settings', this.t('settings')]]
+      ? [['hero', this.t('hero')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
+         ['auction', this.t('auction')], ['shop', this.t('shop')], ['map', this.t('map')],
+         ['controls', this.t('controls')], ['settings', this.t('settings')]]
       : [['controls', this.t('controls')], ['settings', this.t('settings')]];
     this.tabsEl.innerHTML = '';
     tabs.forEach(function (tt) {
@@ -10580,6 +11836,8 @@
     var body = this.bodyEl;
     body.innerHTML = '';
     if (tab === 'hero') this.renderHero(body);
+    else if (tab === 'bag') this.renderBag(body);
+    else if (tab === 'auction') this.renderAuction(body);
     else if (tab === 'jobs') this.renderJobs(body);
     else if (tab === 'shop') this.renderShop(body);
     else if (tab === 'map') this.renderMap(body);
@@ -10660,6 +11918,178 @@
     body.appendChild(el('p', 'octo-note', ar
       ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
       : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
+  };
+
+  /* --------------------------------------------------------- the bag */
+
+  function itemLine(it, ar) {
+    var out = [];
+    var names = {
+      atk: ar ? 'هجوم' : 'ATK', def: ar ? 'دفاع' : 'DEF',
+      hp: ar ? 'صحة' : 'HP', sp: ar ? 'طاقة' : 'SP',
+      grip: ar ? 'توازن' : 'Balance', weight: ar ? 'وزن' : 'Weight'
+    };
+    for (var k in it.stats) {
+      var v = it.stats[k];
+      out.push('<span class="' + (k === 'weight' && v > 0 ? 'neg' : 'pos') + '">' +
+        (v > 0 ? '+' : '') + v + ' ' + (names[k] || k) + '</span>');
+    }
+    return out.join(' ');
+  }
+
+  Ui.prototype.itemCard = function (it, extra) {
+    var ar = this.lang === 'ar';
+    var R = OCTO.items.RARITY[it.rarity];
+    return '<div class="octo-item-head" style="color:' + R.colour + '">' +
+      (ar ? it.ar : it.en) + ' <em>' + (ar ? R.ar : R.en) + '</em></div>' +
+      '<div class="octo-item-sub">' + (ar ? 'مستوى ' : 'Lv ') + it.level +
+      ' · ' + (ar ? 'قيمة ' : 'worth ') + it.value + '</div>' +
+      '<div class="octo-item-stats">' + itemLine(it, ar) + '</div>' + (extra || '');
+  };
+
+  /**
+   * The pack. Worn gear on the left, loose items on the right, and the
+   * summed bonuses underneath so the effect on the rope is visible rather
+   * than implied.
+   */
+  Ui.prototype.renderBag = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    var inv = g.inventory;
+
+    var worn = el('div', 'octo-worn');
+    OCTO.items.SLOTS.forEach(function (slot) {
+      var it = inv.equipped[slot.id];
+      var cell = el('div', 'octo-slot' + (it ? ' filled' : ''));
+      cell.innerHTML = '<div class="octo-slot-name">' + (ar ? slot.ar : slot.en) + '</div>' +
+        (it ? self.itemCard(it) : '<div class="octo-slot-empty">—</div>');
+      if (it) {
+        var off = el('button', 'octo-btn-small', ar ? 'انزع' : 'Remove');
+        off.addEventListener('click', function () {
+          if (!inv.unequip(slot.id)) { g.toast(ar ? 'الحقيبة ممتلئة' : 'Pack is full', 'warn'); return; }
+          g.player.applyClass(); g.persist(); self.renderPanel('bag');
+        });
+        cell.appendChild(off);
+      }
+      worn.appendChild(cell);
+    });
+    body.appendChild(worn);
+
+    var b = inv.bonuses();
+    body.appendChild(el('p', 'octo-note',
+      (ar ? 'من العتاد: ' : 'From gear: ') +
+      '+' + b.atk + ' ' + (ar ? 'هجوم' : 'ATK') + ' · +' + b.def + ' ' + (ar ? 'دفاع' : 'DEF') +
+      ' · +' + b.hp + ' HP · ' + (b.grip >= 0 ? '+' : '') + b.grip.toFixed(2) + ' ' + (ar ? 'توازن' : 'Balance') +
+      ' · ' + (b.weight >= 0 ? '+' : '') + b.weight.toFixed(1) + ' ' + (ar ? 'وزن على الخيط' : 'line weight')));
+
+    body.appendChild(el('h3', 'octo-sheet-h',
+      (ar ? 'الحقيبة ' : 'Pack ') + inv.items.length + ' / ' + inv.capacity));
+
+    if (!inv.items.length) {
+      body.appendChild(el('p', 'octo-note', ar
+        ? 'فارغة. الغنائم تسقط من الأعداء في الأحياء الخمسة.'
+        : 'Empty. Loot drops from the things that hunt you, in all five districts.'));
+      return;
+    }
+
+    var list = el('div', 'octo-itemlist');
+    inv.items.slice().sort(function (x, y) { return y.value - x.value; }).forEach(function (it) {
+      var row = el('div', 'octo-item');
+      row.innerHTML = self.itemCard(it);
+      var acts = el('div', 'octo-item-acts');
+      var eq = el('button', 'octo-btn-small', ar ? 'ارتدِ' : 'Equip');
+      eq.addEventListener('click', function () {
+        inv.equip(it.uid); g.player.applyClass(); g.audio && g.audio.play('coin');
+        g.persist(); self.renderPanel('bag');
+      });
+      var sell = el('button', 'octo-btn-small ghost', ar ? 'اعرض للمزاد' : 'List');
+      sell.addEventListener('click', function () {
+        var price = Math.round(it.value * 1.2);
+        g.inventory.remove(it.uid);
+        g.auction.list(it, price, g.time);
+        g.persist();
+        g.toast((ar ? 'عُرض بسعر ' : 'Listed at ') + price, 'ok');
+        self.renderPanel('auction');
+      });
+      acts.appendChild(eq); acts.appendChild(sell);
+      row.appendChild(acts);
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+  };
+
+  /* ------------------------------------------------------- the auction */
+
+  Ui.prototype.renderAuction = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    var a = g.auction;
+    if (!a.listings.length) a.refresh(g.hero.level, g.time);
+
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'معروضاتك' : 'Your listings'));
+    if (!a.mine.length) {
+      body.appendChild(el('p', 'octo-note', ar
+        ? 'لا شيء معروض. اعرض من الحقيبة.'
+        : 'Nothing listed. List something from your Bag.'));
+    } else {
+      var mine = el('div', 'octo-itemlist');
+      a.mine.forEach(function (l, i) {
+        var row = el('div', 'octo-item' + (l.sold ? ' sold' : ''));
+        row.innerHTML = self.itemCard(l.item,
+          '<div class="octo-item-sub">' + (ar ? 'السعر ' : 'Price ') + l.price +
+          ' · ' + (ar ? 'العمولة ' : 'fee ') + l.fee + '</div>');
+        if (l.sold) {
+          var take = el('button', 'octo-btn-small', ar ? 'اقبض' : 'Collect');
+          take.addEventListener('click', function () {
+            var got = a.collect(i);
+            g.addDirhams(got);
+            g.audio && g.audio.play('coin');
+            g.toast('+' + got + ' ' + self.t('dirhams'), 'success');
+            self.renderPanel('auction');
+          });
+          row.appendChild(take);
+        } else {
+          var left = Math.max(0, Math.ceil(l.clearsAt - g.time));
+          row.appendChild(el('span', 'octo-anchor-seal',
+            (ar ? 'قيد البيع · ' : 'On the floor · ') + left + 's'));
+        }
+        mine.appendChild(row);
+      });
+      body.appendChild(mine);
+    }
+
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'أرض المزاد' : 'The floor'));
+    var list = el('div', 'octo-itemlist');
+    a.listings.forEach(function (l, i) {
+      var row = el('div', 'octo-item');
+      row.innerHTML = self.itemCard(l.item,
+        '<div class="octo-item-sub">' + (ar ? 'البائع ' : 'Seller ') +
+        (ar ? l.sellerAr : l.sellerEn) + '</div>');
+      var buy = el('button', 'octo-btn-small' + (g.dirhams < l.price ? ' ghost' : ''),
+        (ar ? 'اشترِ ' : 'Buy ') + l.price);
+      buy.addEventListener('click', function () {
+        if (g.dirhams < l.price) {
+          g.audio && g.audio.play('fail');
+          g.toast(ar ? 'لا تكفي الدراهم' : 'Not enough dirhams', 'warn');
+          return;
+        }
+        if (g.inventory.full()) {
+          g.toast(ar ? 'الحقيبة ممتلئة' : 'Pack is full', 'warn');
+          return;
+        }
+        g.addDirhams(-l.price);
+        g.inventory.add(l.item);
+        a.listings.splice(i, 1);
+        g.audio && g.audio.play('coin');
+        g.persist();
+        g.toast((ar ? 'اشتريت ' : 'Bought ') + (ar ? l.item.ar : l.item.en), 'success');
+        self.renderPanel('auction');
+      });
+      row.appendChild(buy);
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'الأرض تتجدد كل ثلاث دقائق. سعّر قريباً من القيمة يُبَع أسرع؛ العمولة ٥٪.'
+      : 'The floor turns over every three minutes. Price near an item’s worth and it clears faster; the floor takes 5%.'));
   };
 
   Ui.prototype.renderJobs = function (body) {
@@ -11217,8 +12647,10 @@
       return;
     }
 
-    // hero plate + experience
+    // hero plate + experience + the fight
     this.syncHero();
+    this.syncCombat();
+    if ((g.frame % 6) === 0) this.syncQuestLog();
 
     // money + district + clock
     this.moneyEl.textContent = g.dirhams;
@@ -11279,6 +12711,204 @@
 
     if (this.betaOpen) this.updateBetaStats();
     if (this.diagOpen && (g.frame % 20) === 0) this.updateDiag();
+  };
+
+  /* ------------------------------------------------------ skill wheel */
+
+  var SKILL_GLYPH = {
+    strike: '<svg viewBox="0 0 24 24"><path d="M3 20l7-7 1.5 1.5L4.5 21.5 3 20zm5.5-8.5L18 2l4 4-9.5 9.5-4-4z"/></svg>',
+    burst:  '<svg viewBox="0 0 24 24"><path d="M12 2l2.2 6.2L21 9l-5 4.2L17.6 21 12 17.4 6.4 21 8 13.2 3 9l6.8-.8L12 2z"/></svg>',
+    bolt:   '<svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
+    hook:   '<svg viewBox="0 0 24 24"><path d="M17 3v9a5 5 0 01-10 0V9h3v3a2 2 0 004 0V3h3zM4 20h16v2H4z"/></svg>',
+    ward:   '<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3zm-1 5v3H8v2h3v3h2v-3h3v-2h-3V7h-2z"/></svg>',
+    sag:    '<svg viewBox="0 0 24 24"><path d="M2 7h2c0 5 3.6 9 8 9s8-4 8-9h2c0 6.6-4.9 11-10 11S2 13.6 2 7z"/></svg>',
+    weave:  '<svg viewBox="0 0 24 24"><path d="M3 17c4-8 14-8 18 0l-1.7 1c-3.2-6.4-11.4-6.4-14.6 0L3 17zm2-11h14v2H5V6z"/></svg>'
+  };
+
+  /**
+   * The action wheel: one big primary and four skills around it, each
+   * showing its unlock level and sweeping a cooldown. Built once and then
+   * only updated, because rebuilding it every frame under a thumb makes
+   * buttons miss their own taps.
+   */
+  Ui.prototype.buildWheel = function () {
+    var self = this, g = this.game;
+    if (!g.combat) return;
+    this.wheelEl.innerHTML = '';
+
+    var auto = el('button', 'octo-auto');
+    auto.innerHTML = '<b>AUTO</b>';
+    auto.addEventListener('click', function () {
+      g.combat.auto = !g.combat.auto;
+      auto.classList.toggle('on', g.combat.auto);
+      g.audio && g.audio.play('ui');
+      g.toast(g.combat.auto
+        ? (self.lang === 'ar' ? 'قتال تلقائي: يعمل' : 'Auto-attack on')
+        : (self.lang === 'ar' ? 'قتال تلقائي: متوقف' : 'Auto-attack off'), 'info');
+    });
+    this.wheelEl.appendChild(auto);
+    this.autoBtn = auto;
+
+    this.skillBtns = [];
+    var bar = g.combat.bar();
+    for (var i = 0; i < bar.length; i++) {
+      (function (idx) {
+        var b = el('button', 'octo-skill octo-skill-' + idx);
+        b.innerHTML =
+          '<span class="octo-skill-ico">' + (SKILL_GLYPH[bar[idx].skill.kind] || SKILL_GLYPH.strike) + '</span>' +
+          '<span class="octo-skill-sweep"></span>' +
+          '<span class="octo-skill-lv"></span>' +
+          '<span class="octo-skill-cd"></span>';
+        b.addEventListener('click', function () { self.fireSkill(idx); });
+        self.wheelEl.appendChild(b);
+        self.skillBtns.push(b);
+      })(i);
+    }
+    this.syncWheel(true);
+  };
+
+  Ui.prototype.fireSkill = function (index) {
+    var g = this.game, ar = this.lang === 'ar';
+    var res = g.combat.cast(index);
+    if (res === 'ok') return;
+    var why = {
+      locked: ar ? 'لم تتعلمها بعد' : 'Not learned yet',
+      sp: ar ? 'لا تكفي الطاقة' : 'Not enough focus',
+      cooldown: ar ? 'لم تجهز بعد' : 'Not ready',
+      target: ar ? 'لا هدف' : 'No target',
+      dead: ar ? 'أنت ساقط' : 'You are down'
+    }[res];
+    if (why) g.toast(why, 'info');
+    g.audio && g.audio.play('fail', 0.4);
+  };
+
+  Ui.prototype.syncWheel = function (force) {
+    var g = this.game;
+    if (!g.combat || !this.skillBtns) return;
+    var bar = g.combat.bar();
+    for (var i = 0; i < this.skillBtns.length; i++) {
+      var b = this.skillBtns[i], d = bar[i];
+      if (!d) continue;
+      var lv = b.querySelector('.octo-skill-lv');
+      var cdEl = b.querySelector('.octo-skill-cd');
+      var sweep = b.querySelector('.octo-skill-sweep');
+      b.classList.toggle('locked', !d.unlocked);
+      b.classList.toggle('cooling', d.cd > 0);
+      lv.textContent = d.unlocked ? 'Lv' + g.hero.level : 'Lv' + d.needs;
+      if (d.cd > 0) {
+        cdEl.textContent = d.cd > 1 ? Math.ceil(d.cd) : d.cd.toFixed(1);
+        sweep.style.opacity = String(Math.min(1, d.cd / Math.max(0.4, d.skill.cd)));
+      } else {
+        cdEl.textContent = '';
+        sweep.style.opacity = '0';
+      }
+      if (force) b.title = (this.lang === 'ar' ? d.skill.ar : d.skill.en);
+    }
+    if (this.autoBtn) this.autoBtn.classList.toggle('on', !!g.combat.auto);
+  };
+
+  /** HP / focus bars and the target plate. */
+  Ui.prototype.syncCombat = function () {
+    var g = this.game, c = g.combat, ar = this.lang === 'ar';
+    if (!c) return;
+    var hp = Math.max(0, Math.round(c.hp)), sp = Math.max(0, Math.round(c.sp));
+    this.hpFill.style.width = (hp / c.maxHp * 100).toFixed(1) + '%';
+    this.spFill.style.width = (sp / c.maxSp * 100).toFixed(1) + '%';
+    this.hpText.textContent = hp + ' / ' + c.maxHp;
+    this.spText.textContent = sp + ' / ' + c.maxSp;
+    this.vitalsEl.classList.toggle('low', hp / c.maxHp < 0.3);
+
+    var t = c.target;
+    if (t && !t.dead) {
+      this.targetEl.classList.remove('hidden');
+      this.targetEl.querySelector('.octo-target-lv').textContent = t.level;
+      this.targetEl.querySelector('.octo-target-name').textContent = ar ? t.def.ar : t.def.en;
+      this.targetEl.querySelector('.octo-target-bar i').style.width =
+        (t.hp / t.maxHp * 100).toFixed(1) + '%';
+      this.targetEl.classList.toggle('elite', !!t.def.elite);
+    } else {
+      this.targetEl.classList.add('hidden');
+    }
+    this.syncWheel(false);
+  };
+
+  /* ------------------------------------------------------- quest log */
+
+  /**
+   * The tracker on the left edge, with tabs. Mirrors the reference: each
+   * entry names its source and its target location, so a player who put
+   * the game down yesterday can pick the thread back up.
+   */
+  Ui.prototype.syncQuestLog = function () {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    if (this._qtab === undefined) this._qtab = 'quest';
+
+    if (!this.qtabsEl.childElementCount) {
+      [['quest', ar ? 'المهام' : 'Quest'], ['party', ar ? 'الرفاق' : 'Party']].forEach(function (t) {
+        var b = el('button', 'octo-qtab', t[1]);
+        b.dataset.tab = t[0];
+        b.addEventListener('click', function () {
+          self._qtab = t[0];
+          self._qlogKey = null;
+          g.audio && g.audio.play('ui');
+        });
+        self.qtabsEl.appendChild(b);
+      });
+    }
+    Array.prototype.forEach.call(this.qtabsEl.children, function (b) {
+      b.classList.toggle('active', b.dataset.tab === self._qtab);
+    });
+
+    // rebuild only when something actually changed
+    var key = this._qtab + '|' + this.lang + '|' + g.missions.map(function (m) {
+      return m.id + m.state + (m.count || 0);
+    }).join(',') + '|' + g.hero.level;
+    if (key === this._qlogKey) return;
+    this._qlogKey = key;
+
+    var html = '';
+    if (this._qtab === 'quest') {
+      var live = g.missions.filter(function (m) { return m.state !== 'complete'; })
+        .sort(function (a, b) { return (b.state === 'active') - (a.state === 'active') || a.order - b.order; })
+        .slice(0, 2);
+      live.forEach(function (m) {
+        var d = g.world.districts[m.district] || null;
+        html +=
+          '<div class="octo-q' + (m.state === 'active' ? ' on' : '') + '">' +
+          '  <div class="octo-q-head">' +
+          '    <b>' + (m.state === 'active' ? (ar ? '[جارٍ]' : '[Active]') : (ar ? '[متاح]' : '[Open]')) + '</b> ' +
+               (ar ? m.ar : m.en) + '</div>' +
+          '  <div class="octo-q-line">' + (ar ? 'التقدّم: ' : 'Progress: ') +
+               (m.count || 0) + ' / ' + m.target + '</div>' +
+          (d ? '  <div class="octo-q-line dim">' + (ar ? 'الموقع: ' : 'Location: ') +
+               (ar ? d.ar : d.en) + '</div>' : '') +
+          '</div>';
+      });
+      // the next rank gate reads like a quest, because it is one
+      var next = null, A = OCTO.progress.ANCHORS;
+      for (var i = 0; i < A.length; i++) if (g.hero.level < A[i].level) { next = A[i]; break; }
+      if (next) {
+        html +=
+          '<div class="octo-q seal">' +
+          '  <div class="octo-q-head"><b>' + (ar ? '[ختم]' : '[Seal]') + '</b> ' +
+               (ar ? next.ar : next.en) + '</div>' +
+          '  <div class="octo-q-line">' + (ar ? 'تحتاج المستوى ' : 'Reach level ') + next.level +
+               ' (' + (ar ? 'الآن ' : 'now ') + g.hero.level + ')</div>' +
+          '</div>';
+      }
+      if (!html) html = '<div class="octo-q dim">' + (ar ? 'لا مهام' : 'Nothing tracked') + '</div>';
+    } else {
+      var cls = OCTO.classById(g.save.classId || 'muqatil');
+      html =
+        '<div class="octo-q">' +
+        '  <div class="octo-q-head"><b>' + (ar ? '[أنت]' : '[You]') + '</b> ' +
+             (ar ? cls.ar : cls.en) + ' · ' + (ar ? 'مستوى ' : 'Lv ') + g.hero.level + '</div>' +
+        '  <div class="octo-q-line dim">' + (ar
+             ? 'اللعب الجماعي لم يُفتح في هذه النسخة.'
+             : 'Co-op is not open in this build.') + '</div>' +
+        '</div>';
+    }
+    this.qbodyEl.innerHTML = html;
   };
 
   /* ---------------------------------------------------- quest dialogue */

@@ -814,6 +814,9 @@
       world.ropes.push(rope);
       return rope;
     }
+    // Published so the Mage's Weave can add a real rope at runtime — the
+    // same verlet chain as every permanent line, not a special case.
+    world.addRope = addRope;
 
     // --- souq: dense local network between neighbouring rooftops
     var souqRoofs = roofs.filter(function (r) { return r.district === 'souq' && !r.high; });
