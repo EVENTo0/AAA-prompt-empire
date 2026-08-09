@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "empire_version": "2.3",
+  "empire_version": "2.4",
   "agents": [
     {"id":"code_mapper","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/code_mapper.toml","claude_path":".claude/agents/code-mapper.md","skills":["project-intake-audit"],"permissions":["read"],"may_self_approve":false},
     {"id":"solution_architect","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/solution_architect.toml","claude_path":".claude/agents/solution-architect.md","skills":["stack-architecture-router"],"permissions":["read"],"may_self_approve":false},
@@ -18,6 +18,10 @@
     {"id":"qa_verifier","version":"2.2.0","status":"active","posture":"verification","codex_path":".codex/agents/qa_verifier.toml","claude_path":".claude/agents/qa-verifier.md","skills":["qa-release-readiness"],"permissions":["read"],"may_self_approve":false},
     {"id":"performance_reliability","version":"2.2.0","status":"active","posture":"verification","codex_path":".codex/agents/performance_reliability.toml","claude_path":".claude/agents/performance-reliability.md","skills":["performance-accessibility"],"permissions":["read"],"may_self_approve":false},
     {"id":"release_engineer","version":"2.2.0","status":"active","posture":"operations","codex_path":".codex/agents/release_engineer.toml","claude_path":".claude/agents/release-engineer.md","skills":["cloud-preview-phone","qa-release-readiness"],"permissions":["read","write_branch","deploy_preview"],"may_self_approve":false},
-    {"id":"red_team_reviewer","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/red_team_reviewer.toml","claude_path":".claude/agents/red-team-reviewer.md","skills":["qa-release-readiness","security-privacy-audit"],"permissions":["read"],"may_self_approve":false}
+    {"id":"red_team_reviewer","version":"2.2.0","status":"active","posture":"read_only","codex_path":".codex/agents/red_team_reviewer.toml","claude_path":".claude/agents/red-team-reviewer.md","skills":["qa-release-readiness","security-privacy-audit"],"permissions":["read"],"may_self_approve":false},
+    {"id":"technology_intelligence","version":"2.4.0","status":"active","posture":"read_only","codex_path":".codex/agents/technology_intelligence.toml","claude_path":".claude/agents/technology-intelligence.md","skills":["evergreen-technology-intelligence","evidence-research-synthesis"],"permissions":["read"],"may_self_approve":false},
+    {"id":"capability_curator","version":"2.4.0","status":"active","posture":"implementation","codex_path":".codex/agents/capability_curator.toml","claude_path":".claude/agents/capability-curator.md","skills":["capability-gap-analysis","regression-learning-curation","project-intake-audit"],"permissions":["read","write_branch"],"may_self_approve":false},
+    {"id":"continuity_analyst","version":"2.4.0","status":"active","posture":"read_only","codex_path":".codex/agents/continuity_analyst.toml","claude_path":".claude/agents/continuity-analyst.md","skills":["project-continuity-recovery","portfolio-project-operations","project-intake-audit"],"permissions":["read"],"may_self_approve":false},
+    {"id":"systems_optimizer","version":"2.4.0","status":"active","posture":"read_only","codex_path":".codex/agents/systems_optimizer.toml","claude_path":".claude/agents/systems-optimizer.md","skills":["integration-capability-planning","cost-reliability-optimization","stack-architecture-router"],"permissions":["read"],"may_self_approve":false}
   ]
 }
