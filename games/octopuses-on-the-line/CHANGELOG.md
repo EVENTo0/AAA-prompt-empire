@@ -4,6 +4,60 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-08-08 — Levels, ranks and the eight Anchors
+
+The progression layer the game was missing. Asked to study Ragnarok X and match
+how it paces a player, the honest reading is that RX's loop is not its combat —
+it is that every ten seconds something tells you that you got further. This
+release builds that loop out of the systems already here rather than bolting a
+damage number onto them.
+
+### Added
+
+- **Levels 1–60, nine ranks, and an experience curve.** 120 XP for the first
+  level, rising 21% per level. Rank titles run from Rope Novice to Thread
+  Sovereign, and the rank — not the level — is what the world reads.
+- **Experience flows from what the player already does.** Pearls, lanterns,
+  drones and beacons pay on pickup; jobs pay a multiple of their tier; walking
+  into a district for the first time pays a discovery bonus. **Crossing a rope
+  pays too**, scaled by how much of the span was actually walked — falling off
+  in the middle pays nothing. Traversal is the game, so traversal is the grind.
+- **The eight Anchors.** Stone posts with a floating shard, standing at real
+  tie-off points across the five districts. Each one is gated on a rank. A
+  sealed Anchor is visible from across a district with its shard dull and
+  ochre; the moment your rank reaches it the shard burns cyan and the post
+  joins the fast-travel network. Walking up to a sealed one tells you the level
+  it wants. The eighth is Ra's al-Khayt, at level 52.
+- **Hero plate on the HUD** — portrait, level badge, rank title and an animated
+  experience bar, with a floating `+n XP` on every award. Tapping it opens the
+  character sheet.
+- **Character sheet** (`Hero` tab): discipline, rank, total experience, the four
+  discipline axes, and all eight Anchors listed with their level requirement,
+  their lore, and a Travel button on the ones you have earned.
+- **Level-up beat** — the full-screen number, the new rank, and a card naming
+  each Anchor that just unlocked.
+- **Quest hand-off scenes.** Talking to a trader now opens a dialogue with a
+  named speaker, a portrait, the job in their own words, what it pays in both
+  coin and experience, and Accept / Later. Six speakers written, one per job.
+  Declining leaves the work on the board.
+- `tools/verify-rpg.js` — 51 assertions across the curve, awarding, the rank
+  gates, anchor placement, the HUD, the sheet and the dialogue.
+
+### Fixed
+
+- Anchor positions were first written as literal coordinates, which put stone
+  posts in open sand and inside a market stall — a guess against a procedural
+  layout is always wrong. Anchors now name a tie-off *site* that the world
+  generator computes, plus an offset, and resolve at build time with a spiral
+  clearance search so a post never lands inside geometry. `verify-rpg` asserts
+  all three failure modes.
+- The level-up banner and the toast stack occupied the same band of screen and
+  overlapped. The banner now owns the upper third and toasts sit below it.
+- The quest dialogue rendered *underneath* the pause panel (z-index 24 against
+  the panel's 30). It now outranks the panel, and opening a conversation closes
+  any open menu. The probe checks what is painted at the box's centre rather
+  than trusting a CSS class, which is what caught this.
+
 ## [1.0.4] — 2026-08-08 — Mobile-game controls
 
 Fourth report from the Honor X9d: the player still could not be moved, and the

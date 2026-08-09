@@ -524,6 +524,7 @@
   Octopus.prototype.attachLine = function (rope, near) {
     this.line = rope;
     this.lineT = near.t;
+    this.lineEntryT = near.t;      // where the crossing started, for scoring
     this.state = 'line';
     this.tilt = clamp((Math.random() - 0.5) * 0.25, -0.2, 0.2);
     this.tiltVel = 0;
@@ -539,6 +540,14 @@
 
   Octopus.prototype.detachLine = function (launchVel, cooldown) {
     if (!this.line) return;
+    // Crossing a rope is the game's core act, so it is also its repeatable
+    // reward. Scored on the way off, and only if most of the span was
+    // actually walked — falling off in the middle pays nothing.
+    var span = Math.abs(this.lineT - (this.lineEntryT === undefined ? this.lineT : this.lineEntryT));
+    if (span > 0.55 && this.game.awardXp) {
+      this.game.awardXp(Math.round(OCTO.progress.XP.lineCross * span), 'crossing');
+    }
+    this.lineEntryT = undefined;
     this.line = null;
     // Long enough that a fall reads as a fall — without it the auto-grab
     // catches the same rope again on the way past.

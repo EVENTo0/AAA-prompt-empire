@@ -108,6 +108,8 @@
     // cyan gates. Built after the districts so they can use the anchors.
     OCTO.landmarks.addGates(renderer, world, physics);
     OCTO.landmarks.addTitan(renderer, world, physics);
+    // Rank gates: one post per Anchor in the progression table.
+    OCTO.landmarks.addAnchors(renderer, world, physics);
 
     cb.finalize(renderer, world.items);
     foliage.finalize(renderer, world.foliageItems, { wind: 0.028 });

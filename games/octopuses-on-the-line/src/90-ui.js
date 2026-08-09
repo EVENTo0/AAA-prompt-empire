@@ -19,6 +19,7 @@
     continueGame: { en: 'Continue',                ar: 'متابعة' },
     settings:     { en: 'Settings',                ar: 'الإعدادات' },
     controls:     { en: 'Controls',                ar: 'التحكم' },
+    hero:         { en: 'Hero',                    ar: 'البطل' },
     jobs:         { en: 'Jobs',                    ar: 'الأعمال' },
     shop:         { en: 'Shop',                    ar: 'المتجر' },
     map:          { en: 'Map',                     ar: 'الخريطة' },
@@ -126,9 +127,27 @@
     this.hud = el('div', 'octo-hud hidden');
     this.hud.innerHTML =
       '<div class="octo-topleft">' +
+      '  <div class="octo-hero">' +
+      '    <div class="octo-hero-portrait"><span class="octo-hero-glyph"></span>' +
+      '      <span class="octo-hero-lv"><b class="octo-hero-lvn">1</b></span>' +
+      '    </div>' +
+      '    <div class="octo-hero-meta">' +
+      '      <div class="octo-hero-name"></div>' +
+      '      <div class="octo-hero-rank"></div>' +
+      '      <div class="octo-xp"><div class="octo-xp-fill"></div><span class="octo-xp-text"></span></div>' +
+      '    </div>' +
+      '    <div class="octo-xp-flash"></div>' +
+      '  </div>' +
       '  <div class="octo-money"><span class="octo-coin">◈</span><span class="octo-money-v">0</span></div>' +
       '  <div class="octo-district"></div>' +
       '  <div class="octo-clock"></div>' +
+      '</div>' +
+      '<div class="octo-levelup hidden">' +
+      '  <div class="octo-levelup-burst"></div>' +
+      '  <div class="octo-levelup-word"></div>' +
+      '  <div class="octo-levelup-num"></div>' +
+      '  <div class="octo-levelup-rank"></div>' +
+      '  <div class="octo-levelup-unlock"></div>' +
       '</div>' +
       '<div class="octo-mission"></div>' +
       '<div class="octo-toasts"></div>' +
@@ -176,6 +195,18 @@
     this.abilityEl = this.hud.querySelector('.octo-abilities');
     this.minimap = this.hud.querySelector('.octo-minimap');
     this.minimapCtx = this.minimap.getContext('2d');
+    this.heroEl = this.hud.querySelector('.octo-hero');
+    this.heroGlyph = this.hud.querySelector('.octo-hero-glyph');
+    this.heroLv = this.hud.querySelector('.octo-hero-lvn');
+    this.heroName = this.hud.querySelector('.octo-hero-name');
+    this.heroRank = this.hud.querySelector('.octo-hero-rank');
+    this.xpFill = this.hud.querySelector('.octo-xp-fill');
+    this.xpText = this.hud.querySelector('.octo-xp-text');
+    this.xpFlashEl = this.hud.querySelector('.octo-xp-flash');
+    this.levelUpEl = this.hud.querySelector('.octo-levelup');
+    // Tapping the hero plate opens the character sheet, the way every
+    // mobile RPG puts progression one thumb-press from the portrait.
+    this.heroEl.addEventListener('click', function () { self.openPanel('hero'); });
 
     // On touch there is no keyboard, so the HUD itself is the navigation:
     // tap the tracker for jobs, the minimap for the map, the purse for the shop.
@@ -218,6 +249,31 @@
     this.classRow = this.select.querySelector('.octo-class-row');
     this.select.querySelector('.octo-select-go')
       .addEventListener('click', function () { self.confirmClass(); });
+
+    // ---------- quest dialogue
+    // Talking to a trader is a scene, not a toast. A speaker plate, the
+    // job in their own words, what it pays, and two large choices — the
+    // shape every mobile RPG uses for a quest hand-off, and the one the
+    // player already knows how to read.
+    this.dialog = el('div', 'octo-dialog hidden');
+    this.dialog.innerHTML =
+      '<div class="octo-dialog-box">' +
+      '  <div class="octo-dialog-who">' +
+      '    <div class="octo-dialog-face"></div>' +
+      '    <div class="octo-dialog-name"></div>' +
+      '  </div>' +
+      '  <div class="octo-dialog-text"></div>' +
+      '  <div class="octo-dialog-reward"></div>' +
+      '  <div class="octo-dialog-acts">' +
+      '    <button class="octo-dialog-yes"></button>' +
+      '    <button class="octo-dialog-no"></button>' +
+      '  </div>' +
+      '</div>';
+    r.appendChild(this.dialog);
+    this.dialog.querySelector('.octo-dialog-yes')
+      .addEventListener('click', function () { self.answerDialog(true); });
+    this.dialog.querySelector('.octo-dialog-no')
+      .addEventListener('click', function () { self.answerDialog(false); });
 
     // ---------- beta panel
     this.beta = el('div', 'octo-beta hidden');
@@ -457,7 +513,7 @@
     this.tab = tab;
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
-      ? [['jobs', this.t('jobs')], ['shop', this.t('shop')], ['map', this.t('map')], ['controls', this.t('controls')], ['settings', this.t('settings')]]
+      ? [['hero', this.t('hero')], ['jobs', this.t('jobs')], ['shop', this.t('shop')], ['map', this.t('map')], ['controls', this.t('controls')], ['settings', this.t('settings')]]
       : [['controls', this.t('controls')], ['settings', this.t('settings')]];
     this.tabsEl.innerHTML = '';
     tabs.forEach(function (tt) {
@@ -469,11 +525,87 @@
 
     var body = this.bodyEl;
     body.innerHTML = '';
-    if (tab === 'jobs') this.renderJobs(body);
+    if (tab === 'hero') this.renderHero(body);
+    else if (tab === 'jobs') this.renderJobs(body);
     else if (tab === 'shop') this.renderShop(body);
     else if (tab === 'map') this.renderMap(body);
     else if (tab === 'controls') this.renderControls(body);
     else this.renderSettings(body);
+  };
+
+  /**
+   * The character sheet: who you are, how far you are, and the eight
+   * Anchors — which is where the sheet earns its place. An Anchor you
+   * have opened is a travel button; one you have not is a locked row
+   * that names the level it wants and hints at what is behind it. The
+   * list is deliberately not hidden, because a visible lock is a goal.
+   */
+  Ui.prototype.renderHero = function (body) {
+    var self = this, g = this.game, h = g.hero, ar = this.lang === 'ar';
+    var cls = OCTO.classById(g.save.classId || 'muqatil');
+    var rank = h.rank();
+
+    var head = el('div', 'octo-hero-sheet');
+    head.innerHTML =
+      '<div class="octo-sheet-portrait">' + (CLASS_GLYPH[cls.id] || '✦') +
+      '<b>' + h.level + '</b></div>' +
+      '<div class="octo-sheet-meta">' +
+      '  <div class="octo-sheet-name">' + (ar ? cls.ar : cls.en) + '</div>' +
+      '  <div class="octo-sheet-rank">' + (ar ? rank.ar : rank.en) + '</div>' +
+      '  <div class="octo-xp big"><div class="octo-xp-fill" style="width:' +
+           (h.fraction() * 100).toFixed(1) + '%"></div>' +
+      '    <span class="octo-xp-text">' +
+           (isFinite(h.need()) ? Math.floor(h.xp) + ' / ' + h.need() : (ar ? 'أقصى مستوى' : 'MAX')) +
+      '    </span></div>' +
+      '  <div class="octo-sheet-total">' + (ar ? 'إجمالي الخبرة' : 'Total XP') + ' ' + h.totalXp + '</div>' +
+      '</div>';
+    body.appendChild(head);
+
+    // discipline bars, same four axes the select screen uses
+    var bars = el('div', 'octo-sheet-bars');
+    var axes = [
+      ['speed', ar ? 'سرعة' : 'Speed'], ['balance', ar ? 'توازن' : 'Balance'],
+      ['power', ar ? 'قوة' : 'Power'], ['support', ar ? 'إسناد' : 'Support']
+    ];
+    axes.forEach(function (a) {
+      var v = cls.bars[a[0]] || 0;
+      var pips = '';
+      for (var i = 1; i <= 5; i++) pips += '<i' + (i <= v ? ' class="on"' : '') + '></i>';
+      bars.innerHTML += '<div class="octo-bar-row"><span>' + a[1] + '</span><div class="octo-pips">' + pips + '</div></div>';
+    });
+    body.appendChild(bars);
+
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'المراسي' : 'Anchors'));
+    var list = el('div', 'octo-anchor-list');
+    OCTO.progress.ANCHORS.forEach(function (a) {
+      var open = h.level >= a.level;
+      var seen = h.visited.indexOf(a.id) >= 0;
+      var row = el('div', 'octo-anchor' + (open ? ' open' : ' locked'));
+      row.innerHTML =
+        '<div class="octo-anchor-lv">' + a.level + '</div>' +
+        '<div class="octo-anchor-body">' +
+        '  <div class="octo-anchor-name">' + (ar ? a.ar : a.en) +
+             (seen ? ' <em>' + (ar ? 'مفتوحة' : 'discovered') + '</em>' : '') + '</div>' +
+        '  <div class="octo-anchor-desc">' + (ar ? a.descAr : a.descEn) + '</div>' +
+        '</div>';
+      if (open) {
+        var b = el('button', 'octo-btn-small', ar ? 'انتقال' : 'Travel');
+        b.addEventListener('click', function () {
+          g.travelToAnchor(a.id);
+          self.game.audio && self.game.audio.play('ui');
+          self.closePanel();
+        });
+        row.appendChild(b);
+      } else {
+        row.appendChild(el('span', 'octo-anchor-seal', ar ? 'مختومة' : 'SEALED'));
+      }
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
+      : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
   };
 
   Ui.prototype.renderJobs = function (body) {
@@ -850,6 +982,14 @@
       return;
     }
 
+    // A quest hand-off owns the input while it is up: accept with the
+    // jump key, dismiss with pause, and nothing else gets through.
+    if (this.dialogOpen()) {
+      if (input.hit('jump') || input.hit('interact')) this.answerDialog(true);
+      else if (input.hit('pause')) this.answerDialog(false);
+      return;
+    }
+
     // global hotkeys
     if (input.hit('lang')) this.toggleLang();
     if (input.hit('beta')) this.toggleBeta();
@@ -867,6 +1007,9 @@
       if (this.betaOpen) this.updateBetaStats();
       return;
     }
+
+    // hero plate + experience
+    this.syncHero();
 
     // money + district + clock
     this.moneyEl.textContent = g.dirhams;
@@ -927,6 +1070,156 @@
 
     if (this.betaOpen) this.updateBetaStats();
     if (this.diagOpen && (g.frame % 20) === 0) this.updateDiag();
+  };
+
+  /* ---------------------------------------------------- quest dialogue */
+
+  /**
+   * Speaker lines. Each trader talks about the job the way someone who
+   * lives here would — the mission card states the objective, this
+   * states the reason. Both matter; only one of them is characterisation.
+   */
+  var SPEAKERS = {
+    lanterns: {
+      nameEn: 'Umm Layla, lampwright', nameAr: 'أم ليلى، صانعة القناديل', face: '🏮',
+      en: 'The quarter goes dark in an hour and my knees will not take the roofs any more. Eight lanterns. Light them and the souq sleeps easy.',
+      ar: 'يظلم الحي بعد ساعة، ولم تعد ركبتاي تحتملان السطوح. ثمانية فوانيس. أشعلها ينم السوق مطمئناً.'
+    },
+    spice: {
+      nameEn: 'Faris, spice broker', nameAr: 'فارس، تاجر البهارات', face: '🧺',
+      en: 'Saffron for the oasis camp, and it does not travel by cart. Carry it across yourself — and if you drop it, do not come back to tell me.',
+      ar: 'زعفران لمخيّم الواحة، ولا يُنقل بعربة. احمله بنفسك — وإن أسقطته فلا تعد لتخبرني.'
+    },
+    longline: {
+      nameEn: 'Hadi, rope master', nameAr: 'هادي، معلّم الحبال', face: '🪢',
+      en: 'The long line has held since before your grandfather. Climb the minaret and walk it to the harbour. If it holds you, it holds anyone.',
+      ar: 'الخيط الطويل صامد من قبل جدّك. اصعد المئذنة وامشِ عليه إلى الميناء. إن حملك حمل أي أحد.'
+    },
+    drones: {
+      nameEn: 'Nura, harbour keeper', nameAr: 'نورة، حارسة الميناء', face: '🛸',
+      en: 'Five of my birds slipped their moorings in the night wind. Touch each one and it will remember its way home.',
+      ar: 'خمس من طيوري انفلتت من مرابطها في ريح الليل. المس كل واحدة تتذكر طريق العودة.'
+    },
+    beacons: {
+      nameEn: 'Zayd, keeper of letters', nameAr: 'زيد، حافظ الحروف', face: '✒',
+      en: 'Four beacons on the Falak rings, and the script on them has gone cold. Wake them. The city reads by that light.',
+      ar: 'أربع منارات على حلقات فلك، وقد برد الخط عليها. أيقظها. المدينة تقرأ بذلك النور.'
+    },
+    pearls: {
+      nameEn: 'The old diver', nameAr: 'الغوّاص العجوز', face: '🦪',
+      en: 'Forty pearls went up onto the lines when the sea went away. Bring me what you find. No hurry — the lines are patient.',
+      ar: 'أربعون لؤلؤة صعدت إلى الخيوط حين انحسر البحر. أحضر لي ما تجده. لا عجلة — الخيوط صبورة.'
+    }
+  };
+
+  /** Open the hand-off scene for a mission. Pauses nothing; just overlays. */
+  Ui.prototype.openDialog = function (mission) {
+    var ar = this.lang === 'ar';
+    var s = SPEAKERS[mission.id] || {
+      nameEn: 'A trader', nameAr: 'تاجر', face: '◈',
+      en: mission.descEn, ar: mission.descAr
+    };
+    // a menu and a conversation are two different places to be
+    if (this.screen === 'panel') this.closePanel();
+    this.dialogMission = mission;
+    this.dialog.querySelector('.octo-dialog-face').textContent = s.face;
+    this.dialog.querySelector('.octo-dialog-name').textContent = ar ? s.nameAr : s.nameEn;
+    this.dialog.querySelector('.octo-dialog-text').textContent = ar ? s.ar : s.en;
+
+    var xp = OCTO.progress.XP.missionBase * (mission.order || 1);
+    this.dialog.querySelector('.octo-dialog-reward').innerHTML =
+      '<span class="octo-dialog-title">' + (ar ? mission.ar : mission.en) + '</span>' +
+      '<span class="octo-dialog-pay">+' + mission.reward + ' ' + this.t('dirhams') +
+      '  ·  +' + xp + ' XP</span>';
+
+    var active = mission.state === 'active';
+    this.dialog.querySelector('.octo-dialog-yes').textContent =
+      active ? (ar ? 'تابع' : 'Continue') : (ar ? 'أقبل' : 'Accept');
+    this.dialog.querySelector('.octo-dialog-no').textContent = ar ? 'لاحقاً' : 'Later';
+    this.dialog.classList.remove('hidden');
+    this.game.audio && this.game.audio.play('ui');
+  };
+
+  Ui.prototype.answerDialog = function (accepted) {
+    var m = this.dialogMission;
+    this.dialog.classList.add('hidden');
+    this.dialogMission = null;
+    if (!m) return;
+    this.game.audio && this.game.audio.play('ui');
+    if (accepted && m.state === 'available') this.game.startMission(m);
+  };
+
+  Ui.prototype.dialogOpen = function () { return !this.dialog.classList.contains('hidden'); };
+
+  /* --------------------------------------------------------- hero plate */
+
+  var CLASS_GLYPH = { sayyad: '➶', muqatil: '⚔', dir: '🛡', shafi: '✚', sahir: '✦' };
+
+  /**
+   * Portrait, level badge, rank title and the experience bar — the block
+   * every mobile RPG parks in the top corner. The bar is animated toward
+   * its target rather than snapped, so a big award reads as a sweep.
+   */
+  Ui.prototype.syncHero = function () {
+    var g = this.game, h = g.hero;
+    if (!h) return;
+    var cls = OCTO.classById(g.save.classId || 'muqatil');
+
+    this.heroGlyph.textContent = CLASS_GLYPH[cls.id] || '✦';
+    this.heroLv.textContent = h.level;
+    this.heroName.textContent = this.lang === 'ar' ? cls.ar : cls.en;
+    var rank = h.rank();
+    this.heroRank.textContent = this.lang === 'ar' ? rank.ar : rank.en;
+
+    var target = h.fraction();
+    if (this._xpShown === undefined) this._xpShown = target;
+    // ease toward the true value; snap on a level-up so the bar resets clean
+    if (target < this._xpShown - 0.2) this._xpShown = target;
+    else this._xpShown += (target - this._xpShown) * 0.14;
+    this.xpFill.style.width = (this._xpShown * 100).toFixed(1) + '%';
+    this.xpText.textContent = isFinite(h.need())
+      ? Math.floor(h.xp) + ' / ' + h.need()
+      : (this.lang === 'ar' ? 'أقصى مستوى' : 'MAX');
+
+    // floating "+n XP"
+    if (g.xpFlash) {
+      var f = 1 - clamp(g.xpFlash.t / 1.6, 0, 1);
+      this.xpFlashEl.textContent = '+' + g.xpFlash.amount + ' XP';
+      this.xpFlashEl.style.opacity = f.toFixed(2);
+      this.xpFlashEl.style.transform = 'translateY(' + (-14 * (1 - f)).toFixed(1) + 'px)';
+    } else {
+      this.xpFlashEl.style.opacity = '0';
+    }
+
+    if (g.levelUpEvent) { this.showLevelUp(g.levelUpEvent); g.levelUpEvent = null; }
+    if (this._levelUpUntil && g.time > this._levelUpUntil) {
+      this._levelUpUntil = 0;
+      this.levelUpEl.classList.add('hidden');
+    }
+  };
+
+  /** The full-screen level-up beat: word, number, new rank, what opened. */
+  Ui.prototype.showLevelUp = function (ev) {
+    var ar = this.lang === 'ar';
+    this.levelUpEl.querySelector('.octo-levelup-word').textContent = ar ? 'ارتقاء' : 'LEVEL UP';
+    this.levelUpEl.querySelector('.octo-levelup-num').textContent = ev.to;
+    this.levelUpEl.querySelector('.octo-levelup-rank').textContent = ar ? ev.rank.ar : ev.rank.en;
+    var un = this.levelUpEl.querySelector('.octo-levelup-unlock');
+    if (ev.unlocked && ev.unlocked.length) {
+      un.innerHTML = ev.unlocked.map(function (a) {
+        return '<span>' + (ar ? '؟ فُتحت: ' : 'Unlocked: ') + (ar ? a.ar : a.en) + '</span>';
+      }).join('');
+      un.classList.remove('hidden');
+    } else {
+      un.innerHTML = '';
+      un.classList.add('hidden');
+    }
+    this.levelUpEl.classList.remove('hidden');
+    // restart the CSS animation
+    this.levelUpEl.classList.remove('play');
+    void this.levelUpEl.offsetWidth;
+    this.levelUpEl.classList.add('play');
+    this._levelUpUntil = this.game.time + 3.4;
   };
 
   Ui.prototype.syncToasts = function () {

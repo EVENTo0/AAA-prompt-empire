@@ -1,6 +1,6 @@
 # Octopuses on the Line — أخطبوطات على الخيط
 
-**Open Map Beta · v1.0.4**
+**Open Map Beta · v1.1.0**
 
 A browser action-sandbox about an eight-armed octopus balancing along the washing
 lines of an old Arabian souq — and climbing, line by line, into the neon sky
@@ -103,9 +103,42 @@ The balance meter at the bottom of the screen is the readout. Watch it.
 | Calligraphy Beacons | منارات الخط | 320 |
 | Pearls of the Quarter (40 pearls) | لآلئ الحي | 500 |
 
-Take work from the traders in the souq (`E`). Dirhams buy hats (tarbush, ghutra,
-sky helmet, Falak crown), skins, and three upgrades that change how the octopus
+Take work from the traders in the souq (`E`). Each one opens a hand-off scene:
+the trader says why the job exists, what it pays in dirhams and experience, and
+you accept or leave it on the board. Dirhams buy hats (tarbush, ghutra, sky
+helmet, Falak crown), skins, and three upgrades that change how the octopus
 handles. Progress saves to `localStorage`.
+
+---
+
+## Levels and the Anchors
+
+Levels 1–60 across nine ranks, from **Rope Novice** to **Thread Sovereign**.
+
+Experience comes from what you were going to do anyway: pearls, lanterns,
+drones and beacons on pickup, jobs by tier, a bonus the first time you walk
+into a district — and **crossing a rope**, scaled by how much of the span you
+actually walked. Fall off in the middle and it pays nothing.
+
+Rank is a key. Eight **Anchors** stand at real tie-off points across the map,
+each gated on a level:
+
+| | Anchor | | Level |
+|---|---|---|---|
+| 1 | Souq Anchor | مرساة السوق | 1 |
+| 2 | Oasis Anchor | مرساة الواحة | 5 |
+| 3 | Minaret Anchor | مرساة المئذنة | 10 |
+| 4 | Harbour Anchor | مرساة الميناء | 16 |
+| 5 | Ring Anchor | مرساة الحلقات | 24 |
+| 6 | Spire Anchor | مرساة البرج | 32 |
+| 7 | Deep Anchor | المرساة العميقة | 42 |
+| 8 | Ra's al-Khayt | رأس الخيط | 52 |
+
+A sealed Anchor is visible from across its district with its shard dull and
+ochre; when your rank reaches it the shard burns cyan and the post joins the
+fast-travel network. You can always see where you are not allowed to go yet —
+that is the point. The `Hero` tab lists all eight with their lore, and travels
+to the ones you have earned.
 
 ---
 
@@ -159,6 +192,9 @@ src/30-geo.js       mesh builder + architectural primitives
 src/40-physics.js   colliders, spatial hash, verlet, ropes, props
 src/45-input.js     keyboard / mouse / touch / gamepad
 src/50-world.js     the open map generator
+src/55-classes.js   the five Line-Walker disciplines
+src/57-landmarks.js the titan, the gates and the Anchor posts
+src/58-progress.js  levels, ranks, experience and the Anchor gates
 src/60-player.js    the octopus, its tentacles, and the camera
 src/70-npc.js       merchants, wanderers, line walkers, drones
 src/80-game.js      missions, economy, day/night, draw list, save
@@ -175,6 +211,8 @@ docs/               design, architecture and verification records
 ## Verifying it yourself
 
 ```bash
+NODE_PATH=$(npm root -g) node tools/verify-all.js     # 27 assertions: desktop, phone, flow, dist
+NODE_PATH=$(npm root -g) node tools/verify-rpg.js     # 51 assertions: levels, anchors, HUD, dialogue
 NODE_PATH=$(npm root -g) node tools/verify.js smoke   # engine scene, day + night
 NODE_PATH=$(npm root -g) node tools/verify.js game    # boot, tour 5 districts, self-test
 ```

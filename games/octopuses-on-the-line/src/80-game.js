@@ -14,7 +14,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.0.4';
+  var VERSION = '1.1.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -190,6 +190,7 @@
     this.missions = makeMissions();
     this.shop = SHOP;
     this.progress = this.save.progress || {};
+    this.hero = new OCTO.progress.Progress(this.save.hero);
     this.owned = this.save.owned || {};
     this.upgrades = this.save.upgrades || {};
     this.activeMission = null;
@@ -446,8 +447,12 @@
     this._updateToasts(dt);
     this._updateCheckpoint();
 
+    var district = this.currentDistrict();
     this.audio && this.audio.setWind(clamp(this.windStrength + (this.player.pos.y / 200), 0, 1));
-    this.audio && this.audio.setDistrict(this.currentDistrict());
+    this.audio && this.audio.setDistrict(district);
+    this.noteDistrict(district);
+    this._updateAnchors(dt);
+    if (this.xpFlash) { this.xpFlash.t += dt; if (this.xpFlash.t > 1.6) this.xpFlash = null; }
 
     input.endFrame();
   };
@@ -582,6 +587,7 @@
       if (d2 < 2.0 * 2.0) {
         pearl.taken = true;
         this.addDirhams(15);
+        this.awardXp(OCTO.progress.XP.pearl, 'pearl');
         this.audio && this.audio.play('pearl');
         this.spawnSparkle(pearl, 12);
         var m = this.missionById('pearls');
@@ -665,6 +671,7 @@
     if (!target) return;
     if (target.kind === 'lantern') {
       target.obj.lit = true;
+      this.awardXp(OCTO.progress.XP.lantern, 'lantern');
       this.audio && this.audio.play('coin');
       this.spawnSparkle({ x: target.obj.pos.x, y: target.obj.pos.y, z: target.obj.pos.z }, 10);
       var m = this.missionById('lanterns');
@@ -674,6 +681,7 @@
       this.persist();
     } else if (target.kind === 'beacon') {
       target.obj.active = true;
+      this.awardXp(OCTO.progress.XP.beacon, 'beacon');
       this.audio && this.audio.play('coin');
       this.spawnSparkle({ x: target.obj.x, y: target.obj.y + 2.4, z: target.obj.z }, 16);
       var mb2 = this.missionById('beacons');
@@ -683,8 +691,11 @@
       this.persist();
     } else if (target.kind === 'merchant') {
       var mission = target.mission;
-      if (mission.state === 'available') this.startMission(mission);
-      else this.toast(this.lang === 'ar' ? mission.ar + ' — جارٍ' : mission.en + ' — in progress', 'info');
+      // The hand-off is a scene: the trader says why the job exists and the
+      // player chooses. Falling back to starting it outright keeps headless
+      // and scripted runs working without a UI attached.
+      if (this.ui && this.ui.openDialog) this.ui.openDialog(mission);
+      else if (mission.state === 'available') this.startMission(mission);
       target.obj.talk = 2.5;
     } else if (target.kind === 'prop') {
       target.obj.held = true;
@@ -719,6 +730,7 @@
     mission.state = 'complete';
     mission.count = mission.target;
     this.addDirhams(mission.reward);
+    this.awardXp(OCTO.progress.XP.missionBase * (mission.order || 1), 'mission');
     this.audio && this.audio.play('success');
     this.camera.addShake(0.3);
     this.toast(
@@ -780,6 +792,7 @@
         if (dr.caught) continue;
         if (sq(dr.pos.x - pp.x) + sq(dr.pos.y - (pp.y + 0.9)) + sq(dr.pos.z - pp.z) < 2.6 * 2.6) {
           dr.caught = true;
+          this.awardXp(OCTO.progress.XP.drone, 'drone');
           this.audio && this.audio.play('coin');
           this.spawnSparkle(dr.pos, 14);
           m.count = this.droneTargets.filter(function (x) { return x.caught; }).length;
@@ -817,6 +830,143 @@
     } else if (am.id === 'beacons') {
       this.beacons.forEach(function (b) { if (!b.active) add(b.x, b.y + 3.4, b.z, [0.8, 0.6, 1.0]); });
     }
+  };
+
+  /* -------------------------------------------------------- progression */
+
+  /**
+   * Bank experience and surface the result. Small awards are a floating
+   * "+n XP" on the bar; a level-up gets the full banner, a chord and a
+   * camera nudge, because crossing a rank is the moment the map opens.
+   */
+  Game.prototype.awardXp = function (amount, reason) {
+    if (!(amount > 0)) return 0;
+    var before = this.hero.level;
+    var gained = this.hero.award(amount);
+    this.xpFlash = { amount: amount, reason: reason || '', t: 0 };
+    if (gained > 0) {
+      this.audio && this.audio.play('success');
+      this.camera && this.camera.addShake(0.45);
+      var rank = this.hero.rank();
+      this.levelUpEvent = {
+        from: before, to: this.hero.level,
+        rank: rank,
+        unlocked: this._anchorsUnlockedBetween(before, this.hero.level)
+      };
+      this.toast(
+        (this.lang === 'ar' ? 'المستوى ' : 'Level ') + this.hero.level +
+        ' — ' + (this.lang === 'ar' ? rank.ar : rank.en), 'success');
+    }
+    this.persist();
+    return gained;
+  };
+
+  /** Anchors whose gate opens as the player crosses from `a` to `b`. */
+  Game.prototype._anchorsUnlockedBetween = function (a, b) {
+    var out = [], A = OCTO.progress.ANCHORS;
+    for (var i = 0; i < A.length; i++) if (A[i].level > a && A[i].level <= b) out.push(A[i]);
+    return out;
+  };
+
+  /**
+   * Called whenever the player's district changes. First entry into a
+   * district is worth experience and puts its name on screen — the
+   * "region discovered" beat every open-map RPG uses to reward walking
+   * somewhere new.
+   */
+  Game.prototype.noteDistrict = function (id) {
+    if (!id || id === this._lastDistrict) return;
+    this._lastDistrict = id;
+    if (this.hero.discover(id)) {
+      this.awardXp(OCTO.progress.XP.discover, 'discover');
+      this.toast(
+        (this.lang === 'ar' ? 'اكتشفت: ' : 'Discovered: ') + this.districtName(id), 'mission');
+    }
+  };
+
+  /**
+   * Anchors are physical places, not menu entries. Walk up to one and it
+   * either reads your rank and opens — banking a first-visit reward and
+   * adding itself to the teleport network — or it tells you the level it
+   * wants. Either way you learn it exists by standing in front of it.
+   */
+  Game.prototype._updateAnchors = function (dt) {
+    var A = OCTO.progress.ANCHORS, p = this.player.pos;
+    this._anchorCooldown = Math.max(0, (this._anchorCooldown || 0) - dt);
+    this.nearAnchor = null;
+    for (var i = 0; i < A.length; i++) {
+      var a = A[i];
+      var d2 = sq(a.at[0] - p.x) + sq(a.at[2] - p.z);
+      if (d2 > 10 * 10) continue;
+      this.nearAnchor = a;
+      if (this._anchorCooldown > 0) break;
+      if (this.hero.canEnter(a)) {
+        if (this.hero.visit(a.id)) {
+          this._anchorCooldown = 3;
+          this.awardXp(OCTO.progress.XP.anchorFirstVisit, 'anchor');
+          this.spawnSparkle({ x: a.at[0], y: p.y + 1.4, z: a.at[2] }, 22);
+          this.toast(
+            (this.lang === 'ar' ? 'مرساة مفتوحة: ' : 'Anchor open: ') +
+            (this.lang === 'ar' ? a.ar : a.en), 'success');
+        }
+      } else if (!this._warnedAnchor || this._warnedAnchor !== a.id) {
+        this._warnedAnchor = a.id;
+        this._anchorCooldown = 4;
+        this.audio && this.audio.play('fail', 0.5);
+        this.toast(
+          (this.lang === 'ar' ? 'مغلقة — تحتاج المستوى ' : 'Sealed — needs level ') + a.level,
+          'info');
+      }
+      break;
+    }
+    if (!this.nearAnchor) this._warnedAnchor = null;
+  };
+
+  /**
+   * Fast travel to an open Anchor. Refuses politely if the rank is not
+   * there yet — the caller is UI, and UI should never be the thing that
+   * enforces a rule the simulation owns.
+   */
+  Game.prototype.travelToAnchor = function (id) {
+    var a = OCTO.progress.anchorById(id);
+    if (!a) return false;
+    if (!this.hero.canEnter(a)) {
+      this.audio && this.audio.play('fail');
+      this.toast((this.lang === 'ar' ? 'تحتاج المستوى ' : 'Needs level ') + a.level, 'info');
+      return false;
+    }
+    var y = this.world.groundHeight(a.at[0], a.at[2]) + 1.4;
+    // stand off the post itself so the player does not spawn inside it
+    this.player.teleport(a.at[0] + 6, y, a.at[2] + 6);
+    this.player.detachLine && this.player.detachLine(null, 1.0);
+    this.camera.free = false;
+    this.frameCamera();
+    this.audio && this.audio.play('success', 0.7);
+    this.toast(
+      (this.lang === 'ar' ? 'انتقلت إلى ' : 'Travelled to ') + (this.lang === 'ar' ? a.ar : a.en), 'info');
+    return true;
+  };
+
+  /** Is the anchor post nearest this light position open to the player? */
+  Game.prototype._anchorOpen = function (pos) {
+    var posts = this.world.anchorPosts;
+    if (!posts) return true;
+    for (var i = 0; i < posts.length; i++) {
+      if (posts[i].centre === pos) return this.hero.level >= posts[i].level;
+    }
+    return true;
+  };
+
+  Game.prototype.districtName = function (id) {
+    var names = {
+      souq:    { en: 'The Old Souq',   ar: 'السوق القديم' },
+      oasis:   { en: 'Palm Oasis',     ar: 'واحة النخيل' },
+      line:    { en: 'The Long Line',  ar: 'الخيط الطويل' },
+      harbour: { en: 'Sky Harbour',    ar: 'ميناء السماء' },
+      towers:  { en: 'Neo-Falak',      ar: 'نيوفلك' }
+    };
+    var n = names[id];
+    return n ? (this.lang === 'ar' ? n.ar : n.en) : id;
   };
 
   /* ---------------------------------------------------------- economy */
@@ -978,6 +1128,7 @@
       for (var l = 0; l < this.lanternTargets.length; l++) if (this.lanternTargets[l].lit) lanterns.push(l);
       this.save.dirhams = this.dirhams;
       this.save.progress = progress;
+      this.save.hero = this.hero.toJSON();
       this.save.pearls = pearls;
       this.save.lanterns = lanterns;
       this.save.owned = this.owned;
@@ -1033,6 +1184,24 @@
       }
     }
 
+    // Anchor posts. The stone is always drawn; the shard reads the
+    // player's rank — burning cyan once the gate has opened for them,
+    // barely alive while it is still sealed.
+    if (w.anchorPosts) {
+      for (var ai = 0; ai < w.anchorPosts.length; ai++) {
+        var ap = w.anchorPosts[ai];
+        var adx = ap.x - cam.x, adz = ap.z - cam.z;
+        if (adx * adx + adz * adz > 340 * 340) continue;
+        var open = this.hero.level >= ap.level;
+        scene.items.push({ mesh: ap.mesh, model: ap.model });
+        scene.items.push({
+          mesh: ap.shard, model: ap.model,
+          emissive: open ? 3.0 + Math.sin(this.time * 2.0 + ai * 1.7) * 0.8 : 0.25,
+          tint: open ? null : [0.55, 0.42, 0.30]
+        });
+      }
+    }
+
     // static chunks
     for (var i = 0; i < w.items.length; i++) scene.items.push(w.items[i]);
     for (var f = 0; f < w.foliageItems.length; f++) scene.items.push(w.foliageItems[f]);
@@ -1044,6 +1213,7 @@
       var light = w.lights[l];
       var base = light.intensity + (light.night || 0) * night;
       if (light.missionLantern) base = light.lit ? (light.night || 2) * Math.max(night, 0.55) * 1.6 : base * 0.15;
+      if (light.kind === 'anchor' && !this._anchorOpen(light.pos)) base *= 0.12;
       if (base <= 0.01) continue;
       scene.lights.push({ pos: light.pos, color: light.color, radius: light.radius, intensity: base });
     }

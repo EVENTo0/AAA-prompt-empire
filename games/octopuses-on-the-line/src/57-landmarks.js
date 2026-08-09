@@ -223,12 +223,141 @@
       x: D.towers.center.x, y: 0.2, z: D.towers.center.z + 86, rot: 0, r: 8.5
     });
     // the one from the film, out on the sand beside the titan
-    addGate(renderer, world, physics, {
+    var far = addGate(renderer, world, physics, {
       id: 'deep', en: 'The Far Gate', ar: 'البوابة البعيدة', district: 'desert',
       x: 168, y: 0, z: 268, rot: -1.10, r: 11
     });
+    // publish it as a tie-off site so the progression table can hang the
+    // last Anchor off the landmark rather than off a guessed coordinate
+    world.anchors.farGate = { x: far.x, y: far.y, z: far.z };
   }
 
-  OCTO.landmarks = { addTitan: addTitan, addGates: addGates, CYAN: CYAN };
+  /* ---------------------------------------------------------- anchors */
+
+  /**
+   * An Anchor post. Stone below, a bound rope collar, and a floating
+   * shard above the head that holds the light. Sealed anchors draw the
+   * shard dim and ochre; an open one burns cyan — so rank is legible
+   * from across a district without reading a single word.
+   */
+  function buildAnchor(mb, H) {
+    // stepped stone base
+    mb.mat({ cell: CELL.STONE, color: [0.88, 0.80, 0.68], roughness: 0.88, uvScale: 0.3, emissive: 0 });
+    mb.push().translate(0, H * 0.05, 0).box(H * 0.30, H * 0.10, H * 0.30).pop();
+    mb.push().translate(0, H * 0.15, 0).box(H * 0.24, H * 0.10, H * 0.24).pop();
+
+    // tapered shaft
+    mb.mat({ cell: CELL.STONE, color: [0.82, 0.74, 0.62], roughness: 0.85, uvScale: 0.34 });
+    mb.push().translate(0, H * 0.55, 0)
+      .cylinder(H * 0.15, H * 0.10, H * 0.70, 8, { capBottom: false }).pop();
+
+    // rope collar — this is an anchor, so something is tied to it
+    mb.mat({ cell: CELL.ROPE, color: [0.86, 0.78, 0.60], roughness: 0.95, uvScale: 1.2 });
+    for (var c = 0; c < 3; c++) {
+      var cy = H * (0.34 + c * 0.075);
+      mb.push().translate(0, cy, 0).rotateX(Math.PI / 2)
+        .cylinder(H * 0.155, H * 0.155, H * 0.035, 14, { capTop: false, capBottom: false }).pop();
+    }
+
+    // metal crown
+    mb.mat({ cell: CELL.METAL, color: [0.70, 0.68, 0.62], roughness: 0.4, uvScale: 0.6 });
+    mb.push().translate(0, H * 0.92, 0).box(H * 0.15, H * 0.05, H * 0.15).pop();
+  }
+
+  /** The floating shard, built separately so it can be lit on its own. */
+  function buildAnchorShard(mb, H) {
+    mb.mat({ cell: CELL.NONE, color: CYAN, roughness: 0.06, emissive: 3.2 });
+    // two four-sided cones tip to tip — an octahedral shard
+    mb.push().translate(0, H * 1.17, 0).rotateY(Math.PI / 4)
+      .cylinder(H * 0.10, 0, H * 0.22, 4, { capTop: false }).pop();
+    mb.push().translate(0, H * 1.05, 0).rotateY(Math.PI / 4).rotateZ(Math.PI)
+      .cylinder(H * 0.10, 0, H * 0.16, 4, { capTop: false }).pop();
+  }
+
+  /**
+   * Resolve an Anchor's `site` + `off` against the tie-off points the
+   * generator produced. Falls back to the district centre if a site is
+   * missing, so a renamed site degrades to "somewhere sensible in the
+   * right district" instead of dropping a post at the origin.
+   */
+  /** Nothing solid may occupy the post's footprint at this spot. */
+  function spotIsClear(physics, x, y, z, r) {
+    var hits = physics.query(x - r, y + 0.4, z - r, x + r, y + 7.0, z + r);
+    return hits.length === 0;
+  }
+
+  function resolveAnchor(world, physics, a) {
+    var site = world.anchors[a.site];
+    if (!site) {
+      var d = world.districts[a.district];
+      site = d ? { x: d.center.x, y: d.center.y, z: d.center.z } : { x: 0, y: 0, z: 0 };
+    }
+    var baseX = site.x + a.off[0];
+    var baseZ = site.z + a.off[2];
+    var baseY = a.ground ? world.groundHeight(baseX, baseZ) : site.y + a.off[1];
+    if (spotIsClear(physics, baseX, baseY, baseZ, 2.2)) return [baseX, baseY, baseZ];
+
+    // The named site is a tie-off point, not a clearing — in the souq it
+    // can sit inside a stall. Spiral outward from it until the footprint
+    // is free, so the post always ends up somewhere a player can walk to
+    // and see, without moving it out of its district.
+    for (var ring = 1; ring <= 6; ring++) {
+      var r = 4 + ring * 3.5;
+      for (var i = 0; i < 12; i++) {
+        var ang = (i / 12) * TAU + ring * 0.26;
+        var x = baseX + Math.cos(ang) * r;
+        var z = baseZ + Math.sin(ang) * r;
+        var y = a.ground ? world.groundHeight(x, z) : baseY;
+        if (spotIsClear(physics, x, y, z, 2.2)) return [x, y, z];
+      }
+    }
+    return [baseX, baseY, baseZ];
+  }
+
+  /**
+   * Place one post per entry in the progression table. The world does
+   * not know about levels — it just builds every anchor and lets the
+   * game decide how each one is lit.
+   */
+  function addAnchors(renderer, world, physics) {
+    world.anchorPosts = [];
+    var list = (OCTO.progress && OCTO.progress.ANCHORS) || [];
+    for (var i = 0; i < list.length; i++) {
+      var a = list[i];
+      var H = 9.0;
+      // the progression table names a site; the world owns where that is
+      a.at = resolveAnchor(world, physics, a);
+      var y = a.at[1];
+
+      var mb = new OCTO.MeshBuilder();
+      mb.push().translate(a.at[0], y, a.at[2]);
+      buildAnchor(mb, H);
+      mb.pop();
+      var d = mb.build();
+
+      var sb = new OCTO.MeshBuilder();
+      sb.push().translate(a.at[0], y, a.at[2]);
+      buildAnchorShard(sb, H);
+      sb.pop();
+      var sd = sb.build();
+
+      var post = {
+        id: a.id, level: a.level, en: a.en, ar: a.ar,
+        mesh: renderer.createMesh(d.verts, d.indices),
+        shard: renderer.createMesh(sd.verts, sd.indices),
+        model: OCTO.M4.create(),
+        x: a.at[0], y: y, z: a.at[2], h: H,
+        centre: { x: a.at[0], y: y + H * 1.12, z: a.at[2] }
+      };
+      physics.addBoxUp(a.at[0], y, a.at[2], H * 0.17, H * 0.9, H * 0.17, 0, 'anchor');
+      world.anchorPosts.push(post);
+      world.lights.push({
+        pos: post.centre, color: CYAN, radius: H * 4.0,
+        intensity: 0.9, night: 1.6, kind: 'anchor'
+      });
+    }
+  }
+
+  OCTO.landmarks = { addTitan: addTitan, addGates: addGates, addAnchors: addAnchors, CYAN: CYAN };
 
 })(typeof window !== 'undefined' ? window : globalThis);

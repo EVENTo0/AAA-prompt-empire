@@ -100,6 +100,102 @@
     text-shadow: 0 1px 3px rgba(0,0,0,0.8);
   }
   .octo-coin { color: var(--gold); }
+
+  /* ---- hero plate: portrait, level badge, rank, experience bar.
+     The block mobile action-RPGs anchor to the top corner, sized so the
+     level number stays readable at arm's length on a phone. */
+  .octo-hero {
+    position: relative; display: flex; align-items: center; gap: 9px;
+    background: linear-gradient(90deg, rgba(14,10,7,0.86), rgba(14,10,7,0.52));
+    border: 1px solid var(--edge); border-radius: 999px 14px 14px 999px;
+    padding: 4px 16px 4px 4px; margin-bottom: 3px;
+  }
+  .octo-rtl .octo-hero { border-radius: 14px 999px 999px 14px; padding: 4px 4px 4px 16px; }
+  .octo-hero-portrait {
+    position: relative; width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    background: radial-gradient(circle at 38% 30%, #4a3620, #1d140c);
+    border: 2px solid var(--gold); box-shadow: 0 0 12px rgba(227,181,88,0.30);
+  }
+  .octo-hero-lv {
+    position: absolute; bottom: -4px; inset-inline-end: -6px;
+    min-width: 20px; height: 18px; padding: 0 4px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #ffdc93, #c98a2c); color: #20150a;
+    font-size: 11px; font-weight: 800; border: 1px solid rgba(0,0,0,0.45);
+  }
+  .octo-hero-meta { min-width: 118px; }
+  .octo-hero-name { font-size: 12px; font-weight: 800; color: var(--sand); line-height: 1.2; }
+  .octo-hero-rank { font-size: 10px; color: var(--teal); opacity: 0.9; letter-spacing: 0.04em; }
+  .octo-xp {
+    position: relative; height: 8px; margin-top: 4px; border-radius: 999px;
+    background: rgba(0,0,0,0.55); border: 1px solid rgba(227,181,88,0.28); overflow: hidden;
+  }
+  .octo-xp-fill {
+    height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, #6fe0b0, #4fc6d8 60%, #a7e8ff);
+    box-shadow: 0 0 8px rgba(79,198,216,0.55);
+    transition: width 0.18s linear;
+  }
+  .octo-xp-text {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700; letter-spacing: 0.04em;
+    color: #eafaff;
+    /* the label crosses the fill edge, so it needs an outline rather than a
+       drop shadow to stay readable against both the bright and dark halves */
+    text-shadow: 0 0 3px rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.9);
+  }
+  .octo-xp.big { height: 16px; margin-top: 8px; }
+  .octo-xp.big .octo-xp-text { font-size: 11px; }
+  /* The flash sits below the plate, not above it: anything above collides
+     with the quest tracker on a narrow phone screen. */
+  .octo-xp-flash {
+    position: absolute; top: 100%; inset-inline-start: 56px; opacity: 0;
+    font-size: 12px; font-weight: 800; color: #a7e8ff; white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9); pointer-events: none;
+  }
+
+  /* ---- level-up beat. It owns the upper third; the toast stack is pushed
+     below it so a rank-up and a pickup notice never stack on each other. */
+  .octo-levelup {
+    position: absolute; top: 16%; left: 50%; transform: translateX(-50%);
+    text-align: center; pointer-events: none; width: max-content; max-width: 92vw;
+    z-index: 3;
+  }
+  .octo-levelup.play { animation: octo-lvl 3.4s ease-out both; }
+  @keyframes octo-lvl {
+    0%   { opacity: 0; transform: translateX(-50%) scale(0.86); }
+    9%   { opacity: 1; transform: translateX(-50%) scale(1.04); }
+    16%  { transform: translateX(-50%) scale(1); }
+    84%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .octo-levelup-burst {
+    position: absolute; top: 50%; left: 50%; width: 300px; height: 300px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(79,198,216,0.34), transparent 62%);
+  }
+  .octo-levelup-word {
+    position: relative; font-size: 15px; font-weight: 800; letter-spacing: 0.34em;
+    color: var(--teal); text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+  }
+  .octo-levelup-num {
+    position: relative; font-size: clamp(52px, 12vw, 92px); font-weight: 800; line-height: 1;
+    background: linear-gradient(180deg, #fff3d2, #d99b3e);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 12px rgba(0,0,0,0.85));
+  }
+  .octo-levelup-rank {
+    position: relative; font-size: 15px; font-weight: 700; color: var(--sand);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+  }
+  .octo-levelup-unlock { position: relative; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .octo-levelup-unlock span {
+    font-size: 12px; font-weight: 700; color: #cdf4ff;
+    background: rgba(14,10,7,0.72); border: 1px solid var(--teal);
+    border-radius: 999px; padding: 4px 14px;
+  }
+
   .octo-district { font-size: 13px; font-weight: 700; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.9); padding-inline-start: 6px; }
   .octo-clock { font-size: 11px; opacity: 0.6; letter-spacing: 0.08em; padding-inline-start: 6px; }
 
@@ -114,7 +210,7 @@
   .octo-mini-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--teal)); border-radius: 999px; }
 
   .octo-toasts {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    position: absolute; top: 58%; left: 50%; transform: translate(-50%, -50%);
     display: flex; flex-direction: column; gap: 8px; align-items: center; width: max-content; max-width: 84vw;
   }
   .octo-toast {
@@ -238,6 +334,102 @@
   .octo-ctrl-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
   .octo-ctrl-row kbd { min-width: 70px; }
   .octo-note { font-size: 12px; opacity: 0.6; margin-top: 16px; line-height: 1.6; }
+
+  /* ---- quest hand-off scene. Anchored to the bottom so the world and the
+     speaker stay visible above it, the way mobile RPGs stage dialogue. */
+  /* above .octo-panel (z-index 30) — a trader talking to you outranks a menu */
+  .octo-dialog {
+    position: absolute; inset: 0; z-index: 34; display: flex;
+    align-items: flex-end; justify-content: center; padding: 20px;
+    background: linear-gradient(180deg, transparent 40%, rgba(6,4,3,0.72) 100%);
+  }
+  .octo-dialog-box {
+    width: min(560px, 94vw);
+    background: linear-gradient(180deg, rgba(26,19,12,0.97), rgba(14,10,7,0.98));
+    border: 1px solid var(--edge); border-radius: 18px; padding: 16px 20px 18px;
+    box-shadow: 0 12px 44px rgba(0,0,0,0.7);
+  }
+  .octo-dialog-who { display: flex; align-items: center; gap: 11px; margin-bottom: 11px; }
+  .octo-dialog-face {
+    width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    background: radial-gradient(circle at 38% 30%, #4a3620, #1d140c);
+    border: 2px solid var(--gold);
+  }
+  .octo-dialog-name { font-size: 15px; font-weight: 800; color: var(--gold); }
+  .octo-dialog-text { font-size: 14px; line-height: 1.68; color: #f0e5d2; }
+  .octo-dialog-reward {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+    margin-top: 13px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,0.10);
+  }
+  .octo-dialog-title { font-size: 14px; font-weight: 800; color: var(--sand); }
+  .octo-dialog-pay { font-size: 12px; font-weight: 700; color: var(--teal); }
+  .octo-dialog-acts { display: flex; gap: 10px; margin-top: 14px; }
+  .octo-dialog-acts button {
+    flex: 1; padding: 13px; font-size: 15px; font-weight: 800; cursor: pointer;
+    border-radius: 12px; border: none; font-family: inherit;
+  }
+  .octo-dialog-yes { color: #10240f; background: linear-gradient(90deg, var(--gold), #f0cf83); }
+  .octo-dialog-no {
+    color: #d6c8b2; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14) !important;
+  }
+
+  /* ---- character sheet */
+  .octo-hero-sheet {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+    background: linear-gradient(90deg, rgba(227,181,88,0.10), transparent);
+    border: 1px solid var(--edge); border-radius: 16px; padding: 14px 18px;
+  }
+  .octo-sheet-portrait {
+    position: relative; width: 76px; height: 76px; flex: 0 0 76px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 34px;
+    background: radial-gradient(circle at 38% 30%, #4a3620, #1d140c);
+    border: 3px solid var(--gold); box-shadow: 0 0 20px rgba(227,181,88,0.28);
+  }
+  .octo-sheet-portrait b {
+    position: absolute; bottom: -6px; inset-inline-end: -8px;
+    min-width: 30px; height: 26px; padding: 0 7px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #ffdc93, #c98a2c); color: #20150a;
+    font-size: 15px; font-weight: 800; border: 2px solid rgba(0,0,0,0.4);
+  }
+  .octo-sheet-meta { flex: 1; min-width: 0; }
+  .octo-sheet-name { font-size: 20px; font-weight: 800; color: var(--sand); }
+  .octo-sheet-rank { font-size: 13px; color: var(--teal); font-weight: 700; }
+  .octo-sheet-total { font-size: 11px; opacity: 0.6; margin-top: 5px; letter-spacing: 0.06em; }
+  .octo-sheet-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; margin-bottom: 20px; }
+  .octo-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; opacity: 0.86; }
+  .octo-pips { display: flex; gap: 4px; }
+  .octo-pips i { width: 13px; height: 6px; border-radius: 2px; background: rgba(255,255,255,0.14); }
+  .octo-pips i.on { background: linear-gradient(90deg, var(--gold), var(--teal)); }
+  .octo-sheet-h {
+    margin: 0 0 10px; font-size: 12px; letter-spacing: 0.22em; font-weight: 800;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .octo-anchor-list { display: flex; flex-direction: column; gap: 8px; }
+  .octo-anchor {
+    display: flex; align-items: center; gap: 13px;
+    border: 1px solid rgba(255,255,255,0.10); border-radius: 12px; padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+  }
+  .octo-anchor.open { border-color: var(--teal); background: rgba(79,198,216,0.07); }
+  .octo-anchor.locked { opacity: 0.62; }
+  .octo-anchor-lv {
+    flex: 0 0 34px; width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #20150a;
+    background: linear-gradient(180deg, #ffdc93, #c98a2c);
+  }
+  .octo-anchor.locked .octo-anchor-lv { background: rgba(255,255,255,0.14); color: #d8ccb8; }
+  .octo-anchor-body { flex: 1; min-width: 0; }
+  .octo-anchor-name { font-size: 14px; font-weight: 700; color: var(--sand); }
+  .octo-anchor-name em { font-size: 10px; font-style: normal; color: var(--teal); letter-spacing: 0.1em; }
+  .octo-anchor-desc { font-size: 11px; opacity: 0.62; line-height: 1.5; margin-top: 2px; }
+  .octo-anchor-seal {
+    font-size: 10px; letter-spacing: 0.16em; font-weight: 800; opacity: 0.55;
+    border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 4px 10px;
+  }
 
   .octo-set-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.07); flex-wrap: wrap; }
   .octo-set-label { font-size: 13px; font-weight: 600; }
@@ -4134,6 +4326,249 @@
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
+/* ===== src/58-progress.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 58-progress.js
+ *
+ * Level, experience and the ranks that gate the map.
+ *
+ * The curve is deliberately front-loaded the way mobile action-RPGs do
+ * it: the first four levels arrive inside the opening ten minutes so the
+ * player feels the system before they have to think about it, then the
+ * cost climbs geometrically. Levels are not a damage number here — they
+ * are a KEY. Each rank unlocks an Anchor (a gated route across the city),
+ * and every Anchor is a piece of the story about what is holding the
+ * lines up.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+
+  var MAX_LEVEL = 60;
+
+  /**
+   * Experience needed to go from `level` to `level + 1`.
+   * 1→2 costs 120; the cost grows 21% per level and is rounded to a
+   * readable multiple of ten so the bar always reads cleanly.
+   */
+  function xpForLevel(level) {
+    if (level < 1) level = 1;
+    if (level >= MAX_LEVEL) return Infinity;
+    return Math.round(120 * Math.pow(1.21, level - 1) / 10) * 10;
+  }
+
+  /** Total experience banked to reach the start of `level`. */
+  function xpToReach(level) {
+    var total = 0;
+    for (var i = 1; i < level; i++) total += xpForLevel(i);
+    return total;
+  }
+
+  /* ------------------------------------------------------------- ranks */
+
+  /**
+   * Rank titles. Each one is the name the city gives a Line-Walker who
+   * has earned the right to use a particular height of rope.
+   */
+  var RANKS = [
+    { level: 1,  en: 'Rope Novice',    ar: 'مبتدئ الحبل' },
+    { level: 5,  en: 'Souq Runner',    ar: 'عدّاء السوق' },
+    { level: 10, en: 'Line-Walker',    ar: 'ماشي الخيط' },
+    { level: 16, en: 'Dune Crosser',   ar: 'عابر الكثبان' },
+    { level: 24, en: 'Minaret Climber',ar: 'متسلّق المئذنة' },
+    { level: 32, en: 'Harbour Pilot',  ar: 'ربّان الميناء' },
+    { level: 42, en: 'Falak Adept',    ar: 'ماهر فلك' },
+    { level: 52, en: 'Sky Anchor',     ar: 'مرساة السماء' },
+    { level: 60, en: 'Thread Sovereign', ar: 'سيّد الخيط' }
+  ];
+
+  function rankFor(level) {
+    var r = RANKS[0];
+    for (var i = 0; i < RANKS.length; i++) if (level >= RANKS[i].level) r = RANKS[i];
+    return r;
+  }
+
+  /* ----------------------------------------------------------- anchors */
+
+  /**
+   * The eight Anchors — level-gated destinations. These are the "dungeon
+   * doors": the route exists on the map from the first minute, visible
+   * and lit, but the gate reads your rank before it opens. Seeing a
+   * locked Anchor is the point.
+   *
+   * Positions are NOT written here. Each Anchor names a `site` — one of
+   * the tie-off points the world generator computes while it builds the
+   * districts — plus a local offset. The world resolves them into `at`
+   * at build time. Hardcoding coordinates here would mean guessing at a
+   * procedural layout, and a guess lands a stone post in open sand.
+   * `ground: true` means "drop to the terrain" rather than inherit the
+   * site's height, which matters for the sites up on the harbour decks.
+   */
+  var ANCHORS = [
+    {
+      id: 'souq', level: 1, district: 'souq', site: 'plaza', off: [-7, 0, -7],
+      en: 'Souq Anchor', ar: 'مرساة السوق',
+      descEn: 'Where the first rope was tied. Every line in the city traces back to this post.',
+      descAr: 'حيث رُبط أول حبل. كل خيط في المدينة يعود إلى هذا الوتد.'
+    },
+    {
+      id: 'oasis', level: 5, district: 'oasis', site: 'oasis', off: [5, 0, 7],
+      en: 'Oasis Anchor', ar: 'مرساة الواحة',
+      descEn: 'Sunk into wet sand under the palms. It hums when the wind turns.',
+      descAr: 'مغروزة في الرمل الرطب تحت النخيل. تطنّ حين يتحول الريح.'
+    },
+    {
+      id: 'minaret', level: 10, district: 'line', site: 'minaret', off: [0, 0, -5],
+      en: 'Minaret Anchor', ar: 'مرساة المئذنة',
+      descEn: 'The high tie-off. From here the long line runs all the way to the harbour.',
+      descAr: 'الربطة العالية. من هنا يمتد الخيط الطويل حتى الميناء.'
+    },
+    {
+      id: 'harbour', level: 16, district: 'harbour', site: 'harbour', off: [8, 0, 8],
+      en: 'Harbour Anchor', ar: 'مرساة الميناء',
+      descEn: 'Bolted to a mooring mast. The drones use it to find their way home.',
+      descAr: 'مثبتة في صاري الرسو. تستدل بها الطائرات على طريق العودة.'
+    },
+    {
+      id: 'rings', level: 24, district: 'towers', site: 'towers', off: [-14, 0, 0],
+      en: 'Ring Anchor', ar: 'مرساة الحلقات',
+      descEn: 'Sunk into the lowest Neo-Falak ring, where the calligraphy still burns.',
+      descAr: 'مغروزة في أدنى حلقات نيوفلك، حيث ما زال الخط يتوهج.'
+    },
+    {
+      id: 'spire', level: 32, district: 'towers', site: 'towers', off: [22, 0, -34],
+      en: 'Spire Anchor', ar: 'مرساة البرج',
+      descEn: 'Nobody remembers tying this one. It was already here when the towers went up.',
+      descAr: 'لا أحد يذكر من ربطها. كانت هنا قبل أن تُبنى الأبراج.'
+    },
+    {
+      id: 'deep', level: 42, district: 'harbour', site: 'harbour', off: [34, 0, 30], ground: true,
+      en: 'Deep Anchor', ar: 'المرساة العميقة',
+      descEn: 'The line goes down here, not across. Something below is pulling.',
+      descAr: 'الخيط ينزل هنا لا يعبر. شيء في الأسفل يشدّ.'
+    },
+    {
+      id: 'titan', level: 52, district: 'line', site: 'farGate', off: [-16, 0, -14], ground: true,
+      en: "Ra's al-Khayt", ar: 'رأس الخيط',
+      descEn: 'Every rope in the city is one rope, and this is the end of it. It has eyes.',
+      descAr: 'كل حبال المدينة حبل واحد، وهذه نهايته. وله عينان.'
+    }
+  ];
+
+  function anchorById(id) {
+    for (var i = 0; i < ANCHORS.length; i++) if (ANCHORS[i].id === id) return ANCHORS[i];
+    return null;
+  }
+
+  function unlockedAnchors(level) {
+    var out = [];
+    for (var i = 0; i < ANCHORS.length; i++) if (level >= ANCHORS[i].level) out.push(ANCHORS[i]);
+    return out;
+  }
+
+  /* ---------------------------------------------------------- awarding */
+
+  /**
+   * Experience values. Traversal pays, because traversal is the game:
+   * a player who never takes a job still levels by crossing lines and
+   * finding pearls, just more slowly.
+   */
+  var XP = {
+    pearl: 22,
+    lantern: 18,
+    drone: 40,
+    beacon: 55,
+    lineCross: 12,      // per full rope crossing, once per rope per life
+    missionBase: 90,    // multiplied by the mission's `order`
+    anchorFirstVisit: 150,
+    discover: 60        // first time entering a district
+  };
+
+  /**
+   * Progress is a plain state bag so it serialises straight into the
+   * save file. `Progress` owns the arithmetic and nothing else — the
+   * game decides when to call `award`, the UI decides how to show it.
+   */
+  function Progress(state) {
+    state = state || {};
+    this.level = Math.max(1, Math.min(MAX_LEVEL, state.level || 1));
+    this.xp = Math.max(0, state.xp || 0);          // xp inside the current level
+    this.totalXp = Math.max(0, state.totalXp || 0);
+    this.visited = state.visited ? state.visited.slice() : [];
+    this.discovered = state.discovered ? state.discovered.slice() : [];
+    this.pending = [];                             // level-ups the UI has not shown yet
+  }
+
+  Progress.prototype.need = function () { return xpForLevel(this.level); };
+
+  Progress.prototype.fraction = function () {
+    var need = this.need();
+    if (!isFinite(need)) return 1;
+    return Math.max(0, Math.min(1, this.xp / need));
+  };
+
+  Progress.prototype.rank = function () { return rankFor(this.level); };
+
+  /**
+   * Bank experience. Returns the number of levels gained so the caller
+   * can decide whether the moment deserves a banner.
+   */
+  Progress.prototype.award = function (amount) {
+    if (!(amount > 0) || this.level >= MAX_LEVEL) return 0;
+    this.xp += amount;
+    this.totalXp += amount;
+    var gained = 0;
+    while (this.level < MAX_LEVEL && this.xp >= xpForLevel(this.level)) {
+      this.xp -= xpForLevel(this.level);
+      this.level++;
+      gained++;
+      this.pending.push(this.level);
+    }
+    if (this.level >= MAX_LEVEL) this.xp = 0;
+    return gained;
+  };
+
+  /** True the first time this anchor is reached, false ever after. */
+  Progress.prototype.visit = function (id) {
+    if (this.visited.indexOf(id) >= 0) return false;
+    this.visited.push(id);
+    return true;
+  };
+
+  /** True the first time this district is entered. */
+  Progress.prototype.discover = function (id) {
+    if (this.discovered.indexOf(id) >= 0) return false;
+    this.discovered.push(id);
+    return true;
+  };
+
+  Progress.prototype.canEnter = function (anchor) {
+    return !!anchor && this.level >= anchor.level;
+  };
+
+  Progress.prototype.toJSON = function () {
+    return {
+      level: this.level, xp: this.xp, totalXp: this.totalXp,
+      visited: this.visited.slice(), discovered: this.discovered.slice()
+    };
+  };
+
+  OCTO.progress = {
+    MAX_LEVEL: MAX_LEVEL,
+    RANKS: RANKS,
+    ANCHORS: ANCHORS,
+    XP: XP,
+    Progress: Progress,
+    xpForLevel: xpForLevel,
+    xpToReach: xpToReach,
+    rankFor: rankFor,
+    anchorById: anchorById,
+    unlockedAnchors: unlockedAnchors
+  };
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
 /* ===== src/57-landmarks.js ===== */
 /* =====================================================================
  * OCTOPUSES ON THE LINE — 57-landmarks.js
@@ -4360,13 +4795,142 @@
       x: D.towers.center.x, y: 0.2, z: D.towers.center.z + 86, rot: 0, r: 8.5
     });
     // the one from the film, out on the sand beside the titan
-    addGate(renderer, world, physics, {
+    var far = addGate(renderer, world, physics, {
       id: 'deep', en: 'The Far Gate', ar: 'البوابة البعيدة', district: 'desert',
       x: 168, y: 0, z: 268, rot: -1.10, r: 11
     });
+    // publish it as a tie-off site so the progression table can hang the
+    // last Anchor off the landmark rather than off a guessed coordinate
+    world.anchors.farGate = { x: far.x, y: far.y, z: far.z };
   }
 
-  OCTO.landmarks = { addTitan: addTitan, addGates: addGates, CYAN: CYAN };
+  /* ---------------------------------------------------------- anchors */
+
+  /**
+   * An Anchor post. Stone below, a bound rope collar, and a floating
+   * shard above the head that holds the light. Sealed anchors draw the
+   * shard dim and ochre; an open one burns cyan — so rank is legible
+   * from across a district without reading a single word.
+   */
+  function buildAnchor(mb, H) {
+    // stepped stone base
+    mb.mat({ cell: CELL.STONE, color: [0.88, 0.80, 0.68], roughness: 0.88, uvScale: 0.3, emissive: 0 });
+    mb.push().translate(0, H * 0.05, 0).box(H * 0.30, H * 0.10, H * 0.30).pop();
+    mb.push().translate(0, H * 0.15, 0).box(H * 0.24, H * 0.10, H * 0.24).pop();
+
+    // tapered shaft
+    mb.mat({ cell: CELL.STONE, color: [0.82, 0.74, 0.62], roughness: 0.85, uvScale: 0.34 });
+    mb.push().translate(0, H * 0.55, 0)
+      .cylinder(H * 0.15, H * 0.10, H * 0.70, 8, { capBottom: false }).pop();
+
+    // rope collar — this is an anchor, so something is tied to it
+    mb.mat({ cell: CELL.ROPE, color: [0.86, 0.78, 0.60], roughness: 0.95, uvScale: 1.2 });
+    for (var c = 0; c < 3; c++) {
+      var cy = H * (0.34 + c * 0.075);
+      mb.push().translate(0, cy, 0).rotateX(Math.PI / 2)
+        .cylinder(H * 0.155, H * 0.155, H * 0.035, 14, { capTop: false, capBottom: false }).pop();
+    }
+
+    // metal crown
+    mb.mat({ cell: CELL.METAL, color: [0.70, 0.68, 0.62], roughness: 0.4, uvScale: 0.6 });
+    mb.push().translate(0, H * 0.92, 0).box(H * 0.15, H * 0.05, H * 0.15).pop();
+  }
+
+  /** The floating shard, built separately so it can be lit on its own. */
+  function buildAnchorShard(mb, H) {
+    mb.mat({ cell: CELL.NONE, color: CYAN, roughness: 0.06, emissive: 3.2 });
+    // two four-sided cones tip to tip — an octahedral shard
+    mb.push().translate(0, H * 1.17, 0).rotateY(Math.PI / 4)
+      .cylinder(H * 0.10, 0, H * 0.22, 4, { capTop: false }).pop();
+    mb.push().translate(0, H * 1.05, 0).rotateY(Math.PI / 4).rotateZ(Math.PI)
+      .cylinder(H * 0.10, 0, H * 0.16, 4, { capTop: false }).pop();
+  }
+
+  /**
+   * Resolve an Anchor's `site` + `off` against the tie-off points the
+   * generator produced. Falls back to the district centre if a site is
+   * missing, so a renamed site degrades to "somewhere sensible in the
+   * right district" instead of dropping a post at the origin.
+   */
+  /** Nothing solid may occupy the post's footprint at this spot. */
+  function spotIsClear(physics, x, y, z, r) {
+    var hits = physics.query(x - r, y + 0.4, z - r, x + r, y + 7.0, z + r);
+    return hits.length === 0;
+  }
+
+  function resolveAnchor(world, physics, a) {
+    var site = world.anchors[a.site];
+    if (!site) {
+      var d = world.districts[a.district];
+      site = d ? { x: d.center.x, y: d.center.y, z: d.center.z } : { x: 0, y: 0, z: 0 };
+    }
+    var baseX = site.x + a.off[0];
+    var baseZ = site.z + a.off[2];
+    var baseY = a.ground ? world.groundHeight(baseX, baseZ) : site.y + a.off[1];
+    if (spotIsClear(physics, baseX, baseY, baseZ, 2.2)) return [baseX, baseY, baseZ];
+
+    // The named site is a tie-off point, not a clearing — in the souq it
+    // can sit inside a stall. Spiral outward from it until the footprint
+    // is free, so the post always ends up somewhere a player can walk to
+    // and see, without moving it out of its district.
+    for (var ring = 1; ring <= 6; ring++) {
+      var r = 4 + ring * 3.5;
+      for (var i = 0; i < 12; i++) {
+        var ang = (i / 12) * TAU + ring * 0.26;
+        var x = baseX + Math.cos(ang) * r;
+        var z = baseZ + Math.sin(ang) * r;
+        var y = a.ground ? world.groundHeight(x, z) : baseY;
+        if (spotIsClear(physics, x, y, z, 2.2)) return [x, y, z];
+      }
+    }
+    return [baseX, baseY, baseZ];
+  }
+
+  /**
+   * Place one post per entry in the progression table. The world does
+   * not know about levels — it just builds every anchor and lets the
+   * game decide how each one is lit.
+   */
+  function addAnchors(renderer, world, physics) {
+    world.anchorPosts = [];
+    var list = (OCTO.progress && OCTO.progress.ANCHORS) || [];
+    for (var i = 0; i < list.length; i++) {
+      var a = list[i];
+      var H = 9.0;
+      // the progression table names a site; the world owns where that is
+      a.at = resolveAnchor(world, physics, a);
+      var y = a.at[1];
+
+      var mb = new OCTO.MeshBuilder();
+      mb.push().translate(a.at[0], y, a.at[2]);
+      buildAnchor(mb, H);
+      mb.pop();
+      var d = mb.build();
+
+      var sb = new OCTO.MeshBuilder();
+      sb.push().translate(a.at[0], y, a.at[2]);
+      buildAnchorShard(sb, H);
+      sb.pop();
+      var sd = sb.build();
+
+      var post = {
+        id: a.id, level: a.level, en: a.en, ar: a.ar,
+        mesh: renderer.createMesh(d.verts, d.indices),
+        shard: renderer.createMesh(sd.verts, sd.indices),
+        model: OCTO.M4.create(),
+        x: a.at[0], y: y, z: a.at[2], h: H,
+        centre: { x: a.at[0], y: y + H * 1.12, z: a.at[2] }
+      };
+      physics.addBoxUp(a.at[0], y, a.at[2], H * 0.17, H * 0.9, H * 0.17, 0, 'anchor');
+      world.anchorPosts.push(post);
+      world.lights.push({
+        pos: post.centre, color: CYAN, radius: H * 4.0,
+        intensity: 0.9, night: 1.6, kind: 'anchor'
+      });
+    }
+  }
+
+  OCTO.landmarks = { addTitan: addTitan, addGates: addGates, addAnchors: addAnchors, CYAN: CYAN };
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -4481,6 +5045,8 @@
     // cyan gates. Built after the districts so they can use the anchors.
     OCTO.landmarks.addGates(renderer, world, physics);
     OCTO.landmarks.addTitan(renderer, world, physics);
+    // Rank gates: one post per Anchor in the progression table.
+    OCTO.landmarks.addAnchors(renderer, world, physics);
 
     cb.finalize(renderer, world.items);
     foliage.finalize(renderer, world.foliageItems, { wind: 0.028 });
@@ -5967,6 +6533,7 @@
   Octopus.prototype.attachLine = function (rope, near) {
     this.line = rope;
     this.lineT = near.t;
+    this.lineEntryT = near.t;      // where the crossing started, for scoring
     this.state = 'line';
     this.tilt = clamp((Math.random() - 0.5) * 0.25, -0.2, 0.2);
     this.tiltVel = 0;
@@ -5982,6 +6549,14 @@
 
   Octopus.prototype.detachLine = function (launchVel, cooldown) {
     if (!this.line) return;
+    // Crossing a rope is the game's core act, so it is also its repeatable
+    // reward. Scored on the way off, and only if most of the span was
+    // actually walked — falling off in the middle pays nothing.
+    var span = Math.abs(this.lineT - (this.lineEntryT === undefined ? this.lineT : this.lineEntryT));
+    if (span > 0.55 && this.game.awardXp) {
+      this.game.awardXp(Math.round(OCTO.progress.XP.lineCross * span), 'crossing');
+    }
+    this.lineEntryT = undefined;
     this.line = null;
     // Long enough that a fall reads as a fall — without it the auto-grab
     // catches the same rope again on the way past.
@@ -6906,7 +7481,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.0.4';
+  var VERSION = '1.1.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -7082,6 +7657,7 @@
     this.missions = makeMissions();
     this.shop = SHOP;
     this.progress = this.save.progress || {};
+    this.hero = new OCTO.progress.Progress(this.save.hero);
     this.owned = this.save.owned || {};
     this.upgrades = this.save.upgrades || {};
     this.activeMission = null;
@@ -7338,8 +7914,12 @@
     this._updateToasts(dt);
     this._updateCheckpoint();
 
+    var district = this.currentDistrict();
     this.audio && this.audio.setWind(clamp(this.windStrength + (this.player.pos.y / 200), 0, 1));
-    this.audio && this.audio.setDistrict(this.currentDistrict());
+    this.audio && this.audio.setDistrict(district);
+    this.noteDistrict(district);
+    this._updateAnchors(dt);
+    if (this.xpFlash) { this.xpFlash.t += dt; if (this.xpFlash.t > 1.6) this.xpFlash = null; }
 
     input.endFrame();
   };
@@ -7474,6 +8054,7 @@
       if (d2 < 2.0 * 2.0) {
         pearl.taken = true;
         this.addDirhams(15);
+        this.awardXp(OCTO.progress.XP.pearl, 'pearl');
         this.audio && this.audio.play('pearl');
         this.spawnSparkle(pearl, 12);
         var m = this.missionById('pearls');
@@ -7557,6 +8138,7 @@
     if (!target) return;
     if (target.kind === 'lantern') {
       target.obj.lit = true;
+      this.awardXp(OCTO.progress.XP.lantern, 'lantern');
       this.audio && this.audio.play('coin');
       this.spawnSparkle({ x: target.obj.pos.x, y: target.obj.pos.y, z: target.obj.pos.z }, 10);
       var m = this.missionById('lanterns');
@@ -7566,6 +8148,7 @@
       this.persist();
     } else if (target.kind === 'beacon') {
       target.obj.active = true;
+      this.awardXp(OCTO.progress.XP.beacon, 'beacon');
       this.audio && this.audio.play('coin');
       this.spawnSparkle({ x: target.obj.x, y: target.obj.y + 2.4, z: target.obj.z }, 16);
       var mb2 = this.missionById('beacons');
@@ -7575,8 +8158,11 @@
       this.persist();
     } else if (target.kind === 'merchant') {
       var mission = target.mission;
-      if (mission.state === 'available') this.startMission(mission);
-      else this.toast(this.lang === 'ar' ? mission.ar + ' — جارٍ' : mission.en + ' — in progress', 'info');
+      // The hand-off is a scene: the trader says why the job exists and the
+      // player chooses. Falling back to starting it outright keeps headless
+      // and scripted runs working without a UI attached.
+      if (this.ui && this.ui.openDialog) this.ui.openDialog(mission);
+      else if (mission.state === 'available') this.startMission(mission);
       target.obj.talk = 2.5;
     } else if (target.kind === 'prop') {
       target.obj.held = true;
@@ -7611,6 +8197,7 @@
     mission.state = 'complete';
     mission.count = mission.target;
     this.addDirhams(mission.reward);
+    this.awardXp(OCTO.progress.XP.missionBase * (mission.order || 1), 'mission');
     this.audio && this.audio.play('success');
     this.camera.addShake(0.3);
     this.toast(
@@ -7672,6 +8259,7 @@
         if (dr.caught) continue;
         if (sq(dr.pos.x - pp.x) + sq(dr.pos.y - (pp.y + 0.9)) + sq(dr.pos.z - pp.z) < 2.6 * 2.6) {
           dr.caught = true;
+          this.awardXp(OCTO.progress.XP.drone, 'drone');
           this.audio && this.audio.play('coin');
           this.spawnSparkle(dr.pos, 14);
           m.count = this.droneTargets.filter(function (x) { return x.caught; }).length;
@@ -7709,6 +8297,143 @@
     } else if (am.id === 'beacons') {
       this.beacons.forEach(function (b) { if (!b.active) add(b.x, b.y + 3.4, b.z, [0.8, 0.6, 1.0]); });
     }
+  };
+
+  /* -------------------------------------------------------- progression */
+
+  /**
+   * Bank experience and surface the result. Small awards are a floating
+   * "+n XP" on the bar; a level-up gets the full banner, a chord and a
+   * camera nudge, because crossing a rank is the moment the map opens.
+   */
+  Game.prototype.awardXp = function (amount, reason) {
+    if (!(amount > 0)) return 0;
+    var before = this.hero.level;
+    var gained = this.hero.award(amount);
+    this.xpFlash = { amount: amount, reason: reason || '', t: 0 };
+    if (gained > 0) {
+      this.audio && this.audio.play('success');
+      this.camera && this.camera.addShake(0.45);
+      var rank = this.hero.rank();
+      this.levelUpEvent = {
+        from: before, to: this.hero.level,
+        rank: rank,
+        unlocked: this._anchorsUnlockedBetween(before, this.hero.level)
+      };
+      this.toast(
+        (this.lang === 'ar' ? 'المستوى ' : 'Level ') + this.hero.level +
+        ' — ' + (this.lang === 'ar' ? rank.ar : rank.en), 'success');
+    }
+    this.persist();
+    return gained;
+  };
+
+  /** Anchors whose gate opens as the player crosses from `a` to `b`. */
+  Game.prototype._anchorsUnlockedBetween = function (a, b) {
+    var out = [], A = OCTO.progress.ANCHORS;
+    for (var i = 0; i < A.length; i++) if (A[i].level > a && A[i].level <= b) out.push(A[i]);
+    return out;
+  };
+
+  /**
+   * Called whenever the player's district changes. First entry into a
+   * district is worth experience and puts its name on screen — the
+   * "region discovered" beat every open-map RPG uses to reward walking
+   * somewhere new.
+   */
+  Game.prototype.noteDistrict = function (id) {
+    if (!id || id === this._lastDistrict) return;
+    this._lastDistrict = id;
+    if (this.hero.discover(id)) {
+      this.awardXp(OCTO.progress.XP.discover, 'discover');
+      this.toast(
+        (this.lang === 'ar' ? 'اكتشفت: ' : 'Discovered: ') + this.districtName(id), 'mission');
+    }
+  };
+
+  /**
+   * Anchors are physical places, not menu entries. Walk up to one and it
+   * either reads your rank and opens — banking a first-visit reward and
+   * adding itself to the teleport network — or it tells you the level it
+   * wants. Either way you learn it exists by standing in front of it.
+   */
+  Game.prototype._updateAnchors = function (dt) {
+    var A = OCTO.progress.ANCHORS, p = this.player.pos;
+    this._anchorCooldown = Math.max(0, (this._anchorCooldown || 0) - dt);
+    this.nearAnchor = null;
+    for (var i = 0; i < A.length; i++) {
+      var a = A[i];
+      var d2 = sq(a.at[0] - p.x) + sq(a.at[2] - p.z);
+      if (d2 > 10 * 10) continue;
+      this.nearAnchor = a;
+      if (this._anchorCooldown > 0) break;
+      if (this.hero.canEnter(a)) {
+        if (this.hero.visit(a.id)) {
+          this._anchorCooldown = 3;
+          this.awardXp(OCTO.progress.XP.anchorFirstVisit, 'anchor');
+          this.spawnSparkle({ x: a.at[0], y: p.y + 1.4, z: a.at[2] }, 22);
+          this.toast(
+            (this.lang === 'ar' ? 'مرساة مفتوحة: ' : 'Anchor open: ') +
+            (this.lang === 'ar' ? a.ar : a.en), 'success');
+        }
+      } else if (!this._warnedAnchor || this._warnedAnchor !== a.id) {
+        this._warnedAnchor = a.id;
+        this._anchorCooldown = 4;
+        this.audio && this.audio.play('fail', 0.5);
+        this.toast(
+          (this.lang === 'ar' ? 'مغلقة — تحتاج المستوى ' : 'Sealed — needs level ') + a.level,
+          'info');
+      }
+      break;
+    }
+    if (!this.nearAnchor) this._warnedAnchor = null;
+  };
+
+  /**
+   * Fast travel to an open Anchor. Refuses politely if the rank is not
+   * there yet — the caller is UI, and UI should never be the thing that
+   * enforces a rule the simulation owns.
+   */
+  Game.prototype.travelToAnchor = function (id) {
+    var a = OCTO.progress.anchorById(id);
+    if (!a) return false;
+    if (!this.hero.canEnter(a)) {
+      this.audio && this.audio.play('fail');
+      this.toast((this.lang === 'ar' ? 'تحتاج المستوى ' : 'Needs level ') + a.level, 'info');
+      return false;
+    }
+    var y = this.world.groundHeight(a.at[0], a.at[2]) + 1.4;
+    // stand off the post itself so the player does not spawn inside it
+    this.player.teleport(a.at[0] + 6, y, a.at[2] + 6);
+    this.player.detachLine && this.player.detachLine(null, 1.0);
+    this.camera.free = false;
+    this.frameCamera();
+    this.audio && this.audio.play('success', 0.7);
+    this.toast(
+      (this.lang === 'ar' ? 'انتقلت إلى ' : 'Travelled to ') + (this.lang === 'ar' ? a.ar : a.en), 'info');
+    return true;
+  };
+
+  /** Is the anchor post nearest this light position open to the player? */
+  Game.prototype._anchorOpen = function (pos) {
+    var posts = this.world.anchorPosts;
+    if (!posts) return true;
+    for (var i = 0; i < posts.length; i++) {
+      if (posts[i].centre === pos) return this.hero.level >= posts[i].level;
+    }
+    return true;
+  };
+
+  Game.prototype.districtName = function (id) {
+    var names = {
+      souq:    { en: 'The Old Souq',   ar: 'السوق القديم' },
+      oasis:   { en: 'Palm Oasis',     ar: 'واحة النخيل' },
+      line:    { en: 'The Long Line',  ar: 'الخيط الطويل' },
+      harbour: { en: 'Sky Harbour',    ar: 'ميناء السماء' },
+      towers:  { en: 'Neo-Falak',      ar: 'نيوفلك' }
+    };
+    var n = names[id];
+    return n ? (this.lang === 'ar' ? n.ar : n.en) : id;
   };
 
   /* ---------------------------------------------------------- economy */
@@ -7870,6 +8595,7 @@
       for (var l = 0; l < this.lanternTargets.length; l++) if (this.lanternTargets[l].lit) lanterns.push(l);
       this.save.dirhams = this.dirhams;
       this.save.progress = progress;
+      this.save.hero = this.hero.toJSON();
       this.save.pearls = pearls;
       this.save.lanterns = lanterns;
       this.save.owned = this.owned;
@@ -7925,6 +8651,24 @@
       }
     }
 
+    // Anchor posts. The stone is always drawn; the shard reads the
+    // player's rank — burning cyan once the gate has opened for them,
+    // barely alive while it is still sealed.
+    if (w.anchorPosts) {
+      for (var ai = 0; ai < w.anchorPosts.length; ai++) {
+        var ap = w.anchorPosts[ai];
+        var adx = ap.x - cam.x, adz = ap.z - cam.z;
+        if (adx * adx + adz * adz > 340 * 340) continue;
+        var open = this.hero.level >= ap.level;
+        scene.items.push({ mesh: ap.mesh, model: ap.model });
+        scene.items.push({
+          mesh: ap.shard, model: ap.model,
+          emissive: open ? 3.0 + Math.sin(this.time * 2.0 + ai * 1.7) * 0.8 : 0.25,
+          tint: open ? null : [0.55, 0.42, 0.30]
+        });
+      }
+    }
+
     // static chunks
     for (var i = 0; i < w.items.length; i++) scene.items.push(w.items[i]);
     for (var f = 0; f < w.foliageItems.length; f++) scene.items.push(w.foliageItems[f]);
@@ -7936,6 +8680,7 @@
       var light = w.lights[l];
       var base = light.intensity + (light.night || 0) * night;
       if (light.missionLantern) base = light.lit ? (light.night || 2) * Math.max(night, 0.55) * 1.6 : base * 0.15;
+      if (light.kind === 'anchor' && !this._anchorOpen(light.pos)) base *= 0.12;
       if (base <= 0.01) continue;
       scene.lights.push({ pos: light.pos, color: light.color, radius: light.radius, intensity: base });
     }
@@ -8658,6 +9403,7 @@
     continueGame: { en: 'Continue',                ar: 'متابعة' },
     settings:     { en: 'Settings',                ar: 'الإعدادات' },
     controls:     { en: 'Controls',                ar: 'التحكم' },
+    hero:         { en: 'Hero',                    ar: 'البطل' },
     jobs:         { en: 'Jobs',                    ar: 'الأعمال' },
     shop:         { en: 'Shop',                    ar: 'المتجر' },
     map:          { en: 'Map',                     ar: 'الخريطة' },
@@ -8765,9 +9511,27 @@
     this.hud = el('div', 'octo-hud hidden');
     this.hud.innerHTML =
       '<div class="octo-topleft">' +
+      '  <div class="octo-hero">' +
+      '    <div class="octo-hero-portrait"><span class="octo-hero-glyph"></span>' +
+      '      <span class="octo-hero-lv"><b class="octo-hero-lvn">1</b></span>' +
+      '    </div>' +
+      '    <div class="octo-hero-meta">' +
+      '      <div class="octo-hero-name"></div>' +
+      '      <div class="octo-hero-rank"></div>' +
+      '      <div class="octo-xp"><div class="octo-xp-fill"></div><span class="octo-xp-text"></span></div>' +
+      '    </div>' +
+      '    <div class="octo-xp-flash"></div>' +
+      '  </div>' +
       '  <div class="octo-money"><span class="octo-coin">◈</span><span class="octo-money-v">0</span></div>' +
       '  <div class="octo-district"></div>' +
       '  <div class="octo-clock"></div>' +
+      '</div>' +
+      '<div class="octo-levelup hidden">' +
+      '  <div class="octo-levelup-burst"></div>' +
+      '  <div class="octo-levelup-word"></div>' +
+      '  <div class="octo-levelup-num"></div>' +
+      '  <div class="octo-levelup-rank"></div>' +
+      '  <div class="octo-levelup-unlock"></div>' +
       '</div>' +
       '<div class="octo-mission"></div>' +
       '<div class="octo-toasts"></div>' +
@@ -8815,6 +9579,18 @@
     this.abilityEl = this.hud.querySelector('.octo-abilities');
     this.minimap = this.hud.querySelector('.octo-minimap');
     this.minimapCtx = this.minimap.getContext('2d');
+    this.heroEl = this.hud.querySelector('.octo-hero');
+    this.heroGlyph = this.hud.querySelector('.octo-hero-glyph');
+    this.heroLv = this.hud.querySelector('.octo-hero-lvn');
+    this.heroName = this.hud.querySelector('.octo-hero-name');
+    this.heroRank = this.hud.querySelector('.octo-hero-rank');
+    this.xpFill = this.hud.querySelector('.octo-xp-fill');
+    this.xpText = this.hud.querySelector('.octo-xp-text');
+    this.xpFlashEl = this.hud.querySelector('.octo-xp-flash');
+    this.levelUpEl = this.hud.querySelector('.octo-levelup');
+    // Tapping the hero plate opens the character sheet, the way every
+    // mobile RPG puts progression one thumb-press from the portrait.
+    this.heroEl.addEventListener('click', function () { self.openPanel('hero'); });
 
     // On touch there is no keyboard, so the HUD itself is the navigation:
     // tap the tracker for jobs, the minimap for the map, the purse for the shop.
@@ -8857,6 +9633,31 @@
     this.classRow = this.select.querySelector('.octo-class-row');
     this.select.querySelector('.octo-select-go')
       .addEventListener('click', function () { self.confirmClass(); });
+
+    // ---------- quest dialogue
+    // Talking to a trader is a scene, not a toast. A speaker plate, the
+    // job in their own words, what it pays, and two large choices — the
+    // shape every mobile RPG uses for a quest hand-off, and the one the
+    // player already knows how to read.
+    this.dialog = el('div', 'octo-dialog hidden');
+    this.dialog.innerHTML =
+      '<div class="octo-dialog-box">' +
+      '  <div class="octo-dialog-who">' +
+      '    <div class="octo-dialog-face"></div>' +
+      '    <div class="octo-dialog-name"></div>' +
+      '  </div>' +
+      '  <div class="octo-dialog-text"></div>' +
+      '  <div class="octo-dialog-reward"></div>' +
+      '  <div class="octo-dialog-acts">' +
+      '    <button class="octo-dialog-yes"></button>' +
+      '    <button class="octo-dialog-no"></button>' +
+      '  </div>' +
+      '</div>';
+    r.appendChild(this.dialog);
+    this.dialog.querySelector('.octo-dialog-yes')
+      .addEventListener('click', function () { self.answerDialog(true); });
+    this.dialog.querySelector('.octo-dialog-no')
+      .addEventListener('click', function () { self.answerDialog(false); });
 
     // ---------- beta panel
     this.beta = el('div', 'octo-beta hidden');
@@ -9096,7 +9897,7 @@
     this.tab = tab;
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
-      ? [['jobs', this.t('jobs')], ['shop', this.t('shop')], ['map', this.t('map')], ['controls', this.t('controls')], ['settings', this.t('settings')]]
+      ? [['hero', this.t('hero')], ['jobs', this.t('jobs')], ['shop', this.t('shop')], ['map', this.t('map')], ['controls', this.t('controls')], ['settings', this.t('settings')]]
       : [['controls', this.t('controls')], ['settings', this.t('settings')]];
     this.tabsEl.innerHTML = '';
     tabs.forEach(function (tt) {
@@ -9108,11 +9909,87 @@
 
     var body = this.bodyEl;
     body.innerHTML = '';
-    if (tab === 'jobs') this.renderJobs(body);
+    if (tab === 'hero') this.renderHero(body);
+    else if (tab === 'jobs') this.renderJobs(body);
     else if (tab === 'shop') this.renderShop(body);
     else if (tab === 'map') this.renderMap(body);
     else if (tab === 'controls') this.renderControls(body);
     else this.renderSettings(body);
+  };
+
+  /**
+   * The character sheet: who you are, how far you are, and the eight
+   * Anchors — which is where the sheet earns its place. An Anchor you
+   * have opened is a travel button; one you have not is a locked row
+   * that names the level it wants and hints at what is behind it. The
+   * list is deliberately not hidden, because a visible lock is a goal.
+   */
+  Ui.prototype.renderHero = function (body) {
+    var self = this, g = this.game, h = g.hero, ar = this.lang === 'ar';
+    var cls = OCTO.classById(g.save.classId || 'muqatil');
+    var rank = h.rank();
+
+    var head = el('div', 'octo-hero-sheet');
+    head.innerHTML =
+      '<div class="octo-sheet-portrait">' + (CLASS_GLYPH[cls.id] || '✦') +
+      '<b>' + h.level + '</b></div>' +
+      '<div class="octo-sheet-meta">' +
+      '  <div class="octo-sheet-name">' + (ar ? cls.ar : cls.en) + '</div>' +
+      '  <div class="octo-sheet-rank">' + (ar ? rank.ar : rank.en) + '</div>' +
+      '  <div class="octo-xp big"><div class="octo-xp-fill" style="width:' +
+           (h.fraction() * 100).toFixed(1) + '%"></div>' +
+      '    <span class="octo-xp-text">' +
+           (isFinite(h.need()) ? Math.floor(h.xp) + ' / ' + h.need() : (ar ? 'أقصى مستوى' : 'MAX')) +
+      '    </span></div>' +
+      '  <div class="octo-sheet-total">' + (ar ? 'إجمالي الخبرة' : 'Total XP') + ' ' + h.totalXp + '</div>' +
+      '</div>';
+    body.appendChild(head);
+
+    // discipline bars, same four axes the select screen uses
+    var bars = el('div', 'octo-sheet-bars');
+    var axes = [
+      ['speed', ar ? 'سرعة' : 'Speed'], ['balance', ar ? 'توازن' : 'Balance'],
+      ['power', ar ? 'قوة' : 'Power'], ['support', ar ? 'إسناد' : 'Support']
+    ];
+    axes.forEach(function (a) {
+      var v = cls.bars[a[0]] || 0;
+      var pips = '';
+      for (var i = 1; i <= 5; i++) pips += '<i' + (i <= v ? ' class="on"' : '') + '></i>';
+      bars.innerHTML += '<div class="octo-bar-row"><span>' + a[1] + '</span><div class="octo-pips">' + pips + '</div></div>';
+    });
+    body.appendChild(bars);
+
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'المراسي' : 'Anchors'));
+    var list = el('div', 'octo-anchor-list');
+    OCTO.progress.ANCHORS.forEach(function (a) {
+      var open = h.level >= a.level;
+      var seen = h.visited.indexOf(a.id) >= 0;
+      var row = el('div', 'octo-anchor' + (open ? ' open' : ' locked'));
+      row.innerHTML =
+        '<div class="octo-anchor-lv">' + a.level + '</div>' +
+        '<div class="octo-anchor-body">' +
+        '  <div class="octo-anchor-name">' + (ar ? a.ar : a.en) +
+             (seen ? ' <em>' + (ar ? 'مفتوحة' : 'discovered') + '</em>' : '') + '</div>' +
+        '  <div class="octo-anchor-desc">' + (ar ? a.descAr : a.descEn) + '</div>' +
+        '</div>';
+      if (open) {
+        var b = el('button', 'octo-btn-small', ar ? 'انتقال' : 'Travel');
+        b.addEventListener('click', function () {
+          g.travelToAnchor(a.id);
+          self.game.audio && self.game.audio.play('ui');
+          self.closePanel();
+        });
+        row.appendChild(b);
+      } else {
+        row.appendChild(el('span', 'octo-anchor-seal', ar ? 'مختومة' : 'SEALED'));
+      }
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
+      : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
   };
 
   Ui.prototype.renderJobs = function (body) {
@@ -9489,6 +10366,14 @@
       return;
     }
 
+    // A quest hand-off owns the input while it is up: accept with the
+    // jump key, dismiss with pause, and nothing else gets through.
+    if (this.dialogOpen()) {
+      if (input.hit('jump') || input.hit('interact')) this.answerDialog(true);
+      else if (input.hit('pause')) this.answerDialog(false);
+      return;
+    }
+
     // global hotkeys
     if (input.hit('lang')) this.toggleLang();
     if (input.hit('beta')) this.toggleBeta();
@@ -9506,6 +10391,9 @@
       if (this.betaOpen) this.updateBetaStats();
       return;
     }
+
+    // hero plate + experience
+    this.syncHero();
 
     // money + district + clock
     this.moneyEl.textContent = g.dirhams;
@@ -9566,6 +10454,156 @@
 
     if (this.betaOpen) this.updateBetaStats();
     if (this.diagOpen && (g.frame % 20) === 0) this.updateDiag();
+  };
+
+  /* ---------------------------------------------------- quest dialogue */
+
+  /**
+   * Speaker lines. Each trader talks about the job the way someone who
+   * lives here would — the mission card states the objective, this
+   * states the reason. Both matter; only one of them is characterisation.
+   */
+  var SPEAKERS = {
+    lanterns: {
+      nameEn: 'Umm Layla, lampwright', nameAr: 'أم ليلى، صانعة القناديل', face: '🏮',
+      en: 'The quarter goes dark in an hour and my knees will not take the roofs any more. Eight lanterns. Light them and the souq sleeps easy.',
+      ar: 'يظلم الحي بعد ساعة، ولم تعد ركبتاي تحتملان السطوح. ثمانية فوانيس. أشعلها ينم السوق مطمئناً.'
+    },
+    spice: {
+      nameEn: 'Faris, spice broker', nameAr: 'فارس، تاجر البهارات', face: '🧺',
+      en: 'Saffron for the oasis camp, and it does not travel by cart. Carry it across yourself — and if you drop it, do not come back to tell me.',
+      ar: 'زعفران لمخيّم الواحة، ولا يُنقل بعربة. احمله بنفسك — وإن أسقطته فلا تعد لتخبرني.'
+    },
+    longline: {
+      nameEn: 'Hadi, rope master', nameAr: 'هادي، معلّم الحبال', face: '🪢',
+      en: 'The long line has held since before your grandfather. Climb the minaret and walk it to the harbour. If it holds you, it holds anyone.',
+      ar: 'الخيط الطويل صامد من قبل جدّك. اصعد المئذنة وامشِ عليه إلى الميناء. إن حملك حمل أي أحد.'
+    },
+    drones: {
+      nameEn: 'Nura, harbour keeper', nameAr: 'نورة، حارسة الميناء', face: '🛸',
+      en: 'Five of my birds slipped their moorings in the night wind. Touch each one and it will remember its way home.',
+      ar: 'خمس من طيوري انفلتت من مرابطها في ريح الليل. المس كل واحدة تتذكر طريق العودة.'
+    },
+    beacons: {
+      nameEn: 'Zayd, keeper of letters', nameAr: 'زيد، حافظ الحروف', face: '✒',
+      en: 'Four beacons on the Falak rings, and the script on them has gone cold. Wake them. The city reads by that light.',
+      ar: 'أربع منارات على حلقات فلك، وقد برد الخط عليها. أيقظها. المدينة تقرأ بذلك النور.'
+    },
+    pearls: {
+      nameEn: 'The old diver', nameAr: 'الغوّاص العجوز', face: '🦪',
+      en: 'Forty pearls went up onto the lines when the sea went away. Bring me what you find. No hurry — the lines are patient.',
+      ar: 'أربعون لؤلؤة صعدت إلى الخيوط حين انحسر البحر. أحضر لي ما تجده. لا عجلة — الخيوط صبورة.'
+    }
+  };
+
+  /** Open the hand-off scene for a mission. Pauses nothing; just overlays. */
+  Ui.prototype.openDialog = function (mission) {
+    var ar = this.lang === 'ar';
+    var s = SPEAKERS[mission.id] || {
+      nameEn: 'A trader', nameAr: 'تاجر', face: '◈',
+      en: mission.descEn, ar: mission.descAr
+    };
+    // a menu and a conversation are two different places to be
+    if (this.screen === 'panel') this.closePanel();
+    this.dialogMission = mission;
+    this.dialog.querySelector('.octo-dialog-face').textContent = s.face;
+    this.dialog.querySelector('.octo-dialog-name').textContent = ar ? s.nameAr : s.nameEn;
+    this.dialog.querySelector('.octo-dialog-text').textContent = ar ? s.ar : s.en;
+
+    var xp = OCTO.progress.XP.missionBase * (mission.order || 1);
+    this.dialog.querySelector('.octo-dialog-reward').innerHTML =
+      '<span class="octo-dialog-title">' + (ar ? mission.ar : mission.en) + '</span>' +
+      '<span class="octo-dialog-pay">+' + mission.reward + ' ' + this.t('dirhams') +
+      '  ·  +' + xp + ' XP</span>';
+
+    var active = mission.state === 'active';
+    this.dialog.querySelector('.octo-dialog-yes').textContent =
+      active ? (ar ? 'تابع' : 'Continue') : (ar ? 'أقبل' : 'Accept');
+    this.dialog.querySelector('.octo-dialog-no').textContent = ar ? 'لاحقاً' : 'Later';
+    this.dialog.classList.remove('hidden');
+    this.game.audio && this.game.audio.play('ui');
+  };
+
+  Ui.prototype.answerDialog = function (accepted) {
+    var m = this.dialogMission;
+    this.dialog.classList.add('hidden');
+    this.dialogMission = null;
+    if (!m) return;
+    this.game.audio && this.game.audio.play('ui');
+    if (accepted && m.state === 'available') this.game.startMission(m);
+  };
+
+  Ui.prototype.dialogOpen = function () { return !this.dialog.classList.contains('hidden'); };
+
+  /* --------------------------------------------------------- hero plate */
+
+  var CLASS_GLYPH = { sayyad: '➶', muqatil: '⚔', dir: '🛡', shafi: '✚', sahir: '✦' };
+
+  /**
+   * Portrait, level badge, rank title and the experience bar — the block
+   * every mobile RPG parks in the top corner. The bar is animated toward
+   * its target rather than snapped, so a big award reads as a sweep.
+   */
+  Ui.prototype.syncHero = function () {
+    var g = this.game, h = g.hero;
+    if (!h) return;
+    var cls = OCTO.classById(g.save.classId || 'muqatil');
+
+    this.heroGlyph.textContent = CLASS_GLYPH[cls.id] || '✦';
+    this.heroLv.textContent = h.level;
+    this.heroName.textContent = this.lang === 'ar' ? cls.ar : cls.en;
+    var rank = h.rank();
+    this.heroRank.textContent = this.lang === 'ar' ? rank.ar : rank.en;
+
+    var target = h.fraction();
+    if (this._xpShown === undefined) this._xpShown = target;
+    // ease toward the true value; snap on a level-up so the bar resets clean
+    if (target < this._xpShown - 0.2) this._xpShown = target;
+    else this._xpShown += (target - this._xpShown) * 0.14;
+    this.xpFill.style.width = (this._xpShown * 100).toFixed(1) + '%';
+    this.xpText.textContent = isFinite(h.need())
+      ? Math.floor(h.xp) + ' / ' + h.need()
+      : (this.lang === 'ar' ? 'أقصى مستوى' : 'MAX');
+
+    // floating "+n XP"
+    if (g.xpFlash) {
+      var f = 1 - clamp(g.xpFlash.t / 1.6, 0, 1);
+      this.xpFlashEl.textContent = '+' + g.xpFlash.amount + ' XP';
+      this.xpFlashEl.style.opacity = f.toFixed(2);
+      this.xpFlashEl.style.transform = 'translateY(' + (-14 * (1 - f)).toFixed(1) + 'px)';
+    } else {
+      this.xpFlashEl.style.opacity = '0';
+    }
+
+    if (g.levelUpEvent) { this.showLevelUp(g.levelUpEvent); g.levelUpEvent = null; }
+    if (this._levelUpUntil && g.time > this._levelUpUntil) {
+      this._levelUpUntil = 0;
+      this.levelUpEl.classList.add('hidden');
+    }
+  };
+
+  /** The full-screen level-up beat: word, number, new rank, what opened. */
+  Ui.prototype.showLevelUp = function (ev) {
+    var ar = this.lang === 'ar';
+    this.levelUpEl.querySelector('.octo-levelup-word').textContent = ar ? 'ارتقاء' : 'LEVEL UP';
+    this.levelUpEl.querySelector('.octo-levelup-num').textContent = ev.to;
+    this.levelUpEl.querySelector('.octo-levelup-rank').textContent = ar ? ev.rank.ar : ev.rank.en;
+    var un = this.levelUpEl.querySelector('.octo-levelup-unlock');
+    if (ev.unlocked && ev.unlocked.length) {
+      un.innerHTML = ev.unlocked.map(function (a) {
+        return '<span>' + (ar ? '؟ فُتحت: ' : 'Unlocked: ') + (ar ? a.ar : a.en) + '</span>';
+      }).join('');
+      un.classList.remove('hidden');
+    } else {
+      un.innerHTML = '';
+      un.classList.add('hidden');
+    }
+    this.levelUpEl.classList.remove('hidden');
+    // restart the CSS animation
+    this.levelUpEl.classList.remove('play');
+    void this.levelUpEl.offsetWidth;
+    this.levelUpEl.classList.add('play');
+    this._levelUpUntil = this.game.time + 3.4;
   };
 
   Ui.prototype.syncToasts = function () {
