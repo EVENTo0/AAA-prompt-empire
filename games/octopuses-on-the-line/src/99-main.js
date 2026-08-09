@@ -166,11 +166,16 @@
       if (ensureTouchControls()) game.toast(ui.lang === 'ar' ? 'تم تفعيل أزرار اللمس' : 'Touch controls enabled', 'info');
     }, { passive: true });
 
+    // The front of the game is staged: logo on black first, then the key
+    // art with the progress bar once enough of the build is done that the
+    // player has something to look at other than a number.
+    if (!testMode) ui.showSplash();
     var stage = 0;
     function nextStage() {
       if (stage >= stages.length) return finish();
       var s = stages[stage];
       ui.setProgress(stage / stages.length, ui.lang === 'ar' ? s[1] : s[0]);
+      if (!testMode && stage === 1) ui.skipSplash();
       stage++;
       // let the browser paint the progress bar before the heavy call
       root.setTimeout(function () {

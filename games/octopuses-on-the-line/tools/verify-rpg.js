@@ -357,6 +357,122 @@ async function run() {
     });
     record('dialog', 'declining leaves the job on the board', declined === 'available', declined);
 
+    /* ------------------------------------------- front of the game */
+    const fe = await page.evaluate(() => {
+      const ui = window.GAME.ui;
+      ui.showSplash();
+      const sp = document.querySelector('.octo-splash');
+      const splashOn = !sp.classList.contains('hidden');
+      ui.setProgress(0.4, 'probe');
+      const barMid = document.querySelector('.octo-splash-foot .octo-bar-fill').style.width;
+      ui.skipSplash();
+      return {
+        splashOn,
+        barMid,
+        splashOff: sp.classList.contains('hidden'),
+        loadingOn: !document.querySelector('.octo-loading').classList.contains('hidden'),
+        screen: ui.screen,
+        keyartPx: document.querySelector('.octo-keyart').width,
+        tip: document.querySelector('.octo-load-tip').textContent.length
+      };
+    });
+    record('front', 'boot opens on the splash', fe.splashOn, fe.splashOn);
+    record('front', 'the splash carries the build progress', fe.barMid === '40%', fe.barMid);
+    record('front', 'skip crosses to the key-art loader',
+      fe.splashOff && fe.loadingOn && fe.screen === 'loading', fe.screen);
+    record('front', 'key art is generated, not blank', fe.keyartPx >= 640, fe.keyartPx + 'px wide');
+    record('front', 'the loader shows a tip', fe.tip > 20, fe.tip + ' chars');
+
+    const title = await page.evaluate(() => {
+      const ui = window.GAME.ui;
+      ui.showTitle();
+      const rail = document.querySelector('.octo-rail');
+      const pill = document.querySelector('.octo-slotpill');
+      const pr = pill.getBoundingClientRect();
+      const rr = rail.getBoundingClientRect();
+      return {
+        railOn: !rail.classList.contains('hidden'),
+        buttons: rail.querySelectorAll('.octo-rail-btn').length,
+        stamp: rail.querySelector('.octo-stamp').textContent.indexOf('app.') === 0,
+        // the pill must not run underneath the service rail
+        clearOfRail: pr.right <= rr.left + 1,
+        pillH: Math.round(pr.height),
+        agree: document.querySelector('.octo-agree-text').textContent.length
+      };
+    });
+    record('front', 'the title shows the service rail', title.railOn && title.buttons === 5, title.buttons);
+    record('front', 'the rail carries a version stamp', title.stamp, title.stamp);
+    record('front', 'the enter pill clears the rail', title.clearOfRail, title.clearOfRail);
+    record('front', 'the enter pill is a thumb target', title.pillH >= 44, title.pillH + 'px');
+    record('front', 'the agreement line is present', title.agree > 20, title.agree + ' chars');
+
+    const notice = await page.evaluate(() => {
+      const ui = window.GAME.ui;
+      ui.openNotice('fairplay');
+      const f = document.querySelector('.octo-notice-frame');
+      const r = f.getBoundingClientRect();
+      const tabs = document.querySelectorAll('.octo-notice-tab').length;
+      ui.openNotice('build');
+      const switched = document.querySelector('.octo-notice-h').textContent;
+      ui.closeNotice();
+      return {
+        tabs, switched,
+        // max-height must actually bind, or the panel runs off the screen
+        fits: r.height <= window.innerHeight + 1,
+        closed: document.querySelector('.octo-notice').classList.contains('hidden')
+      };
+    });
+    record('front', 'the announcement has tabbed notices', notice.tabs === 3, notice.tabs);
+    record('front', 'switching tab changes the page', notice.switched.length > 3, notice.switched);
+    record('front', 'the announcement fits on screen', notice.fits, notice.fits);
+    record('front', 'the announcement closes', notice.closed, notice.closed);
+
+    const sel = await page.evaluate(() => {
+      const ui = window.GAME.ui;
+      ui.showSelect();
+      window.GAME.stepFrames(30);
+      const cards = document.querySelectorAll('.octo-class-card');
+      const faces = document.querySelectorAll('.octo-class-face');
+      let painted = 0;
+      faces.forEach((c) => {
+        const d = c.getContext('2d').getImageData(48, 48, 1, 1).data;
+        if (d[3] > 0 && (d[0] + d[1] + d[2]) > 30) painted++;
+      });
+      const row = document.querySelector('.octo-class-row').getBoundingClientRect();
+      return {
+        cards: cards.length,
+        painted,
+        active: document.querySelectorAll('.octo-class-card.active').length,
+        name: document.querySelector('.octo-sel-name').textContent,
+        tagline: document.querySelector('.octo-sel-tagline, .octo-select-tagline').textContent.length,
+        onRight: row.left > window.innerWidth * 0.45,
+        cardH: Math.round(cards[0].getBoundingClientRect().height)
+      };
+    });
+    record('select', 'five discipline cards', sel.cards === 5, sel.cards);
+    record('select', 'every card has a drawn portrait', sel.painted === 5, sel.painted + '/5');
+    record('select', 'exactly one card is active', sel.active === 1, sel.active);
+    record('select', 'the heading names the discipline', sel.name.length > 2, sel.name);
+    record('select', 'the tagline describes the discipline', sel.tagline > 10, sel.tagline + ' chars');
+    record('select', 'the roster sits on the right edge', sel.onRight, sel.onRight);
+    record('select', 'cards are thumb-sized', sel.cardH >= 44, sel.cardH + 'px');
+
+    // the avatar must not end up behind the roster
+    const framing = await page.evaluate(() => {
+      const g = window.GAME.game;
+      const c = g.camera, p = g.player.pos;
+      // project the avatar's chest into screen space the way the renderer does
+      const dx = p.x - c.pos.x, dy = (p.y + 1.0) - c.pos.y, dz = p.z - c.pos.z;
+      const yaw = Math.atan2(c.target.x - c.pos.x, c.target.z - c.pos.z);
+      const fx = Math.sin(yaw), fz = Math.cos(yaw);
+      const fwd = dx * fx + dz * fz;
+      const right = dx * fz - dz * fx;
+      return { fwd: +fwd.toFixed(2), lateral: +(right / Math.max(fwd, 0.001)).toFixed(3) };
+    });
+    record('select', 'the avatar is in front of the camera', framing.fwd > 1, framing.fwd);
+    record('select', 'the avatar is offset clear of the roster',
+      Math.abs(framing.lateral) > 0.05, framing.lateral);
+
     await page.close();
   }
 

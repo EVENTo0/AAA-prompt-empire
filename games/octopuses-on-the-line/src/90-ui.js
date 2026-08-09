@@ -98,17 +98,45 @@
     var self = this;
     var r = this.root;
 
-    // ---------- loading
-    this.loading = el('div', 'octo-screen octo-loading');
+    // ---------- splash
+    // The first thing a big mobile RPG shows is its logo on black while
+    // the payload lands. It is not decoration: it gives the boot somewhere
+    // to happen, and gives the player something to skip.
+    this.splash = el('div', 'octo-screen octo-splash');
+    this.splash.innerHTML =
+      '<button class="octo-skip"></button>' +
+      '<div class="octo-splash-mark">' +
+      '  <div class="octo-splash-en"></div>' +
+      '  <div class="octo-splash-ar"></div>' +
+      '  <div class="octo-splash-rule"></div>' +
+      '</div>' +
+      '<div class="octo-splash-foot">' +
+      '  <div class="octo-splash-status"></div>' +
+      '  <div class="octo-bar"><div class="octo-bar-fill"></div></div>' +
+      '</div>';
+    r.appendChild(this.splash);
+    this.splashFill = this.splash.querySelector('.octo-bar-fill');
+    this.splashStatus = this.splash.querySelector('.octo-splash-status');
+    this.splash.querySelector('.octo-splash-en').textContent = STR.title.en;
+    this.splash.querySelector('.octo-splash-ar').textContent = STR.title.ar;
+    this.splash.querySelector('.octo-skip')
+      .addEventListener('click', function () { self.skipSplash(); });
+
+    // ---------- loading, over generated key art
+    this.loading = el('div', 'octo-screen octo-loading hidden');
     this.loading.innerHTML =
+      '<canvas class="octo-keyart"></canvas>' +
       '<div class="octo-load-inner">' +
       '  <div class="octo-logo"><span class="octo-logo-en"></span><span class="octo-logo-ar"></span></div>' +
       '  <div class="octo-bar"><div class="octo-bar-fill"></div></div>' +
       '  <div class="octo-load-text"></div>' +
+      '  <div class="octo-load-tip"></div>' +
       '</div>';
     r.appendChild(this.loading);
+    this.keyart = this.loading.querySelector('.octo-keyart');
     this.loadFill = this.loading.querySelector('.octo-bar-fill');
     this.loadText = this.loading.querySelector('.octo-load-text');
+    this.loadTip = this.loading.querySelector('.octo-load-tip');
     this.loading.querySelector('.octo-logo-en').textContent = STR.title.en;
     this.loading.querySelector('.octo-logo-ar').textContent = STR.title.ar;
 
@@ -118,10 +146,44 @@
       '<div class="octo-title-inner">' +
       '  <div class="octo-badge"></div>' +
       '  <h1></h1><h2 class="octo-ar"></h2><p class="octo-sub"></p>' +
+      '  <div class="octo-slotpill">' +
+      '    <span class="octo-slot-dot"></span>' +
+      '    <span class="octo-slot-name"></span>' +
+      '    <span class="octo-slot-go"></span>' +
+      '  </div>' +
       '  <div class="octo-menu"></div>' +
       '  <div class="octo-hint"></div>' +
-      '</div>';
+      '</div>' +
+      '<div class="octo-agree"><span class="octo-agree-tick">✓</span><span class="octo-agree-text"></span></div>';
     r.appendChild(this.title);
+    this.title.querySelector('.octo-slotpill')
+      .addEventListener('click', function () { self.beginNewGame(); });
+
+    // ---------- service rail (Notice / Realm / Language / Support / Reset)
+    // The vertical stack of round buttons down the right edge is the one
+    // piece of mobile-RPG chrome that is pure navigation: everything the
+    // player needs before they are in the world, reachable by thumb.
+    this.rail = el('div', 'octo-rail hidden');
+    r.appendChild(this.rail);
+
+    // ---------- announcement
+    this.notice = el('div', 'octo-screen octo-notice hidden');
+    this.notice.innerHTML =
+      '<div class="octo-notice-frame">' +
+      '  <div class="octo-notice-cap"></div>' +
+      '  <button class="octo-notice-x">✕</button>' +
+      '  <div class="octo-notice-body">' +
+      '    <div class="octo-notice-tabs"></div>' +
+      '    <div class="octo-notice-page">' +
+      '      <h3 class="octo-notice-h"></h3>' +
+      '      <canvas class="octo-notice-art"></canvas>' +
+      '      <div class="octo-notice-text"></div>' +
+      '    </div>' +
+      '  </div>' +
+      '</div>';
+    r.appendChild(this.notice);
+    this.notice.querySelector('.octo-notice-x')
+      .addEventListener('click', function () { self.closeNotice(); });
 
     // ---------- hud
     this.hud = el('div', 'octo-hud hidden');
@@ -228,25 +290,33 @@
     this.panel.querySelector('.octo-close').addEventListener('click', function () { self.closePanel(); });
 
     // ---------- character select
+    // The reference layout: the avatar owns the middle of the screen, the
+    // roster is a stack of cards down the right edge where a thumb reaches
+    // it, the name sits above the character and the tagline below. Nothing
+    // covers the character but the frame around them.
     this.select = el('div', 'octo-screen octo-select hidden');
     this.select.innerHTML =
+      '<button class="octo-select-back">‹</button>' +
       '<div class="octo-select-head">' +
-      '  <div class="octo-select-eyebrow"></div>' +
-      '  <h2 class="octo-select-title"></h2>' +
-      '</div>' +
-      '<div class="octo-select-detail">' +
       '  <div class="octo-sel-name"></div>' +
+      '  <div class="octo-sel-rule"></div>' +
+      '  <div class="octo-select-eyebrow"></div>' +
+      '</div>' +
+      '<div class="octo-class-row"></div>' +
+      '<div class="octo-select-detail">' +
       '  <div class="octo-sel-role"></div>' +
       '  <div class="octo-sel-line"></div>' +
       '  <div class="octo-sel-bars"></div>' +
       '  <div class="octo-sel-lore"></div>' +
       '</div>' +
       '<div class="octo-select-foot">' +
-      '  <div class="octo-class-row"></div>' +
+      '  <div class="octo-select-tagline"></div>' +
       '  <button class="octo-select-go"></button>' +
       '</div>';
     r.appendChild(this.select);
     this.classRow = this.select.querySelector('.octo-class-row');
+    this.select.querySelector('.octo-select-back')
+      .addEventListener('click', function () { self.showTitle(); });
     this.select.querySelector('.octo-select-go')
       .addEventListener('click', function () { self.confirmClass(); });
 
@@ -313,33 +383,260 @@
   /* ------------------------------------------------------------- screens */
 
   Ui.prototype.setProgress = function (frac, text) {
-    this.loadFill.style.width = Math.round(clamp(frac, 0, 1) * 100) + '%';
-    if (text) this.loadText.textContent = text;
+    var pct = Math.round(clamp(frac, 0, 1) * 100);
+    this.loadFill.style.width = pct + '%';
+    this.splashFill.style.width = pct + '%';
+    if (text) {
+      this.loadText.textContent = text;
+      this.splashStatus.textContent = text;
+    }
+  };
+
+  /* ----------------------------------------------------------- splash */
+
+  /**
+   * Draw the key art at the panel's real pixel size. Done once, on the
+   * way out of the splash, because it costs a few milliseconds and there
+   * is no point paying that before the screen that shows it exists.
+   */
+  Ui.prototype.paintKeyArt = function () {
+    if (this._keyartDone || !OCTO.frontend) return;
+    this._keyartDone = true;
+    // Drawn at the panel's own aspect ratio. A fixed ratio plus
+    // object-fit: cover crops the cast off the sides on a portrait phone,
+    // which is the one shape this has to look right in.
+    var dpr = Math.min(root.devicePixelRatio || 1, 2);
+    var cw = this.root.clientWidth || 720;
+    var ch = (this.root.clientHeight || 900) * 0.62;
+    var w = Math.max(640, Math.round(cw * dpr));
+    var h = Math.max(300, Math.round(ch * dpr));
+    try { OCTO.frontend.drawKeyArt(this.keyart, w, h); } catch (e) { /* art is optional */ }
+  };
+
+  var TIPS = [
+    { en: 'Hold GRIP on a line and the wobble dies — so does your speed.', ar: 'اضغط "تشبث" على الخيط فيهدأ الاهتزاز — وتهدأ سرعتك معه.' },
+    { en: 'A Tank sags the rope into a bridge. An Archer barely bends it.', ar: 'الدِّرع يُحني الخيط ليصير جسراً. الصيّاد لا يكاد يثنيه.' },
+    { en: 'Every rank breaks the seal on another Anchor.', ar: 'كل رتبة تفكّ ختم مرساة جديدة.' },
+    { en: 'Crossing a full span pays experience. Falling off halfway does not.', ar: 'عبور الخيط كاملاً يمنحك خبرة. السقوط في منتصفه لا يمنحك شيئاً.' },
+    { en: 'Ra’s al-Khayt has been out on the sand since before the souq.', ar: 'رأس الخيط على الرمل من قبل أن يقوم السوق.' },
+    { en: 'Tap the minimap for the full map, the tracker for your jobs.', ar: 'انقر الخريطة المصغّرة لفتح الخريطة، والمتتبّع لمهامك.' }
+  ];
+
+  Ui.prototype.showSplash = function () {
+    this.screen = 'splash';
+    this.splash.classList.remove('hidden');
+    var tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+    this.loadTip.textContent = this.lang === 'ar' ? tip.ar : tip.en;
+    this.splash.querySelector('.octo-skip').textContent = this.lang === 'ar' ? 'تخطٍ ⏭' : 'Skip ⏭';
+  };
+
+  /** Splash → key-art loading screen. Idempotent; the skip button reuses it. */
+  Ui.prototype.skipSplash = function () {
+    if (this.screen !== 'splash') return;
+    this.paintKeyArt();
+    this.splash.classList.add('hidden');
+    this.loading.classList.remove('hidden');
+    this.screen = 'loading';
+    this.game.audio && this.game.audio.play('ui');
   };
 
   Ui.prototype.showTitle = function () {
     this.screen = 'title';
+    this.splash.classList.add('hidden');
     this.loading.classList.add('hidden');
+    this.select.classList.add('hidden');
     this.title.classList.remove('hidden');
+    this.rail.classList.remove('hidden');
     this.hud.classList.add('hidden');
+    this.buildRail();
+    this.syncSlotPill();
+  };
+
+  /* ------------------------------------------------------------- rail */
+
+  var RAIL_ICONS = {
+    notice: '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l6 4V5L8 9H4z"/><path d="M17 8a5 5 0 010 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    realm: '<svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>',
+    lang: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2c1.6 0 3.2 2.4 3.8 6H8.2C8.8 6.4 10.4 4 12 4zM4.3 10h3.4a24 24 0 000 4H4.3a8 8 0 010-4zm0 6h3.9c.6 2.6 1.6 4.5 2.6 5.4A8 8 0 014.3 16zm7.7 5.9c-1.6 0-3.2-2.3-3.8-5.9h7.6c-.6 3.6-2.2 5.9-3.8 5.9zM16.3 14a24 24 0 000-4h3.4a8 8 0 010 4h-3.4zm-1 7.4c1-.9 2-2.8 2.6-5.4h3.9a8 8 0 01-6.5 5.4zM18.5 8c-.6-2.6-1.6-4.5-2.6-5.4A8 8 0 0122.4 8h-3.9z"/></svg>',
+    support: '<svg viewBox="0 0 24 24"><path d="M12 2a8 8 0 00-8 8v5a3 3 0 003 3h1v-8H6v-.2A6 6 0 0118 10v.2h-2V18h2a2 2 0 01-2 2h-3v2h3a4 4 0 004-4 3 3 0 003-3v-5a8 8 0 00-8-8z"/></svg>',
+    reset: '<svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13a2 2 0 01-2 2H9a2 2 0 01-2-2L6 7zm3-4h6l1 2h3v2H5V5h3l1-2z"/></svg>'
+  };
+
+  Ui.prototype.buildRail = function () {
+    var self = this, ar = this.lang === 'ar';
+    var items = [
+      { k: 'notice',  en: 'Notice',   arr: 'إعلان',    fn: function () { self.openNotice('fairplay'); } },
+      { k: 'realm',   en: 'Realm',    arr: 'العالم',   fn: function () { self.openNotice('realm'); } },
+      { k: 'lang',    en: this.lang === 'en' ? 'العربية' : 'English', arr: this.lang === 'en' ? 'العربية' : 'English',
+        fn: function () { self.toggleLang(); } },
+      { k: 'support', en: 'Support',  arr: 'الدعم',    fn: function () { self.openPanel('controls'); } },
+      { k: 'reset',   en: 'Reset',    arr: 'مسح',      fn: function () { self.confirmReset(); } }
+    ];
+    this.rail.innerHTML = '';
+    items.forEach(function (it) {
+      var b = el('button', 'octo-rail-btn');
+      b.innerHTML = '<span class="octo-rail-ico">' + RAIL_ICONS[it.k] + '</span>' +
+        '<span class="octo-rail-lab">' + (ar && it.k !== 'lang' ? it.arr : it.en) + '</span>';
+      b.addEventListener('click', function () {
+        self.game.audio && self.game.audio.play('ui');
+        it.fn();
+      });
+      self.rail.appendChild(b);
+    });
+    var v = el('div', 'octo-stamp');
+    v.innerHTML = 'app.' + OCTO.VERSION + '<br>res.' + OCTO.VERSION + '.' + (this.game.save.build || 'beta');
+    this.rail.appendChild(v);
+  };
+
+  /** The pill above the menu: which discipline and rank you are resuming. */
+  Ui.prototype.syncSlotPill = function () {
+    var g = this.game, ar = this.lang === 'ar', t = this.title;
+    var pill = this.title.querySelector('.octo-slotpill');
+    var has = !!g.save.classId;
+    var cls = OCTO.classById(g.save.classId || 'muqatil');
+    pill.querySelector('.octo-slot-name').textContent = has
+      ? (ar ? cls.ar : cls.en) + '  ·  ' + (ar ? 'مستوى ' : 'Lv ') + g.hero.level
+      : (ar ? 'ماشي خيط جديد' : 'New Line-Walker');
+    pill.querySelector('.octo-slot-go').textContent = ar ? 'ادخل' : 'Enter';
+    pill.classList.toggle('fresh', !has);
+    t.querySelector('.octo-hint').textContent = this.isTouchDevice()
+      ? (ar ? 'انقر للدخول إلى اللعبة' : 'Tap to enter game')
+      : (ar ? 'انقر للبدء' : 'Click to begin');
+    this.title.querySelector('.octo-agree-text').innerHTML = ar
+      ? 'نسخة تجريبية — كل المحتوى مولَّد داخل المتصفح، ولا يُرسل أي شيء إلى أي خادم.'
+      : 'Beta build — everything is generated in your browser, and nothing is sent to any server.';
+  };
+
+  Ui.prototype.confirmReset = function () {
+    var ar = this.lang === 'ar';
+    var ok = root.confirm(ar
+      ? 'مسح التقدم كله والبدء من جديد؟'
+      : 'Erase all progress and start over?');
+    if (!ok) return;
+    this.game.resetSave();
+    root.location.reload();
+  };
+
+  /* ---------------------------------------------------- announcements */
+
+  var NOTICES = {
+    fairplay: {
+      en: 'Fair Play Notice', ar: 'إشعار اللعب النظيف',
+      bodyEn: [
+        'This build runs entirely on your device. There is no account, no server, and no leaderboard — so there is nothing here to cheat against except yourself.',
+        '1. What is stored',
+        'Your discipline, rank, dirhams, pearls and settings are written to your browser’s local storage. Clearing site data erases them. Nothing leaves the machine.',
+        '2. The console is not locked',
+        'Every system is reachable from the developer console, and the automation API is documented in the README. If you want to skip to level 60 and stand under Ra’s al-Khayt, that is your save file to spend.',
+        '3. What we ask',
+        'If you share a screenshot or a time, say which build it came from. The generator is seeded, so a seed and a version make any run reproducible.'
+      ],
+      bodyAr: [
+        'تعمل هذه النسخة كاملة على جهازك. لا حساب ولا خادم ولا لوحة صدارة — فليس هنا ما يُغَشّ فيه سوى نفسك.',
+        '١. ما الذي يُحفظ',
+        'انضباطك ورتبتك ودراهمك ولآلئك وإعداداتك تُكتب في التخزين المحلي للمتصفح. مسح بيانات الموقع يمحوها. لا شيء يغادر جهازك.',
+        '٢. الطرفية ليست مقفلة',
+        'كل نظام في اللعبة متاح من طرفية المطوّر، وواجهة الأتمتة موثّقة في الملف التعريفي. إن أردت القفز إلى المستوى ٦٠ والوقوف تحت رأس الخيط، فهذا ملف حفظك تتصرف فيه.',
+        '٣. ما نرجوه',
+        'إن شاركت لقطة أو زمناً، فاذكر النسخة. المولّد يعمل ببذرة، فالبذرة مع رقم النسخة يجعلان أي جولة قابلة للإعادة.'
+      ]
+    },
+    realm: {
+      en: 'The Realm', ar: 'العالم',
+      bodyEn: [
+        'One city, one seed, no loading between districts. Five quarters on a continuous 500 × 500 m map, strung together by 144 live ropes.',
+        'Al-Suq al-Qadeem — the old souq. Adobe, pointed arches, mashrabiya oriels, and the first rope anyone ever tied.',
+        'Al-Waha — the oasis. Date palms, open water, and a fire that is always lit.',
+        'Khutut al-Hayy — the line quarter, strung over the rooftops and up the great minaret.',
+        'Mina’ al-Sama — Sky Harbour, forty metres up, where the dhows fly.',
+        'Abraj Neo-Falak — the sky towers, neon and holographic script, rings to a hundred and fifty metres.',
+        'Add ?seed=12345 to the address to generate a different city. The seed is the whole world.'
+      ],
+      bodyAr: [
+        'مدينة واحدة، بذرة واحدة، ولا تحميل بين الأحياء. خمسة أحياء على خريطة متصلة ٥٠٠ × ٥٠٠ متر، يربطها ١٤٤ حبلاً حيّاً.',
+        'السوق القديم — الطين واﻷقواس المدببة والمشربيات، وأول حبل رُبط في المدينة.',
+        'الواحة — النخيل والماء ونار لا تنطفئ.',
+        'حي الخيوط — شبكة الحبال فوق السطوح وصعوداً إلى المئذنة الكبرى.',
+        'ميناء السماء — على ارتفاع أربعين متراً، حيث تطير السفن.',
+        'أبراج نيوفلك — النيون والخط المجسّم، وحلقات حتى مئة وخمسين متراً.',
+        'أضف ‎?seed=12345‎ إلى العنوان لتوليد مدينة أخرى. البذرة هي العالم كله.'
+      ]
+    },
+    build: {
+      en: 'What’s New', ar: 'الجديد',
+      bodyEn: [
+        'v1.1.0 — Levels, ranks and the eight Anchors',
+        'Levels 1–60 across nine ranks. Experience comes from pearls, jobs, discoveries and — above all — crossing ropes, scaled by how much of the span you actually walked.',
+        'Eight Anchors stand across the map, each sealed behind a rank. A sealed Anchor is visible from across its district with its shard dull; earning the rank lights it cyan and opens it for travel.',
+        'Traders now hand work over in a scene rather than a toast, with the job in their own words.',
+        'v1.0.4 — Mobile controls',
+        'The joystick floats: touch anywhere in the left half of the screen and it appears under your thumb. Action buttons are icons with captions. The minimap, tracker and purse are all tappable.'
+      ],
+      bodyAr: [
+        'الإصدار ١٫١٫٠ — المستويات والرتب والمراسي الثماني',
+        'مستويات من ١ إلى ٦٠ عبر تسع رتب. الخبرة تأتي من اللآلئ والمهام والاكتشاف، وقبل ذلك كله من عبور الخيوط، بمقدار ما قطعته منها فعلاً.',
+        'ثماني مراسٍ في الخريطة، كل واحدة مختومة برتبة. المرساة المختومة تُرى من بعيد وشظيتها خامدة؛ وببلوغ الرتبة تتوهج سماوية وتُفتح للانتقال.',
+        'التجار صاروا يسلّمون العمل في مشهد لا في إشعار عابر، وبكلامهم هم.',
+        'الإصدار ١٫٠٫٤ — تحكم الهاتف',
+        'الجويستيك يطفو: المس أي مكان في النصف الأيسر فيظهر تحت إبهامك. أزرار الفعل صارت أيقونات بأسماء. والخريطة والمتتبّع والمحفظة كلها قابلة للضغط.'
+      ]
+    }
+  };
+
+  Ui.prototype.openNotice = function (id) {
+    var self = this, ar = this.lang === 'ar';
+    this.noticeId = id || 'fairplay';
+    this.notice.classList.remove('hidden');
+    this.notice.querySelector('.octo-notice-cap').textContent = ar ? 'إعلان' : 'Announcement';
+
+    var tabs = this.notice.querySelector('.octo-notice-tabs');
+    tabs.innerHTML = '';
+    Object.keys(NOTICES).forEach(function (k) {
+      var b = el('button', 'octo-notice-tab' + (k === self.noticeId ? ' active' : ''),
+        ar ? NOTICES[k].ar : NOTICES[k].en);
+      b.addEventListener('click', function () {
+        self.game.audio && self.game.audio.play('ui');
+        self.openNotice(k);
+      });
+      tabs.appendChild(b);
+    });
+
+    var n = NOTICES[this.noticeId];
+    this.notice.querySelector('.octo-notice-h').textContent = ar ? n.ar : n.en;
+    var body = ar ? n.bodyAr : n.bodyEn;
+    this.notice.querySelector('.octo-notice-text').innerHTML =
+      body.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+
+    // the same generated art, at banner proportions
+    var art = this.notice.querySelector('.octo-notice-art');
+    if (!art._painted && OCTO.frontend) {
+      art._painted = true;
+      try { OCTO.frontend.drawKeyArt(art, 900, 300); } catch (e) { /* art is optional */ }
+    }
+  };
+
+  Ui.prototype.closeNotice = function () {
+    this.notice.classList.add('hidden');
+    this.game.audio && this.game.audio.play('ui');
   };
 
   Ui.prototype.buildTitleMenu = function () {
     var self = this;
     var menu = this.title.querySelector('.octo-menu');
     menu.innerHTML = '';
-    var hasSave = !!(this.game.save && (this.game.save.dirhams || (this.game.save.pearls || []).length));
+    // The slot pill above is the one primary action, and language, notices
+    // and support live on the rail. What is left is secondary, so it goes
+    // in a compact wrapping row — six full-width buttons stacked down a
+    // phone screen pushed the agreement line off the bottom.
     var items = [
-      { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.beginNewGame(); } },
-      { label: this.lang === 'ar' ? '▶  شاهد المقدمة' : '▶  Watch the intro', fn: function () { self.playIntro(); } },
-      { label: this.lang === 'ar' ? 'غيّر الانضباط' : 'Change discipline', fn: function () {
+      { label: this.lang === 'ar' ? '▶ المقدمة' : '▶ Intro', fn: function () { self.playIntro(); } },
+      { label: this.lang === 'ar' ? 'الانضباط' : 'Discipline', fn: function () {
         self.title.classList.add('hidden');
         self.hud.classList.add('hidden');
         self.showSelect();
       } },
       { label: this.t('controls'), fn: function () { self.openPanel('controls'); } },
-      { label: this.t('settings'), fn: function () { self.openPanel('settings'); } },
-      { label: this.lang === 'en' ? 'العربية' : 'English', fn: function () { self.toggleLang(); } }
+      { label: this.t('settings'), fn: function () { self.openPanel('settings'); } }
     ];
     items.forEach(function (it) {
       var b = el('button', 'octo-menu-btn', it.label);
@@ -360,25 +657,33 @@
     this.screen = 'select';
     this.loading.classList.add('hidden');
     this.title.classList.add('hidden');
+    this.rail.classList.add('hidden');
     this.hud.classList.add('hidden');
     this.select.classList.remove('hidden');
     g.paused = false;
     g.prepareSelect();
 
+    // The heading is now the chosen discipline's own name, set by
+    // pickClass; the eyebrow underneath says what screen this is.
     this.select.querySelector('.octo-select-eyebrow').textContent =
       this.lang === 'ar' ? 'نقابة ماشي الخيط' : 'The Line-Walkers’ Guild';
-    this.select.querySelector('.octo-select-title').textContent =
-      this.lang === 'ar' ? 'اختر انضباطك' : 'Choose your discipline';
     this.select.querySelector('.octo-select-go').textContent =
-      this.lang === 'ar' ? 'ابدأ' : 'Begin';
+      this.lang === 'ar' ? 'ابدأ الرحلة' : 'Begin the journey';
 
+    // Roster cards: portrait, discipline, role. Stacked down the right
+    // edge so the avatar in the middle of the screen is never covered.
     this.classRow.innerHTML = '';
     OCTO.CLASSES.forEach(function (c) {
-      var b = el('button', 'octo-class-chip');
-      var col = c.skin.cloth;
+      var b = el('button', 'octo-class-card');
       b.innerHTML =
-        '<i style="background:rgb(' + Math.round(col[0] * 255) + ',' + Math.round(col[1] * 255) + ',' + Math.round(col[2] * 255) + ')"></i>' +
-        '<span>' + (self.lang === 'ar' ? c.ar : c.en) + '</span>';
+        '<canvas class="octo-class-face" width="96" height="96"></canvas>' +
+        '<span class="octo-class-meta">' +
+        '  <b>' + (self.lang === 'ar' ? c.ar : c.en) + '</b>' +
+        '  <i>' + (self.lang === 'ar' ? c.roleAr : c.roleEn) + '</i>' +
+        '</span>';
+      if (OCTO.frontend) {
+        try { OCTO.frontend.drawPortrait(b.querySelector('.octo-class-face'), c, 96); } catch (e) { /* art is optional */ }
+      }
       b.addEventListener('click', function () { self.pickClass(c.id); });
       b.dataset.classId = c.id;
       self.classRow.appendChild(b);
@@ -399,6 +704,8 @@
     });
 
     this.select.querySelector('.octo-sel-name').textContent = this.lang === 'ar' ? c.ar : c.en;
+    this.select.querySelector('.octo-select-tagline').textContent =
+      this.lang === 'ar' ? c.lineAr : c.lineEn;
     this.select.querySelector('.octo-sel-role').textContent =
       (this.lang === 'ar' ? c.roleAr : c.roleEn) + ' · ' + (this.lang === 'ar' ? c.en : c.ar);
     this.select.querySelector('.octo-sel-line').textContent = this.lang === 'ar' ? c.lineAr : c.lineEn;
@@ -442,6 +749,7 @@
     if (g.audio && !g.muted) { g.audio.init(); g.audio.resume(); }
     this.title.classList.add('hidden');
     this.loading.classList.add('hidden');
+    this.rail.classList.add('hidden');
     if (!g.save.seenIntro && g.cine) {
       g.save.seenIntro = true;
       g.persist();
@@ -474,6 +782,9 @@
     this.screen = 'game';
     this.title.classList.add('hidden');
     this.loading.classList.add('hidden');
+    this.splash.classList.add('hidden');
+    this.rail.classList.add('hidden');
+    this.notice.classList.add('hidden');
     this.hud.classList.remove('hidden');
     this.panel.classList.add('hidden');
     this.game.paused = false;

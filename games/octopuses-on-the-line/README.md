@@ -1,6 +1,6 @@
 # Octopuses on the Line — أخطبوطات على الخيط
 
-**Open Map Beta · v1.1.0**
+**Open Map Beta · v1.2.0**
 
 A browser action-sandbox about an eight-armed octopus balancing along the washing
 lines of an old Arabian souq — and climbing, line by line, into the neon sky
@@ -200,6 +200,7 @@ src/70-npc.js       merchants, wanderers, line walkers, drones
 src/80-game.js      missions, economy, day/night, draw list, save
 src/85-audio.js     synthesised score and SFX
 src/90-ui.js        HUD, map, jobs, shop, settings, beta panel
+src/92-frontend.js  generated key art and portraits for the front of the game
 src/99-main.js      boot, main loop, automation + self-test hooks
 tools/verify.js     headless Chromium verification driver
 tools/smoke.html    engine smoke scene
@@ -212,7 +213,7 @@ docs/               design, architecture and verification records
 
 ```bash
 NODE_PATH=$(npm root -g) node tools/verify-all.js     # 27 assertions: desktop, phone, flow, dist
-NODE_PATH=$(npm root -g) node tools/verify-rpg.js     # 51 assertions: levels, anchors, HUD, dialogue
+NODE_PATH=$(npm root -g) node tools/verify-rpg.js     # 74 assertions: levels, anchors, HUD, front end
 NODE_PATH=$(npm root -g) node tools/verify.js smoke   # engine scene, day + night
 NODE_PATH=$(npm root -g) node tools/verify.js game    # boot, tour 5 districts, self-test
 ```

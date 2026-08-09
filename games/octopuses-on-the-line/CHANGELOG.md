@@ -4,6 +4,56 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-08-09 — The front of the game
+
+Seven screenshots of Ragnarok X: Next Generation, and the request to match how
+it opens. The pattern in them is a *staged* front end — splash, key-art loader,
+title with a service rail, announcement, then character select — where this
+game had a progress bar and a menu.
+
+### Added
+
+- **Splash.** The logo alone on black with the build progress underneath and a
+  Skip button, then a cross to the loading screen once the world is far enough
+  along that there is something to look at.
+- **Key art, generated at boot** (`src/92-frontend.js`). No painted assets exist
+  in this project and none are going to, so the loading illustration is drawn
+  with Canvas2D like the textures and the score: a dusk sky, the old town and
+  the Neo-Falak towers in silhouette, Ra's al-Khayt looming behind them, and
+  five Line-Walkers strung across the frame at different depths, each rim-lit
+  in their discipline's colour. Rendering chibi figures would have looked like
+  a bad imitation; a poster of people on ropes is what the game actually is.
+  Drawn at the panel's own aspect ratio so a portrait phone crops nothing.
+- **Rotating loading tips**, bilingual.
+- **Service rail** down the right edge — Notice, Realm, language, Support,
+  Reset — with the version stamp under it.
+- **Enter pill** as the single primary action, showing which discipline and
+  rank you are resuming, over a compact row of secondary buttons.
+- **Announcement panel** with three tabbed notices: Fair Play (what this build
+  stores and where — nothing leaves the device), The Realm (the five districts
+  and the seed), and What's New.
+- **Character select rebuilt to the reference layout**: the discipline's name
+  above the avatar, the roster as portrait cards down the right edge, the
+  tagline and Begin along the bottom, a back button top-left. Portraits are
+  generated from each class's own palette, so the card and the character in
+  the world agree.
+
+### Fixed
+
+- **The character select screen had no CSS at all** — it had been rendering as
+  an unstyled flex column since it was added. It now has a full layout.
+- The select camera framed the avatar dead centre at 4.2 m, which on a portrait
+  phone cropped it at the knees and put the roster on top of it. Pulled back to
+  5.6 m and slid sideways along the camera's own right vector so the character
+  stands clear of the cards.
+- The title screen's six stacked full-width buttons did not fit a phone and ran
+  underneath the service rail. The menu is now a compact wrapping row and the
+  title column is inset away from the rail.
+- The announcement panel ignored its own `max-height` and grew off-screen — a
+  flex child will not shrink below its content without `min-height: 0`.
+- The Enter pill was a 38 px touch target, under the 44 px floor, on the one
+  control that matters most on that screen. `verify-rpg` now asserts it.
+
 ## [1.1.0] — 2026-08-08 — Levels, ranks and the eight Anchors
 
 The progression layer the game was missing. Asked to study Ragnarok X and match

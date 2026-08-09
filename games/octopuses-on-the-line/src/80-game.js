@@ -14,7 +14,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -514,7 +514,9 @@
     var c = this.camera, p = this.player.pos;
     this.selectAngle = (this.selectAngle || 0) + dt * 0.22;
     var portrait = this.renderer.width < this.renderer.height;
-    var dist = portrait ? 4.2 : 3.4;
+    // Pulled back far enough to keep the whole figure inside the frame —
+    // at 4.2 a portrait phone cropped it at the knees.
+    var dist = portrait ? 5.6 : 4.2;
     var eye = { x: p.x, y: p.y + 0.92, z: p.z };
     c.free = true;
     // The plaza has stalls and awnings in it, and an orbit that ignores them
@@ -524,10 +526,18 @@
     dir.x /= dl; dir.y /= dl; dir.z /= dl;
     var hit = this.world.physics.raycast(eye, dir, dist + 0.5);
     if (hit) dist = Math.max(1.9, hit.t - 0.4);
-    c.pos.x = damp(c.pos.x, eye.x + dir.x * dist, 6, dt);
+    // The roster runs down the right edge of the screen, so the avatar is
+    // pushed left of centre to sit beside it rather than behind it. Done
+    // by sliding the camera sideways along its own right vector, which
+    // moves the subject in frame without turning the shot into an angle.
+    var shift = portrait ? 0.74 : 0.62;
+    var rightX = Math.cos(this.selectAngle), rightZ = -Math.sin(this.selectAngle);
+    c.pos.x = damp(c.pos.x, eye.x + dir.x * dist + rightX * shift, 6, dt);
     c.pos.y = damp(c.pos.y, eye.y + 0.30 + dir.y * dist, 6, dt);
-    c.pos.z = damp(c.pos.z, eye.z + dir.z * dist, 6, dt);
-    c.target.x = eye.x; c.target.y = eye.y; c.target.z = eye.z;
+    c.pos.z = damp(c.pos.z, eye.z + dir.z * dist + rightZ * shift, 6, dt);
+    c.target.x = eye.x + rightX * shift;
+    c.target.y = eye.y;
+    c.target.z = eye.z + rightZ * shift;
     c.fov = (portrait ? 46 : 40) * OCTO.DEG;
     // Face the camera. The camera sits at angle (sin, cos) from the avatar, so
     // the avatar's yaw is that same angle — adding PI turns its back to us.

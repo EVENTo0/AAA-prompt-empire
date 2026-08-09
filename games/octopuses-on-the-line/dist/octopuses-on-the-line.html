@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Octopuses on the Line — an open-map browser action game. Balance an eight-armed octopus along the washing lines of an old Arabian souq and climb to the neon sky towers above.">
 <meta name="theme-color" content="#1a120b">
-<title>Octopuses on the Line — Open Map Beta v1.1.0</title>
+<title>Octopuses on the Line — Open Map Beta v1.2.0</title>
 <style>
   /* ---------------------------------------------------------- reset */
   *, *::before, *::after { box-sizing: border-box; }
@@ -37,12 +37,67 @@
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     z-index: 20; padding: 24px;
   }
-  .octo-loading {
-    background:
-      radial-gradient(circle at 50% 34%, rgba(227,181,88,0.16), transparent 62%),
-      linear-gradient(180deg, #1b1409 0%, #0c0906 100%);
+  /* ---- splash: the logo alone on black while the world builds */
+  .octo-splash {
+    background: #050407; z-index: 40;
+    flex-direction: column; justify-content: center;
   }
-  .octo-load-inner { width: min(520px, 88vw); text-align: center; }
+  .octo-splash-mark { text-align: center; animation: octo-mark 1.6s ease-out both; }
+  @keyframes octo-mark {
+    0%   { opacity: 0; transform: scale(0.94); letter-spacing: 0.30em; }
+    100% { opacity: 1; transform: scale(1); letter-spacing: 0.02em; }
+  }
+  .octo-splash-en {
+    font-size: clamp(28px, 6.4vw, 62px); font-weight: 800; line-height: 1.05;
+    background: linear-gradient(180deg, #fff4d8 12%, #e3b558 58%, #9c6a24 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 26px rgba(227,181,88,0.34));
+  }
+  .octo-splash-ar {
+    margin-top: 8px; font-size: clamp(19px, 4.2vw, 36px); font-weight: 700;
+    color: var(--teal); filter: drop-shadow(0 0 20px rgba(79,198,216,0.42));
+  }
+  .octo-splash-rule {
+    height: 1px; margin: 20px auto 0; width: min(320px, 66vw);
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: octo-rule 1.6s 0.3s ease-out both;
+  }
+  @keyframes octo-rule { 0% { width: 0; opacity: 0; } 100% { opacity: 1; } }
+  .octo-splash-foot {
+    position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%);
+    width: min(520px, 84vw); text-align: center;
+  }
+  .octo-splash-status { font-size: 12px; opacity: 0.6; margin-bottom: 10px; letter-spacing: 0.05em; }
+  .octo-skip {
+    position: absolute; top: 18px; inset-inline-end: 18px; z-index: 2;
+    padding: 9px 18px; border-radius: 999px; cursor: pointer; font-family: inherit;
+    font-size: 13px; font-weight: 700; color: #f2e7d2;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.20);
+  }
+  .octo-skip:active { background: rgba(255,255,255,0.16); }
+
+  /* ---- loading, over the generated key art */
+  .octo-loading {
+    background: linear-gradient(180deg, #14101a 0%, #0c0906 100%);
+    flex-direction: column; justify-content: flex-end; padding: 0;
+  }
+  .octo-keyart {
+    position: absolute; top: 0; left: 0; width: 100%; height: 62%;
+    object-fit: cover; display: block;
+  }
+  .octo-loading::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 62%;
+    background: linear-gradient(180deg, transparent 58%, #0c0906 99%);
+    pointer-events: none;
+  }
+  .octo-load-inner {
+    position: relative; z-index: 2; width: min(560px, 88vw);
+    margin: 0 auto 7vh; text-align: center;
+  }
+  .octo-load-tip {
+    margin-top: 14px; font-size: 12px; line-height: 1.6; opacity: 0.62;
+    max-width: 44ch; margin-inline: auto;
+  }
   .octo-logo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 26px; }
   .octo-logo-en {
     font-size: clamp(26px, 5vw, 42px); font-weight: 800; letter-spacing: 0.02em;
@@ -67,7 +122,10 @@
       linear-gradient(180deg, rgba(12,9,6,0.55) 0%, rgba(12,9,6,0.88) 100%);
     backdrop-filter: blur(2px);
   }
-  .octo-title-inner { text-align: center; max-width: min(620px, 92vw); }
+  /* The rail occupies the right edge, so the title column is inset away
+     from it rather than running underneath. */
+  .octo-title { padding-inline-end: 84px; }
+  .octo-title-inner { text-align: center; max-width: min(620px, 92vw); width: 100%; }
   .octo-badge {
     display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 11px;
     letter-spacing: 0.16em; font-weight: 700; color: #10240f;
@@ -79,17 +137,142 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .octo-title h2 { margin: 4px 0 0; font-size: clamp(20px, 4.4vw, 34px); color: var(--teal); font-weight: 700; }
-  .octo-sub { margin: 12px 0 26px; opacity: 0.74; font-size: 14px; }
-  .octo-menu { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .octo-sub { margin: 10px 0 20px; opacity: 0.74; font-size: 14px; }
+  .octo-menu { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .octo-menu-btn {
-    width: min(300px, 80vw); padding: 13px 20px; font-size: 16px; font-weight: 600; cursor: pointer;
+    padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer;
     color: #f6ecd8; background: rgba(30, 22, 14, 0.86);
-    border: 1px solid var(--edge); border-radius: 12px;
+    border: 1px solid var(--edge); border-radius: 999px;
     transition: transform 0.12s ease, background 0.16s ease, border-color 0.16s ease;
     font-family: inherit;
   }
   .octo-menu-btn:hover { background: rgba(58, 42, 24, 0.95); border-color: var(--gold); transform: translateY(-1px); }
-  .octo-hint { margin-top: 22px; font-size: 12px; opacity: 0.5; letter-spacing: 0.08em; }
+  .octo-hint { margin-top: 16px; font-size: 12px; opacity: 0.5; letter-spacing: 0.08em; }
+
+  /* ---- the "tap to enter" slot pill */
+  .octo-slotpill {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    /* 14px of vertical padding puts the pill over the 44px touch-target
+       floor — it is the screen's primary action and was landing at 38. */
+    width: 100%; max-width: 360px; margin: 0 auto 16px; padding: 14px 12px 14px 18px;
+    border-radius: 999px; background: rgba(244,238,228,0.93);
+    border: 2px solid rgba(255,255,255,0.55);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+  }
+  .octo-slot-dot {
+    width: 12px; height: 12px; flex: 0 0 12px; border-radius: 50%;
+    background: #6fe0a0; box-shadow: 0 0 8px rgba(111,224,160,0.8);
+  }
+  .octo-slotpill.fresh .octo-slot-dot { background: var(--gold); box-shadow: 0 0 8px rgba(227,181,88,0.8); }
+  .octo-slot-name { flex: 1; font-size: 15px; font-weight: 800; color: #2a2018; text-align: start; }
+  .octo-slot-go {
+    font-size: 14px; font-weight: 800; font-style: italic;
+    color: #6b5330; padding-inline-end: 8px;
+  }
+  .octo-slotpill:active { transform: translateY(1px); }
+
+  .octo-agree {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 90px 8px 16px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 11px; line-height: 1.5; opacity: 0.72;
+    background: rgba(8,6,4,0.55); text-align: center;
+  }
+  .octo-agree-tick { color: #6fe0a0; font-weight: 800; }
+
+  /* ---- service rail down the right edge */
+  .octo-rail {
+    position: absolute; top: 50%; inset-inline-end: 8px; transform: translateY(-50%);
+    z-index: 26; display: flex; flex-direction: column; gap: 10px; align-items: center;
+  }
+  .octo-rail-btn {
+    width: 54px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
+    color: #eadfc9;
+  }
+  .octo-rail-ico {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 36% 30%, rgba(120,168,220,0.95), rgba(48,74,120,0.95));
+    border: 2px solid rgba(226,240,255,0.75);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.45);
+  }
+  .octo-rail-ico svg { width: 21px; height: 21px; fill: #f2f8ff; }
+  .octo-rail-btn:active .octo-rail-ico { transform: translateY(1px); filter: brightness(1.15); }
+  .octo-rail-lab {
+    font-size: 9px; font-weight: 700; line-height: 1.15; text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9); letter-spacing: 0.01em;
+  }
+  .octo-stamp {
+    margin-top: 6px; font-size: 9px; line-height: 1.35; opacity: 0.5;
+    text-align: center; letter-spacing: 0.02em;
+  }
+
+  /* ---- announcement */
+  .octo-notice { z-index: 32; background: rgba(6,4,8,0.62); }
+  .octo-notice-frame {
+    position: relative; width: min(860px, 94vw); max-height: 86vh;
+    background: linear-gradient(180deg, #f2f5fd 0%, #dfe6f6 100%);
+    border: 3px solid rgba(255,255,255,0.9); border-radius: 22px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column; color: #35406a;
+  }
+  .octo-notice-cap {
+    position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+    padding: 7px 34px; border-radius: 999px; white-space: nowrap;
+    font-size: 15px; font-weight: 800; color: #fff;
+    background: linear-gradient(180deg, #8f7fd8, #6a5ab8);
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  }
+  .octo-notice-x {
+    position: absolute; top: -14px; inset-inline-end: -12px; width: 40px; height: 40px;
+    border-radius: 50%; cursor: pointer; font-size: 17px; font-weight: 800; color: #fff;
+    background: linear-gradient(180deg, #8f7fd8, #6a5ab8);
+    border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .octo-notice-body {
+    display: flex; gap: 0; overflow: hidden; padding: 34px 18px 20px;
+    min-height: 0; flex: 1 1 auto;
+  }
+  .octo-notice-tabs {
+    flex: 0 0 34%; max-width: 210px; display: flex; flex-direction: column; gap: 9px;
+    padding-inline-end: 14px;
+  }
+  .octo-notice-tab {
+    padding: 13px 16px; border-radius: 999px; cursor: pointer; font-family: inherit;
+    font-size: 14px; font-weight: 700; text-align: start; color: #46528a;
+    background: linear-gradient(180deg, #ffffff, #dde5f8);
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 2px 6px rgba(60,80,140,0.16);
+  }
+  .octo-notice-tab.active {
+    color: #7a5a1c; background: linear-gradient(180deg, #fff6d8, #ffe6a2);
+    border-color: #fff;
+  }
+  .octo-notice-page {
+    flex: 1 1 auto; min-width: 0; min-height: 0; overflow-y: auto;
+    padding: 4px 6px 4px 16px;
+    border-inline-start: 2px solid rgba(120,140,200,0.25);
+  }
+  .octo-notice-h { margin: 0 0 12px; font-size: 17px; font-weight: 800; color: #4a3fa0; }
+  .octo-notice-art {
+    width: 100%; height: auto; display: block; border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 3px 12px rgba(60,80,140,0.22);
+    margin-bottom: 14px;
+  }
+  .octo-notice-text p { margin: 0 0 11px; font-size: 13.5px; line-height: 1.72; }
+  .octo-notice-text p:nth-child(2), .octo-notice-text p:nth-child(4),
+  .octo-notice-text p:nth-child(6) { font-weight: 800; color: #4a3fa0; margin-top: 14px; }
+
+  @media (max-width: 620px) {
+    .octo-notice-body { flex-direction: column; padding: 30px 14px 16px; }
+    .octo-notice-tabs {
+    flex: 0 0 auto; max-width: none; flex-direction: row;
+    overflow-x: auto; padding: 0 0 12px; scrollbar-width: none;
+  }
+    .octo-notice-tab { flex: 0 0 auto; padding: 10px 16px; font-size: 13px; }
+    .octo-notice-page { border-inline-start: none; padding-inline-start: 0; }
+  }
 
   /* ------------------------------------------------------------- hud */
   .octo-hud { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
@@ -462,6 +645,136 @@
   }
   .octo-legend-item:hover { border-color: var(--gold); background: rgba(227,181,88,0.12); }
   .octo-legend-item i { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* -------------------------------------------------- character select
+     The avatar is drawn by the engine in the middle of the screen, so the
+     rule here is that nothing sits on top of it: name above, tagline
+     below, roster down the right, detail down the left. */
+  .octo-select {
+    display: block; padding: 0; pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(8,6,10,0.72) 0%, transparent 26%),
+      linear-gradient(0deg, rgba(8,6,10,0.80) 0%, transparent 30%);
+  }
+  .octo-select > * { pointer-events: auto; }
+
+  .octo-select-back {
+    position: absolute; top: 16px; inset-inline-start: 16px; z-index: 3;
+    width: 46px; height: 46px; border-radius: 50%; cursor: pointer;
+    font-size: 26px; font-weight: 800; line-height: 1; color: #4a5580;
+    background: linear-gradient(180deg, #ffffff, #dbe3f6);
+    border: 3px solid rgba(255,255,255,0.9); box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+    font-family: inherit;
+  }
+  .octo-rtl .octo-select-back { transform: scaleX(-1); }
+
+  .octo-select-head {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: max-content; max-width: 70vw; text-align: center;
+  }
+  .octo-sel-name {
+    font-size: clamp(20px, 3.6vw, 30px); font-weight: 800; letter-spacing: 0.02em;
+    background: linear-gradient(180deg, #fff4d8, #e0b45f);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.85));
+  }
+  .octo-sel-rule {
+    height: 2px; margin: 5px auto 6px; width: 78%;
+    background: linear-gradient(90deg, transparent, rgba(227,181,88,0.85), transparent);
+  }
+  .octo-select-eyebrow {
+    font-size: 10px; letter-spacing: 0.26em; font-weight: 700; opacity: 0.72;
+    text-transform: uppercase; text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  }
+
+  /* roster: stacked cards down the right edge */
+  .octo-class-row {
+    position: absolute; top: 50%; inset-inline-end: 12px; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 3;
+  }
+  .octo-class-card {
+    display: flex; align-items: center; gap: 9px; cursor: pointer; font-family: inherit;
+    width: min(212px, 42vw); padding: 5px 14px 5px 5px;
+    border-radius: 999px 16px 16px 999px;
+    background: linear-gradient(90deg, rgba(20,15,12,0.90), rgba(20,15,12,0.55));
+    border: 2px solid rgba(255,255,255,0.16);
+    transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+  }
+  .octo-rtl .octo-class-card { border-radius: 16px 999px 999px 16px; padding: 5px 5px 5px 14px; }
+  .octo-class-face {
+    width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; display: block;
+    filter: saturate(0.55) brightness(0.72);
+    transition: filter 0.14s ease;
+  }
+  .octo-class-meta { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+  .octo-rtl .octo-class-meta { align-items: flex-end; }
+  .octo-class-meta b {
+    font-size: 13px; font-weight: 800; color: var(--sand); line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  }
+  .octo-class-meta i {
+    font-size: 10px; font-style: normal; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--teal); opacity: 0.85;
+  }
+  .octo-class-card.active {
+    border-color: var(--gold);
+    background: linear-gradient(90deg, rgba(227,181,88,0.30), rgba(20,15,12,0.55));
+    transform: translateX(-8px);
+  }
+  .octo-rtl .octo-class-card.active { transform: translateX(8px); }
+  .octo-class-card.active .octo-class-face { filter: none; }
+
+  /* detail block down the left */
+  .octo-select-detail {
+    position: absolute; top: 50%; inset-inline-start: 16px; transform: translateY(-50%);
+    width: min(268px, 44vw); z-index: 2;
+  }
+  .octo-sel-role {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 8px; text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  }
+  .octo-sel-line {
+    font-size: 13px; line-height: 1.6; color: #f2e7d2; margin-bottom: 12px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+  }
+  .octo-sel-bars { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .octo-sel-bars .octo-bar-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 11px; opacity: 0.9; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  }
+  .octo-sel-bars .octo-pips { display: flex; gap: 3px; }
+  .octo-sel-bars .octo-pips b {
+    width: 15px; height: 6px; border-radius: 2px; background: rgba(255,255,255,0.16);
+  }
+  .octo-sel-bars .octo-pips b.on { background: linear-gradient(90deg, var(--gold), var(--teal)); }
+  .octo-sel-lore {
+    font-size: 11.5px; line-height: 1.65; font-style: italic; opacity: 0.66;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+  }
+
+  /* tagline + begin, along the bottom */
+  .octo-select-foot {
+    position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%);
+    width: min(460px, 88vw); text-align: center; z-index: 3;
+  }
+  .octo-select-tagline {
+    font-size: 13px; line-height: 1.55; margin-bottom: 12px; color: #eadfc9;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.95);
+  }
+  .octo-select-go {
+    width: min(280px, 76vw); padding: 14px 22px; cursor: pointer; font-family: inherit;
+    font-size: 16px; font-weight: 800; letter-spacing: 0.06em; color: #2a1f0c;
+    background: linear-gradient(180deg, #ffe6a6, #d99b3e);
+    border: 2px solid rgba(255,255,255,0.55); border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.55);
+  }
+  .octo-select-go:active { transform: translateY(1px); }
+
+  @media (max-width: 780px) {
+    .octo-select-detail { display: none; }      /* the roster and tagline carry it */
+    .octo-class-card { width: min(178px, 46vw); }
+    .octo-class-face { width: 38px; height: 38px; flex: 0 0 38px; }
+  }
 
   /* ------------------------------------------------------ beta panel */
   .octo-beta {
@@ -7491,7 +7804,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -7991,7 +8304,9 @@
     var c = this.camera, p = this.player.pos;
     this.selectAngle = (this.selectAngle || 0) + dt * 0.22;
     var portrait = this.renderer.width < this.renderer.height;
-    var dist = portrait ? 4.2 : 3.4;
+    // Pulled back far enough to keep the whole figure inside the frame —
+    // at 4.2 a portrait phone cropped it at the knees.
+    var dist = portrait ? 5.6 : 4.2;
     var eye = { x: p.x, y: p.y + 0.92, z: p.z };
     c.free = true;
     // The plaza has stalls and awnings in it, and an orbit that ignores them
@@ -8001,10 +8316,18 @@
     dir.x /= dl; dir.y /= dl; dir.z /= dl;
     var hit = this.world.physics.raycast(eye, dir, dist + 0.5);
     if (hit) dist = Math.max(1.9, hit.t - 0.4);
-    c.pos.x = damp(c.pos.x, eye.x + dir.x * dist, 6, dt);
+    // The roster runs down the right edge of the screen, so the avatar is
+    // pushed left of centre to sit beside it rather than behind it. Done
+    // by sliding the camera sideways along its own right vector, which
+    // moves the subject in frame without turning the shot into an angle.
+    var shift = portrait ? 0.74 : 0.62;
+    var rightX = Math.cos(this.selectAngle), rightZ = -Math.sin(this.selectAngle);
+    c.pos.x = damp(c.pos.x, eye.x + dir.x * dist + rightX * shift, 6, dt);
     c.pos.y = damp(c.pos.y, eye.y + 0.30 + dir.y * dist, 6, dt);
-    c.pos.z = damp(c.pos.z, eye.z + dir.z * dist, 6, dt);
-    c.target.x = eye.x; c.target.y = eye.y; c.target.z = eye.z;
+    c.pos.z = damp(c.pos.z, eye.z + dir.z * dist + rightZ * shift, 6, dt);
+    c.target.x = eye.x + rightX * shift;
+    c.target.y = eye.y;
+    c.target.z = eye.z + rightZ * shift;
     c.fov = (portrait ? 46 : 40) * OCTO.DEG;
     // Face the camera. The camera sits at angle (sin, cos) from the avatar, so
     // the avatar's yaw is that same angle — adding PI turns its back to us.
@@ -9492,17 +9815,45 @@
     var self = this;
     var r = this.root;
 
-    // ---------- loading
-    this.loading = el('div', 'octo-screen octo-loading');
+    // ---------- splash
+    // The first thing a big mobile RPG shows is its logo on black while
+    // the payload lands. It is not decoration: it gives the boot somewhere
+    // to happen, and gives the player something to skip.
+    this.splash = el('div', 'octo-screen octo-splash');
+    this.splash.innerHTML =
+      '<button class="octo-skip"></button>' +
+      '<div class="octo-splash-mark">' +
+      '  <div class="octo-splash-en"></div>' +
+      '  <div class="octo-splash-ar"></div>' +
+      '  <div class="octo-splash-rule"></div>' +
+      '</div>' +
+      '<div class="octo-splash-foot">' +
+      '  <div class="octo-splash-status"></div>' +
+      '  <div class="octo-bar"><div class="octo-bar-fill"></div></div>' +
+      '</div>';
+    r.appendChild(this.splash);
+    this.splashFill = this.splash.querySelector('.octo-bar-fill');
+    this.splashStatus = this.splash.querySelector('.octo-splash-status');
+    this.splash.querySelector('.octo-splash-en').textContent = STR.title.en;
+    this.splash.querySelector('.octo-splash-ar').textContent = STR.title.ar;
+    this.splash.querySelector('.octo-skip')
+      .addEventListener('click', function () { self.skipSplash(); });
+
+    // ---------- loading, over generated key art
+    this.loading = el('div', 'octo-screen octo-loading hidden');
     this.loading.innerHTML =
+      '<canvas class="octo-keyart"></canvas>' +
       '<div class="octo-load-inner">' +
       '  <div class="octo-logo"><span class="octo-logo-en"></span><span class="octo-logo-ar"></span></div>' +
       '  <div class="octo-bar"><div class="octo-bar-fill"></div></div>' +
       '  <div class="octo-load-text"></div>' +
+      '  <div class="octo-load-tip"></div>' +
       '</div>';
     r.appendChild(this.loading);
+    this.keyart = this.loading.querySelector('.octo-keyart');
     this.loadFill = this.loading.querySelector('.octo-bar-fill');
     this.loadText = this.loading.querySelector('.octo-load-text');
+    this.loadTip = this.loading.querySelector('.octo-load-tip');
     this.loading.querySelector('.octo-logo-en').textContent = STR.title.en;
     this.loading.querySelector('.octo-logo-ar').textContent = STR.title.ar;
 
@@ -9512,10 +9863,44 @@
       '<div class="octo-title-inner">' +
       '  <div class="octo-badge"></div>' +
       '  <h1></h1><h2 class="octo-ar"></h2><p class="octo-sub"></p>' +
+      '  <div class="octo-slotpill">' +
+      '    <span class="octo-slot-dot"></span>' +
+      '    <span class="octo-slot-name"></span>' +
+      '    <span class="octo-slot-go"></span>' +
+      '  </div>' +
       '  <div class="octo-menu"></div>' +
       '  <div class="octo-hint"></div>' +
-      '</div>';
+      '</div>' +
+      '<div class="octo-agree"><span class="octo-agree-tick">✓</span><span class="octo-agree-text"></span></div>';
     r.appendChild(this.title);
+    this.title.querySelector('.octo-slotpill')
+      .addEventListener('click', function () { self.beginNewGame(); });
+
+    // ---------- service rail (Notice / Realm / Language / Support / Reset)
+    // The vertical stack of round buttons down the right edge is the one
+    // piece of mobile-RPG chrome that is pure navigation: everything the
+    // player needs before they are in the world, reachable by thumb.
+    this.rail = el('div', 'octo-rail hidden');
+    r.appendChild(this.rail);
+
+    // ---------- announcement
+    this.notice = el('div', 'octo-screen octo-notice hidden');
+    this.notice.innerHTML =
+      '<div class="octo-notice-frame">' +
+      '  <div class="octo-notice-cap"></div>' +
+      '  <button class="octo-notice-x">✕</button>' +
+      '  <div class="octo-notice-body">' +
+      '    <div class="octo-notice-tabs"></div>' +
+      '    <div class="octo-notice-page">' +
+      '      <h3 class="octo-notice-h"></h3>' +
+      '      <canvas class="octo-notice-art"></canvas>' +
+      '      <div class="octo-notice-text"></div>' +
+      '    </div>' +
+      '  </div>' +
+      '</div>';
+    r.appendChild(this.notice);
+    this.notice.querySelector('.octo-notice-x')
+      .addEventListener('click', function () { self.closeNotice(); });
 
     // ---------- hud
     this.hud = el('div', 'octo-hud hidden');
@@ -9622,25 +10007,33 @@
     this.panel.querySelector('.octo-close').addEventListener('click', function () { self.closePanel(); });
 
     // ---------- character select
+    // The reference layout: the avatar owns the middle of the screen, the
+    // roster is a stack of cards down the right edge where a thumb reaches
+    // it, the name sits above the character and the tagline below. Nothing
+    // covers the character but the frame around them.
     this.select = el('div', 'octo-screen octo-select hidden');
     this.select.innerHTML =
+      '<button class="octo-select-back">‹</button>' +
       '<div class="octo-select-head">' +
-      '  <div class="octo-select-eyebrow"></div>' +
-      '  <h2 class="octo-select-title"></h2>' +
-      '</div>' +
-      '<div class="octo-select-detail">' +
       '  <div class="octo-sel-name"></div>' +
+      '  <div class="octo-sel-rule"></div>' +
+      '  <div class="octo-select-eyebrow"></div>' +
+      '</div>' +
+      '<div class="octo-class-row"></div>' +
+      '<div class="octo-select-detail">' +
       '  <div class="octo-sel-role"></div>' +
       '  <div class="octo-sel-line"></div>' +
       '  <div class="octo-sel-bars"></div>' +
       '  <div class="octo-sel-lore"></div>' +
       '</div>' +
       '<div class="octo-select-foot">' +
-      '  <div class="octo-class-row"></div>' +
+      '  <div class="octo-select-tagline"></div>' +
       '  <button class="octo-select-go"></button>' +
       '</div>';
     r.appendChild(this.select);
     this.classRow = this.select.querySelector('.octo-class-row');
+    this.select.querySelector('.octo-select-back')
+      .addEventListener('click', function () { self.showTitle(); });
     this.select.querySelector('.octo-select-go')
       .addEventListener('click', function () { self.confirmClass(); });
 
@@ -9707,33 +10100,260 @@
   /* ------------------------------------------------------------- screens */
 
   Ui.prototype.setProgress = function (frac, text) {
-    this.loadFill.style.width = Math.round(clamp(frac, 0, 1) * 100) + '%';
-    if (text) this.loadText.textContent = text;
+    var pct = Math.round(clamp(frac, 0, 1) * 100);
+    this.loadFill.style.width = pct + '%';
+    this.splashFill.style.width = pct + '%';
+    if (text) {
+      this.loadText.textContent = text;
+      this.splashStatus.textContent = text;
+    }
+  };
+
+  /* ----------------------------------------------------------- splash */
+
+  /**
+   * Draw the key art at the panel's real pixel size. Done once, on the
+   * way out of the splash, because it costs a few milliseconds and there
+   * is no point paying that before the screen that shows it exists.
+   */
+  Ui.prototype.paintKeyArt = function () {
+    if (this._keyartDone || !OCTO.frontend) return;
+    this._keyartDone = true;
+    // Drawn at the panel's own aspect ratio. A fixed ratio plus
+    // object-fit: cover crops the cast off the sides on a portrait phone,
+    // which is the one shape this has to look right in.
+    var dpr = Math.min(root.devicePixelRatio || 1, 2);
+    var cw = this.root.clientWidth || 720;
+    var ch = (this.root.clientHeight || 900) * 0.62;
+    var w = Math.max(640, Math.round(cw * dpr));
+    var h = Math.max(300, Math.round(ch * dpr));
+    try { OCTO.frontend.drawKeyArt(this.keyart, w, h); } catch (e) { /* art is optional */ }
+  };
+
+  var TIPS = [
+    { en: 'Hold GRIP on a line and the wobble dies — so does your speed.', ar: 'اضغط "تشبث" على الخيط فيهدأ الاهتزاز — وتهدأ سرعتك معه.' },
+    { en: 'A Tank sags the rope into a bridge. An Archer barely bends it.', ar: 'الدِّرع يُحني الخيط ليصير جسراً. الصيّاد لا يكاد يثنيه.' },
+    { en: 'Every rank breaks the seal on another Anchor.', ar: 'كل رتبة تفكّ ختم مرساة جديدة.' },
+    { en: 'Crossing a full span pays experience. Falling off halfway does not.', ar: 'عبور الخيط كاملاً يمنحك خبرة. السقوط في منتصفه لا يمنحك شيئاً.' },
+    { en: 'Ra’s al-Khayt has been out on the sand since before the souq.', ar: 'رأس الخيط على الرمل من قبل أن يقوم السوق.' },
+    { en: 'Tap the minimap for the full map, the tracker for your jobs.', ar: 'انقر الخريطة المصغّرة لفتح الخريطة، والمتتبّع لمهامك.' }
+  ];
+
+  Ui.prototype.showSplash = function () {
+    this.screen = 'splash';
+    this.splash.classList.remove('hidden');
+    var tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+    this.loadTip.textContent = this.lang === 'ar' ? tip.ar : tip.en;
+    this.splash.querySelector('.octo-skip').textContent = this.lang === 'ar' ? 'تخطٍ ⏭' : 'Skip ⏭';
+  };
+
+  /** Splash → key-art loading screen. Idempotent; the skip button reuses it. */
+  Ui.prototype.skipSplash = function () {
+    if (this.screen !== 'splash') return;
+    this.paintKeyArt();
+    this.splash.classList.add('hidden');
+    this.loading.classList.remove('hidden');
+    this.screen = 'loading';
+    this.game.audio && this.game.audio.play('ui');
   };
 
   Ui.prototype.showTitle = function () {
     this.screen = 'title';
+    this.splash.classList.add('hidden');
     this.loading.classList.add('hidden');
+    this.select.classList.add('hidden');
     this.title.classList.remove('hidden');
+    this.rail.classList.remove('hidden');
     this.hud.classList.add('hidden');
+    this.buildRail();
+    this.syncSlotPill();
+  };
+
+  /* ------------------------------------------------------------- rail */
+
+  var RAIL_ICONS = {
+    notice: '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l6 4V5L8 9H4z"/><path d="M17 8a5 5 0 010 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    realm: '<svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>',
+    lang: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2c1.6 0 3.2 2.4 3.8 6H8.2C8.8 6.4 10.4 4 12 4zM4.3 10h3.4a24 24 0 000 4H4.3a8 8 0 010-4zm0 6h3.9c.6 2.6 1.6 4.5 2.6 5.4A8 8 0 014.3 16zm7.7 5.9c-1.6 0-3.2-2.3-3.8-5.9h7.6c-.6 3.6-2.2 5.9-3.8 5.9zM16.3 14a24 24 0 000-4h3.4a8 8 0 010 4h-3.4zm-1 7.4c1-.9 2-2.8 2.6-5.4h3.9a8 8 0 01-6.5 5.4zM18.5 8c-.6-2.6-1.6-4.5-2.6-5.4A8 8 0 0122.4 8h-3.9z"/></svg>',
+    support: '<svg viewBox="0 0 24 24"><path d="M12 2a8 8 0 00-8 8v5a3 3 0 003 3h1v-8H6v-.2A6 6 0 0118 10v.2h-2V18h2a2 2 0 01-2 2h-3v2h3a4 4 0 004-4 3 3 0 003-3v-5a8 8 0 00-8-8z"/></svg>',
+    reset: '<svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13a2 2 0 01-2 2H9a2 2 0 01-2-2L6 7zm3-4h6l1 2h3v2H5V5h3l1-2z"/></svg>'
+  };
+
+  Ui.prototype.buildRail = function () {
+    var self = this, ar = this.lang === 'ar';
+    var items = [
+      { k: 'notice',  en: 'Notice',   arr: 'إعلان',    fn: function () { self.openNotice('fairplay'); } },
+      { k: 'realm',   en: 'Realm',    arr: 'العالم',   fn: function () { self.openNotice('realm'); } },
+      { k: 'lang',    en: this.lang === 'en' ? 'العربية' : 'English', arr: this.lang === 'en' ? 'العربية' : 'English',
+        fn: function () { self.toggleLang(); } },
+      { k: 'support', en: 'Support',  arr: 'الدعم',    fn: function () { self.openPanel('controls'); } },
+      { k: 'reset',   en: 'Reset',    arr: 'مسح',      fn: function () { self.confirmReset(); } }
+    ];
+    this.rail.innerHTML = '';
+    items.forEach(function (it) {
+      var b = el('button', 'octo-rail-btn');
+      b.innerHTML = '<span class="octo-rail-ico">' + RAIL_ICONS[it.k] + '</span>' +
+        '<span class="octo-rail-lab">' + (ar && it.k !== 'lang' ? it.arr : it.en) + '</span>';
+      b.addEventListener('click', function () {
+        self.game.audio && self.game.audio.play('ui');
+        it.fn();
+      });
+      self.rail.appendChild(b);
+    });
+    var v = el('div', 'octo-stamp');
+    v.innerHTML = 'app.' + OCTO.VERSION + '<br>res.' + OCTO.VERSION + '.' + (this.game.save.build || 'beta');
+    this.rail.appendChild(v);
+  };
+
+  /** The pill above the menu: which discipline and rank you are resuming. */
+  Ui.prototype.syncSlotPill = function () {
+    var g = this.game, ar = this.lang === 'ar', t = this.title;
+    var pill = this.title.querySelector('.octo-slotpill');
+    var has = !!g.save.classId;
+    var cls = OCTO.classById(g.save.classId || 'muqatil');
+    pill.querySelector('.octo-slot-name').textContent = has
+      ? (ar ? cls.ar : cls.en) + '  ·  ' + (ar ? 'مستوى ' : 'Lv ') + g.hero.level
+      : (ar ? 'ماشي خيط جديد' : 'New Line-Walker');
+    pill.querySelector('.octo-slot-go').textContent = ar ? 'ادخل' : 'Enter';
+    pill.classList.toggle('fresh', !has);
+    t.querySelector('.octo-hint').textContent = this.isTouchDevice()
+      ? (ar ? 'انقر للدخول إلى اللعبة' : 'Tap to enter game')
+      : (ar ? 'انقر للبدء' : 'Click to begin');
+    this.title.querySelector('.octo-agree-text').innerHTML = ar
+      ? 'نسخة تجريبية — كل المحتوى مولَّد داخل المتصفح، ولا يُرسل أي شيء إلى أي خادم.'
+      : 'Beta build — everything is generated in your browser, and nothing is sent to any server.';
+  };
+
+  Ui.prototype.confirmReset = function () {
+    var ar = this.lang === 'ar';
+    var ok = root.confirm(ar
+      ? 'مسح التقدم كله والبدء من جديد؟'
+      : 'Erase all progress and start over?');
+    if (!ok) return;
+    this.game.resetSave();
+    root.location.reload();
+  };
+
+  /* ---------------------------------------------------- announcements */
+
+  var NOTICES = {
+    fairplay: {
+      en: 'Fair Play Notice', ar: 'إشعار اللعب النظيف',
+      bodyEn: [
+        'This build runs entirely on your device. There is no account, no server, and no leaderboard — so there is nothing here to cheat against except yourself.',
+        '1. What is stored',
+        'Your discipline, rank, dirhams, pearls and settings are written to your browser’s local storage. Clearing site data erases them. Nothing leaves the machine.',
+        '2. The console is not locked',
+        'Every system is reachable from the developer console, and the automation API is documented in the README. If you want to skip to level 60 and stand under Ra’s al-Khayt, that is your save file to spend.',
+        '3. What we ask',
+        'If you share a screenshot or a time, say which build it came from. The generator is seeded, so a seed and a version make any run reproducible.'
+      ],
+      bodyAr: [
+        'تعمل هذه النسخة كاملة على جهازك. لا حساب ولا خادم ولا لوحة صدارة — فليس هنا ما يُغَشّ فيه سوى نفسك.',
+        '١. ما الذي يُحفظ',
+        'انضباطك ورتبتك ودراهمك ولآلئك وإعداداتك تُكتب في التخزين المحلي للمتصفح. مسح بيانات الموقع يمحوها. لا شيء يغادر جهازك.',
+        '٢. الطرفية ليست مقفلة',
+        'كل نظام في اللعبة متاح من طرفية المطوّر، وواجهة الأتمتة موثّقة في الملف التعريفي. إن أردت القفز إلى المستوى ٦٠ والوقوف تحت رأس الخيط، فهذا ملف حفظك تتصرف فيه.',
+        '٣. ما نرجوه',
+        'إن شاركت لقطة أو زمناً، فاذكر النسخة. المولّد يعمل ببذرة، فالبذرة مع رقم النسخة يجعلان أي جولة قابلة للإعادة.'
+      ]
+    },
+    realm: {
+      en: 'The Realm', ar: 'العالم',
+      bodyEn: [
+        'One city, one seed, no loading between districts. Five quarters on a continuous 500 × 500 m map, strung together by 144 live ropes.',
+        'Al-Suq al-Qadeem — the old souq. Adobe, pointed arches, mashrabiya oriels, and the first rope anyone ever tied.',
+        'Al-Waha — the oasis. Date palms, open water, and a fire that is always lit.',
+        'Khutut al-Hayy — the line quarter, strung over the rooftops and up the great minaret.',
+        'Mina’ al-Sama — Sky Harbour, forty metres up, where the dhows fly.',
+        'Abraj Neo-Falak — the sky towers, neon and holographic script, rings to a hundred and fifty metres.',
+        'Add ?seed=12345 to the address to generate a different city. The seed is the whole world.'
+      ],
+      bodyAr: [
+        'مدينة واحدة، بذرة واحدة، ولا تحميل بين الأحياء. خمسة أحياء على خريطة متصلة ٥٠٠ × ٥٠٠ متر، يربطها ١٤٤ حبلاً حيّاً.',
+        'السوق القديم — الطين واﻷقواس المدببة والمشربيات، وأول حبل رُبط في المدينة.',
+        'الواحة — النخيل والماء ونار لا تنطفئ.',
+        'حي الخيوط — شبكة الحبال فوق السطوح وصعوداً إلى المئذنة الكبرى.',
+        'ميناء السماء — على ارتفاع أربعين متراً، حيث تطير السفن.',
+        'أبراج نيوفلك — النيون والخط المجسّم، وحلقات حتى مئة وخمسين متراً.',
+        'أضف ‎?seed=12345‎ إلى العنوان لتوليد مدينة أخرى. البذرة هي العالم كله.'
+      ]
+    },
+    build: {
+      en: 'What’s New', ar: 'الجديد',
+      bodyEn: [
+        'v1.1.0 — Levels, ranks and the eight Anchors',
+        'Levels 1–60 across nine ranks. Experience comes from pearls, jobs, discoveries and — above all — crossing ropes, scaled by how much of the span you actually walked.',
+        'Eight Anchors stand across the map, each sealed behind a rank. A sealed Anchor is visible from across its district with its shard dull; earning the rank lights it cyan and opens it for travel.',
+        'Traders now hand work over in a scene rather than a toast, with the job in their own words.',
+        'v1.0.4 — Mobile controls',
+        'The joystick floats: touch anywhere in the left half of the screen and it appears under your thumb. Action buttons are icons with captions. The minimap, tracker and purse are all tappable.'
+      ],
+      bodyAr: [
+        'الإصدار ١٫١٫٠ — المستويات والرتب والمراسي الثماني',
+        'مستويات من ١ إلى ٦٠ عبر تسع رتب. الخبرة تأتي من اللآلئ والمهام والاكتشاف، وقبل ذلك كله من عبور الخيوط، بمقدار ما قطعته منها فعلاً.',
+        'ثماني مراسٍ في الخريطة، كل واحدة مختومة برتبة. المرساة المختومة تُرى من بعيد وشظيتها خامدة؛ وببلوغ الرتبة تتوهج سماوية وتُفتح للانتقال.',
+        'التجار صاروا يسلّمون العمل في مشهد لا في إشعار عابر، وبكلامهم هم.',
+        'الإصدار ١٫٠٫٤ — تحكم الهاتف',
+        'الجويستيك يطفو: المس أي مكان في النصف الأيسر فيظهر تحت إبهامك. أزرار الفعل صارت أيقونات بأسماء. والخريطة والمتتبّع والمحفظة كلها قابلة للضغط.'
+      ]
+    }
+  };
+
+  Ui.prototype.openNotice = function (id) {
+    var self = this, ar = this.lang === 'ar';
+    this.noticeId = id || 'fairplay';
+    this.notice.classList.remove('hidden');
+    this.notice.querySelector('.octo-notice-cap').textContent = ar ? 'إعلان' : 'Announcement';
+
+    var tabs = this.notice.querySelector('.octo-notice-tabs');
+    tabs.innerHTML = '';
+    Object.keys(NOTICES).forEach(function (k) {
+      var b = el('button', 'octo-notice-tab' + (k === self.noticeId ? ' active' : ''),
+        ar ? NOTICES[k].ar : NOTICES[k].en);
+      b.addEventListener('click', function () {
+        self.game.audio && self.game.audio.play('ui');
+        self.openNotice(k);
+      });
+      tabs.appendChild(b);
+    });
+
+    var n = NOTICES[this.noticeId];
+    this.notice.querySelector('.octo-notice-h').textContent = ar ? n.ar : n.en;
+    var body = ar ? n.bodyAr : n.bodyEn;
+    this.notice.querySelector('.octo-notice-text').innerHTML =
+      body.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+
+    // the same generated art, at banner proportions
+    var art = this.notice.querySelector('.octo-notice-art');
+    if (!art._painted && OCTO.frontend) {
+      art._painted = true;
+      try { OCTO.frontend.drawKeyArt(art, 900, 300); } catch (e) { /* art is optional */ }
+    }
+  };
+
+  Ui.prototype.closeNotice = function () {
+    this.notice.classList.add('hidden');
+    this.game.audio && this.game.audio.play('ui');
   };
 
   Ui.prototype.buildTitleMenu = function () {
     var self = this;
     var menu = this.title.querySelector('.octo-menu');
     menu.innerHTML = '';
-    var hasSave = !!(this.game.save && (this.game.save.dirhams || (this.game.save.pearls || []).length));
+    // The slot pill above is the one primary action, and language, notices
+    // and support live on the rail. What is left is secondary, so it goes
+    // in a compact wrapping row — six full-width buttons stacked down a
+    // phone screen pushed the agreement line off the bottom.
     var items = [
-      { label: hasSave ? this.t('continueGame') : this.t('play'), fn: function () { self.beginNewGame(); } },
-      { label: this.lang === 'ar' ? '▶  شاهد المقدمة' : '▶  Watch the intro', fn: function () { self.playIntro(); } },
-      { label: this.lang === 'ar' ? 'غيّر الانضباط' : 'Change discipline', fn: function () {
+      { label: this.lang === 'ar' ? '▶ المقدمة' : '▶ Intro', fn: function () { self.playIntro(); } },
+      { label: this.lang === 'ar' ? 'الانضباط' : 'Discipline', fn: function () {
         self.title.classList.add('hidden');
         self.hud.classList.add('hidden');
         self.showSelect();
       } },
       { label: this.t('controls'), fn: function () { self.openPanel('controls'); } },
-      { label: this.t('settings'), fn: function () { self.openPanel('settings'); } },
-      { label: this.lang === 'en' ? 'العربية' : 'English', fn: function () { self.toggleLang(); } }
+      { label: this.t('settings'), fn: function () { self.openPanel('settings'); } }
     ];
     items.forEach(function (it) {
       var b = el('button', 'octo-menu-btn', it.label);
@@ -9754,25 +10374,33 @@
     this.screen = 'select';
     this.loading.classList.add('hidden');
     this.title.classList.add('hidden');
+    this.rail.classList.add('hidden');
     this.hud.classList.add('hidden');
     this.select.classList.remove('hidden');
     g.paused = false;
     g.prepareSelect();
 
+    // The heading is now the chosen discipline's own name, set by
+    // pickClass; the eyebrow underneath says what screen this is.
     this.select.querySelector('.octo-select-eyebrow').textContent =
       this.lang === 'ar' ? 'نقابة ماشي الخيط' : 'The Line-Walkers’ Guild';
-    this.select.querySelector('.octo-select-title').textContent =
-      this.lang === 'ar' ? 'اختر انضباطك' : 'Choose your discipline';
     this.select.querySelector('.octo-select-go').textContent =
-      this.lang === 'ar' ? 'ابدأ' : 'Begin';
+      this.lang === 'ar' ? 'ابدأ الرحلة' : 'Begin the journey';
 
+    // Roster cards: portrait, discipline, role. Stacked down the right
+    // edge so the avatar in the middle of the screen is never covered.
     this.classRow.innerHTML = '';
     OCTO.CLASSES.forEach(function (c) {
-      var b = el('button', 'octo-class-chip');
-      var col = c.skin.cloth;
+      var b = el('button', 'octo-class-card');
       b.innerHTML =
-        '<i style="background:rgb(' + Math.round(col[0] * 255) + ',' + Math.round(col[1] * 255) + ',' + Math.round(col[2] * 255) + ')"></i>' +
-        '<span>' + (self.lang === 'ar' ? c.ar : c.en) + '</span>';
+        '<canvas class="octo-class-face" width="96" height="96"></canvas>' +
+        '<span class="octo-class-meta">' +
+        '  <b>' + (self.lang === 'ar' ? c.ar : c.en) + '</b>' +
+        '  <i>' + (self.lang === 'ar' ? c.roleAr : c.roleEn) + '</i>' +
+        '</span>';
+      if (OCTO.frontend) {
+        try { OCTO.frontend.drawPortrait(b.querySelector('.octo-class-face'), c, 96); } catch (e) { /* art is optional */ }
+      }
       b.addEventListener('click', function () { self.pickClass(c.id); });
       b.dataset.classId = c.id;
       self.classRow.appendChild(b);
@@ -9793,6 +10421,8 @@
     });
 
     this.select.querySelector('.octo-sel-name').textContent = this.lang === 'ar' ? c.ar : c.en;
+    this.select.querySelector('.octo-select-tagline').textContent =
+      this.lang === 'ar' ? c.lineAr : c.lineEn;
     this.select.querySelector('.octo-sel-role').textContent =
       (this.lang === 'ar' ? c.roleAr : c.roleEn) + ' · ' + (this.lang === 'ar' ? c.en : c.ar);
     this.select.querySelector('.octo-sel-line').textContent = this.lang === 'ar' ? c.lineAr : c.lineEn;
@@ -9836,6 +10466,7 @@
     if (g.audio && !g.muted) { g.audio.init(); g.audio.resume(); }
     this.title.classList.add('hidden');
     this.loading.classList.add('hidden');
+    this.rail.classList.add('hidden');
     if (!g.save.seenIntro && g.cine) {
       g.save.seenIntro = true;
       g.persist();
@@ -9868,6 +10499,9 @@
     this.screen = 'game';
     this.title.classList.add('hidden');
     this.loading.classList.add('hidden');
+    this.splash.classList.add('hidden');
+    this.rail.classList.add('hidden');
+    this.notice.classList.add('hidden');
     this.hud.classList.remove('hidden');
     this.panel.classList.add('hidden');
     this.game.paused = false;
@@ -10651,6 +11285,526 @@
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
+/* ===== src/92-frontend.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 92-frontend.js
+ *
+ * The art for the front of the game, drawn rather than loaded.
+ *
+ * Big mobile RPGs open on painted key art. This project has no painted
+ * assets and is not going to grow any, so the key art is generated with
+ * Canvas2D at boot — the same rule the textures, meshes and score already
+ * follow.
+ *
+ * The composition is chosen to suit that constraint rather than fight it.
+ * Rendered figures in a chibi style would look like a bad imitation; a
+ * dusk sky with silhouetted Line-Walkers strung across it looks like a
+ * poster, is honest about what the game actually is, and is exactly what
+ * a 2D canvas is good at. Each of the five disciplines gets a rim light
+ * in its own colour, so the cast reads without a single face being drawn.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+  var TAU = Math.PI * 2;
+
+  function rgb(c, a) {
+    return 'rgba(' + Math.round(c[0] * 255) + ',' + Math.round(c[1] * 255) + ',' +
+      Math.round(c[2] * 255) + ',' + (a === undefined ? 1 : a) + ')';
+  }
+
+  /* ------------------------------------------------------------- sky */
+
+  function paintSky(ctx, w, h) {
+    var g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0.00, '#241a3d');     // deep violet overhead
+    g.addColorStop(0.34, '#5b3760');
+    g.addColorStop(0.58, '#b85f56');
+    g.addColorStop(0.76, '#e59a54');
+    g.addColorStop(1.00, '#f6c976');     // amber at the horizon
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    // sun, low and hazy
+    var sx = w * 0.62, sy = h * 0.66;
+    var sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, h * 0.42);
+    sg.addColorStop(0, 'rgba(255,236,190,0.95)');
+    sg.addColorStop(0.14, 'rgba(255,206,132,0.55)');
+    sg.addColorStop(1, 'rgba(255,180,110,0)');
+    ctx.fillStyle = sg;
+    ctx.fillRect(0, 0, w, h);
+
+    // stars, only in the upper third where the sky is still dark
+    ctx.fillStyle = 'rgba(255,244,220,0.85)';
+    for (var i = 0; i < 90; i++) {
+      var a = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+      var b = (Math.sin(i * 78.233) * 12345.6789) % 1;
+      var x = Math.abs(a) * w, y = Math.abs(b) * h * 0.34;
+      var r = 0.5 + Math.abs(a) * 1.1;
+      ctx.globalAlpha = 0.25 + Math.abs(b) * 0.6 * (1 - y / (h * 0.34));
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // a few long cloud bands catching the last light
+    for (var c = 0; c < 5; c++) {
+      var cy = h * (0.40 + c * 0.075);
+      var cw = w * (0.5 + (c % 3) * 0.22);
+      var cx = ((c * 0.37) % 1) * w;
+      ctx.fillStyle = 'rgba(255,208,160,' + (0.05 + (c % 2) * 0.045) + ')';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, cw * 0.5, h * 0.020, 0, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  /* -------------------------------------------------------- skyline */
+
+  /** Neo-Falak towers: tall slabs with tapered crowns and neon bands. */
+  function paintTowers(ctx, w, h, base) {
+    var slabs = [
+      [0.06, 0.34, 0.055], [0.13, 0.46, 0.042], [0.19, 0.28, 0.048],
+      [0.80, 0.52, 0.050], [0.87, 0.38, 0.058], [0.94, 0.44, 0.040]
+    ];
+    for (var i = 0; i < slabs.length; i++) {
+      var cx = slabs[i][0] * w, hh = slabs[i][1] * h, bw = slabs[i][2] * w;
+      var top = base - hh;
+      ctx.fillStyle = 'rgba(28,20,34,0.92)';
+      ctx.beginPath();
+      ctx.moveTo(cx - bw / 2, base);
+      ctx.lineTo(cx - bw * 0.34, top + hh * 0.10);
+      ctx.lineTo(cx, top);
+      ctx.lineTo(cx + bw * 0.34, top + hh * 0.10);
+      ctx.lineTo(cx + bw / 2, base);
+      ctx.closePath();
+      ctx.fill();
+      // neon bands
+      ctx.fillStyle = 'rgba(120,226,244,0.55)';
+      for (var b = 1; b < 6; b++) {
+        var by = top + hh * (0.14 + b * 0.14);
+        var bw2 = bw * (0.50 - b * 0.028);
+        ctx.fillRect(cx - bw2, by, bw2 * 2, Math.max(1, h * 0.0032));
+      }
+    }
+  }
+
+  /** The old town: domes, arches and the great minaret. */
+  function paintOldTown(ctx, w, h, base) {
+    ctx.fillStyle = 'rgba(38,25,28,0.95)';
+
+    // A run of flat roofs. The heights are driven by a hash rather than a
+    // constant band, otherwise the crenellations line up into a row of
+    // teeth across the whole frame.
+    var x = w * 0.20, n = 0;
+    while (x < w * 0.82) {
+      var seed = Math.abs(Math.sin(n * 51.17) * 43758.5453) % 1;
+      var seed2 = Math.abs(Math.sin(n * 17.93) * 12345.678) % 1;
+      var bw = w * (0.026 + seed * 0.030);
+      var bh = h * (0.075 + seed2 * seed2 * 0.155);
+      ctx.fillRect(x, base - bh, bw, bh);
+      var merlons = 3 + Math.floor(seed2 * 3);
+      for (var c = 0; c < merlons; c++) {
+        ctx.fillRect(x + (bw / merlons) * c + bw * 0.02, base - bh - h * 0.012,
+          bw * (0.62 / merlons), h * 0.012);
+      }
+      // an arched doorway punched out of the taller blocks
+      if (bh > h * 0.14) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.moveTo(x + bw * 0.36, base);
+        ctx.lineTo(x + bw * 0.36, base - bh * 0.30);
+        ctx.quadraticCurveTo(x + bw * 0.50, base - bh * 0.46, x + bw * 0.64, base - bh * 0.30);
+        ctx.lineTo(x + bw * 0.64, base);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = 'rgba(38,25,28,0.95)';
+      }
+      x += bw * 1.12;
+      n++;
+    }
+
+    // two onion domes, raised clear of the roofline so they read
+    [[0.32, 0.115], [0.72, 0.092]].forEach(function (d) {
+      var dx = d[0] * w, dr = d[1] * h;
+      ctx.beginPath();
+      ctx.moveTo(dx - dr * 0.62, base - h * 0.12);
+      ctx.bezierCurveTo(dx - dr * 0.98, base - h * 0.12 - dr * 0.9,
+        dx - dr * 0.26, base - h * 0.12 - dr * 1.35,
+        dx, base - h * 0.12 - dr * 1.55);
+      ctx.bezierCurveTo(dx + dr * 0.26, base - h * 0.12 - dr * 1.35,
+        dx + dr * 0.98, base - h * 0.12 - dr * 0.9,
+        dx + dr * 0.62, base - h * 0.12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillRect(dx - dr * 0.05, base - h * 0.12 - dr * 1.9, dr * 0.10, dr * 0.36);
+    });
+
+    // the great minaret, the tallest thing in the old quarter
+    var mx = w * 0.50, mb = base, mh = h * 0.50, mw = w * 0.016;
+    ctx.fillRect(mx - mw / 2, mb - mh, mw, mh);
+    ctx.fillRect(mx - mw * 0.92, mb - mh * 0.72, mw * 1.84, h * 0.014);   // gallery
+    ctx.fillRect(mx - mw * 0.78, mb - mh * 0.94, mw * 1.56, h * 0.012);
+    ctx.beginPath();                                                       // finial
+    ctx.moveTo(mx - mw * 0.62, mb - mh);
+    ctx.lineTo(mx, mb - mh - h * 0.052);
+    ctx.lineTo(mx + mw * 0.62, mb - mh);
+    ctx.closePath();
+    ctx.fill();
+
+    // date palms on the left
+    for (var p = 0; p < 3; p++) {
+      var px = w * (0.03 + p * 0.045), ph = h * (0.20 + p * 0.035);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(38,25,28,0.95)';
+      ctx.lineWidth = Math.max(1.5, w * 0.0035);
+      ctx.beginPath();
+      ctx.moveTo(px, base);
+      ctx.quadraticCurveTo(px + w * 0.006, base - ph * 0.6, px + w * 0.012, base - ph);
+      ctx.stroke();
+      for (var f = 0; f < 7; f++) {
+        var fa = -Math.PI * 0.86 + (f / 6) * Math.PI * 0.72;
+        ctx.beginPath();
+        ctx.moveTo(px + w * 0.012, base - ph);
+        ctx.quadraticCurveTo(
+          px + w * 0.012 + Math.cos(fa) * w * 0.020, base - ph + Math.sin(fa) * h * 0.030,
+          px + w * 0.012 + Math.cos(fa) * w * 0.036, base - ph + Math.sin(fa) * h * 0.028 + h * 0.026);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  /* ---------------------------------------------------------- titan */
+
+  /**
+   * Ra's al-Khayt on the horizon — the thing every rope is tied to. Kept
+   * as a soft mass with two burning eyes: legible, and it stays a rumour
+   * rather than a monster design.
+   */
+  function paintTitan(ctx, w, h, base) {
+    // Narrow and tall. Widened past about 0.16 it stops being a creature
+    // standing behind the city and becomes a hill the city sits on, and
+    // the whole skyline disappears into it.
+    var cx = w * 0.50, top = h * 0.05, halfW = w * 0.150;
+    var mantleBottom = base - h * 0.02;
+
+    // A halo first, so the mass is separated from the sky before a single
+    // edge is drawn — this is what stops it reading as a flat dome.
+    var halo = ctx.createRadialGradient(cx, top + h * 0.24, 0, cx, top + h * 0.24, w * 0.42);
+    halo.addColorStop(0, 'rgba(88,196,236,0.20)');
+    halo.addColorStop(0.5, 'rgba(70,150,210,0.08)');
+    halo.addColorStop(1, 'rgba(60,140,200,0)');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, w, base);
+
+    // Tentacles are drawn behind the mantle and kept short, so they read as
+    // limbs hanging out of it rather than as lines ruled across the sky.
+    ctx.lineCap = 'round';
+    for (var t = -3; t <= 3; t++) {
+      if (!t) continue;
+      var sign = t < 0 ? -1 : 1, k = Math.abs(t);
+      var rootX = cx + t * halfW * 0.22;
+      var rootY = top + h * 0.30;
+      var tipX = cx + sign * halfW * (0.78 + k * 0.26);
+      var tipY = mantleBottom + h * 0.02 - k * h * 0.03;
+      ctx.strokeStyle = 'rgba(22,15,26,' + (0.50 - k * 0.09) + ')';
+      ctx.lineWidth = w * (0.017 - k * 0.0035);
+      ctx.beginPath();
+      ctx.moveTo(rootX, rootY);
+      ctx.bezierCurveTo(
+        rootX + sign * halfW * 0.30, rootY + h * 0.16,
+        tipX - sign * halfW * 0.10, tipY - h * 0.16,
+        tipX, tipY);
+      ctx.stroke();
+    }
+
+    // the mantle itself — solid enough to be a body, not a smudge
+    var g = ctx.createLinearGradient(0, top, 0, mantleBottom);
+    g.addColorStop(0, 'rgba(34,24,44,0.80)');
+    g.addColorStop(0.55, 'rgba(26,17,30,0.90)');
+    g.addColorStop(1, 'rgba(20,13,22,0.96)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(cx - halfW, mantleBottom);
+    // an octopus mantle: shoulders low and wide, drawn to a point at the top
+    ctx.bezierCurveTo(cx - halfW * 1.06, top + h * 0.34, cx - halfW * 0.86, top + h * 0.08, cx, top);
+    ctx.bezierCurveTo(cx + halfW * 0.86, top + h * 0.08, cx + halfW * 1.06, top + h * 0.34, cx + halfW, mantleBottom);
+    ctx.closePath();
+    ctx.fill();
+
+    // The eyes sit well inside the mantle. Placed any higher they float off
+    // the silhouette and read as two lamps hanging in the sky.
+    [[-0.34], [0.34]].forEach(function (e) {
+      var ex = cx + e[0] * halfW, ey = top + h * 0.30;
+      var eg = ctx.createRadialGradient(ex, ey, 0, ex, ey, w * 0.038);
+      eg.addColorStop(0, 'rgba(214,252,255,1)');
+      eg.addColorStop(0.16, 'rgba(120,232,250,0.85)');
+      eg.addColorStop(0.42, 'rgba(70,200,240,0.30)');
+      eg.addColorStop(1, 'rgba(60,190,235,0)');
+      ctx.fillStyle = eg;
+      ctx.beginPath();
+      ctx.arc(ex, ey, w * 0.038, 0, TAU);
+      ctx.fill();
+      // a hard pupil so the eye has a centre at small sizes
+      ctx.fillStyle = 'rgba(236,254,255,0.95)';
+      ctx.beginPath();
+      ctx.ellipse(ex, ey, w * 0.0065, h * 0.016, 0, 0, TAU);
+      ctx.fill();
+    });
+  }
+
+  /* --------------------------------------------------------- figures */
+
+  /**
+   * One silhouetted Line-Walker, rim-lit in their discipline's colour.
+   * `pose` picks the attitude: 0 balancing, 1 mid-stride, 2 crouched,
+   * 3 arms wide, 4 leaning into a run.
+   */
+  function paintWalker(ctx, x, y, s, colour, pose, facing) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(facing || 1, 1);
+
+    var body = 'rgba(18,12,16,0.96)';
+    var lean = [0, 0.10, 0.22, -0.06, 0.26][pose] || 0;
+    ctx.rotate(lean);
+
+    // legs
+    ctx.strokeStyle = body;
+    ctx.lineCap = 'round';
+    ctx.lineWidth = s * 0.13;
+    var legs = [
+      [[-0.10, 1.00], [0.12, 1.00]],
+      [[-0.26, 0.98], [0.30, 0.92]],
+      [[-0.30, 0.86], [0.34, 0.90]],
+      [[-0.20, 1.00], [0.22, 1.00]],
+      [[-0.36, 0.92], [0.40, 0.84]]
+    ][pose] || [[-0.10, 1.0], [0.12, 1.0]];
+    legs.forEach(function (l) {
+      ctx.beginPath();
+      ctx.moveTo(0, s * 0.42);
+      ctx.quadraticCurveTo(l[0] * s * 0.6, s * 0.72, l[0] * s, l[1] * s);
+      ctx.stroke();
+    });
+
+    // torso
+    ctx.lineWidth = s * 0.20;
+    ctx.beginPath();
+    ctx.moveTo(0, s * 0.42);
+    ctx.lineTo(0, s * -0.06);
+    ctx.stroke();
+
+    // arms — wide for balance, which is the whole game
+    ctx.lineWidth = s * 0.10;
+    var arms = [
+      [[-0.62, -0.18], [0.62, -0.22]],
+      [[-0.50, 0.06], [0.46, -0.30]],
+      [[-0.40, 0.22], [0.44, 0.10]],
+      [[-0.74, -0.34], [0.74, -0.30]],
+      [[-0.44, 0.14], [0.52, -0.20]]
+    ][pose] || [[-0.6, -0.2], [0.6, -0.2]];
+    arms.forEach(function (a) {
+      ctx.beginPath();
+      ctx.moveTo(0, s * 0.02);
+      ctx.quadraticCurveTo(a[0] * s * 0.55, s * (0.02 + a[1] * 0.4), a[0] * s, a[1] * s);
+      ctx.stroke();
+    });
+
+    // head
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(0, s * -0.20, s * 0.16, 0, TAU);
+    ctx.fill();
+
+    // rim light down the leading edge, in the discipline's colour
+    // Rim light down the leading edge. Kept thin and hugging the form —
+    // any thicker and it detaches into a bright hook floating beside the
+    // figure instead of reading as light catching an edge.
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = rgb(colour, 0.62);
+    ctx.lineWidth = s * 0.030;
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.085, s * -0.02);
+    ctx.lineTo(-s * 0.085, s * 0.40);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, s * -0.20, s * 0.155, Math.PI * 0.80, Math.PI * 1.30);
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.restore();
+  }
+
+  /* --------------------------------------------------------- key art */
+
+  /**
+   * The loading-screen illustration. Draws at whatever size it is given,
+   * so the same routine serves a phone banner and a desktop splash.
+   */
+  function drawKeyArt(canvas, w, h) {
+    canvas.width = w;
+    canvas.height = h;
+    var ctx = canvas.getContext('2d');
+    var base = h * 0.86;
+
+    paintSky(ctx, w, h);
+    paintTitan(ctx, w, h, base);
+    paintTowers(ctx, w, h, base);
+    paintOldTown(ctx, w, h, base);
+
+    // ground haze so the skyline sits in air rather than on a hard edge
+    var hz = ctx.createLinearGradient(0, base - h * 0.16, 0, base + h * 0.04);
+    hz.addColorStop(0, 'rgba(246,201,118,0)');
+    hz.addColorStop(1, 'rgba(246,201,118,0.42)');
+    ctx.fillStyle = hz;
+    ctx.fillRect(0, base - h * 0.16, w, h * 0.20);
+
+    // the lines, and the cast standing on them
+    // Depth is carried by size: two small figures far back, then the cast
+    // stepping forward. A row of same-sized silhouettes reads as clip art.
+    var classes = OCTO.CLASSES;
+    var lines = [
+      { x0: 0.52, y0: 0.36, x1: 1.06, y1: 0.44, at: 0.40, s: 0.055, sag: 0.026, pose: 1, face: -1, cls: 2, dim: 0.55 },
+      { x0: -0.06, y0: 0.40, x1: 0.40, y1: 0.47, at: 0.52, s: 0.068, sag: 0.030, pose: 3, face: 1, cls: 4, dim: 0.68 },
+      { x0: 0.26, y0: 0.58, x1: 0.88, y1: 0.53, at: 0.36, s: 0.105, sag: 0.048, pose: 0, face: 1, cls: 0, dim: 0.85 },
+      { x0: 0.58, y0: 0.76, x1: 1.08, y1: 0.70, at: 0.28, s: 0.135, sag: 0.052, pose: 2, face: -1, cls: 3, dim: 1.0 },
+      { x0: -0.08, y0: 0.80, x1: 0.52, y1: 0.86, at: 0.56, s: 0.175, sag: 0.060, pose: 4, face: 1, cls: 1, dim: 1.0 }
+    ];
+
+    lines.forEach(function (L) {
+      var ax = L.x0 * w, ay = L.y0 * h, bx = L.x1 * w, by = L.y1 * h;
+      var sag = h * L.sag;
+      // rope: a quadratic through a sagging midpoint
+      ctx.strokeStyle = 'rgba(30,20,22,' + (0.40 + L.dim * 0.45).toFixed(2) + ')';
+      ctx.lineWidth = Math.max(1.2, h * 0.0030 * (0.5 + L.dim));
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by);
+      ctx.stroke();
+
+      // stand the walker on the curve at parameter t
+      var t = L.at, mt = 1 - t;
+      var px = mt * mt * ax + 2 * mt * t * ((ax + bx) / 2) + t * t * bx;
+      var py = mt * mt * ay + 2 * mt * t * ((ay + by) / 2 + sag) + t * t * by;
+      var cls = classes[L.cls % classes.length];
+      ctx.globalAlpha = 0.55 + L.dim * 0.45;    // aerial perspective
+      paintWalker(ctx, px, py - h * L.s, h * L.s, cls.skin.trim, L.pose, L.face);
+      ctx.globalAlpha = 1;
+    });
+
+    // vignette
+    var vg = ctx.createRadialGradient(w * 0.5, h * 0.46, h * 0.2, w * 0.5, h * 0.5, h * 0.92);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(8,5,10,0.62)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, w, h);
+
+    // grain, so the flat gradients do not band on a phone panel
+    var img = ctx.getImageData(0, 0, w, h);
+    var d = img.data;
+    for (var i2 = 0; i2 < d.length; i2 += 4) {
+      var n = (Math.random() - 0.5) * 9;
+      d[i2] += n; d[i2 + 1] += n; d[i2 + 2] += n;
+    }
+    ctx.putImageData(img, 0, 0);
+    return canvas;
+  }
+
+  /* -------------------------------------------------------- portrait */
+
+  /**
+   * A circular bust for a discipline — used on character slots and the
+   * class cards. Built from the same palette the 3D avatar uses, so the
+   * portrait and the character in the world agree with each other.
+   */
+  function drawPortrait(canvas, cls, size) {
+    canvas.width = size;
+    canvas.height = size;
+    var ctx = canvas.getContext('2d');
+    var c = size / 2;
+
+    // backdrop: the discipline's cloth colour, lit from upper left
+    var g = ctx.createRadialGradient(c * 0.72, c * 0.62, 0, c, c, c);
+    g.addColorStop(0, rgb(cls.skin.cloth, 0.95));
+    g.addColorStop(0.62, rgb(cls.skin.cloth, 0.55));
+    g.addColorStop(1, 'rgba(14,10,8,0.95)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(c, c, c, 0, TAU);
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.98, 0, TAU);
+    ctx.clip();
+
+    // Shoulders, brought up close under the chin. Set lower, the gap
+    // between head and collar turns the two into a face with a mouth.
+    ctx.fillStyle = rgb(cls.skin.cloth, 1);
+    ctx.beginPath();
+    ctx.moveTo(c * 0.02, size);
+    ctx.quadraticCurveTo(c * 0.30, c * 1.10, c, c * 1.06);
+    ctx.quadraticCurveTo(c * 1.70, c * 1.10, c * 1.98, size);
+    ctx.closePath();
+    ctx.fill();
+
+    // A V-neck of two straight strokes. Any curve here reads as a mouth.
+    ctx.strokeStyle = rgb(cls.skin.trim, 0.95);
+    ctx.lineWidth = size * 0.032;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(c * 0.56, c * 1.12);
+    ctx.lineTo(c, c * 1.52);
+    ctx.lineTo(c * 1.44, c * 1.12);
+    ctx.stroke();
+
+    // head, then the hood over it
+    ctx.fillStyle = rgb(cls.skin.skinTone, 1);
+    ctx.beginPath();
+    ctx.arc(c, c * 0.82, c * 0.31, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = rgb(cls.skin.metal, 0.94);
+    ctx.beginPath();
+    ctx.arc(c, c * 0.78, c * 0.35, Math.PI * 1.02, Math.PI * 1.98);
+    ctx.fill();
+    // the hood's front edge, cutting across the brow
+    ctx.beginPath();
+    ctx.ellipse(c, c * 0.70, c * 0.35, c * 0.13, 0, 0, TAU);
+    ctx.fill();
+
+    // rim light down the right side, in the trim colour
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = rgb(cls.skin.trim, 0.60);
+    ctx.lineWidth = size * 0.024;
+    ctx.beginPath();
+    ctx.arc(c, c * 0.82, c * 0.33, -Math.PI * 0.40, Math.PI * 0.34);
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.restore();
+
+    // ring
+    ctx.strokeStyle = rgb(cls.skin.trim, 0.85);
+    ctx.lineWidth = size * 0.035;
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.965, 0, TAU);
+    ctx.stroke();
+    return canvas;
+  }
+
+  OCTO.frontend = {
+    drawKeyArt: drawKeyArt,
+    drawPortrait: drawPortrait,
+    paintWalker: paintWalker
+  };
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
 /* ===== src/95-cinematic.js ===== */
 /* =====================================================================
  * OCTOPUSES ON THE LINE — 95-cinematic.js
@@ -11031,11 +12185,16 @@
       if (ensureTouchControls()) game.toast(ui.lang === 'ar' ? 'تم تفعيل أزرار اللمس' : 'Touch controls enabled', 'info');
     }, { passive: true });
 
+    // The front of the game is staged: logo on black first, then the key
+    // art with the progress bar once enough of the build is done that the
+    // player has something to look at other than a number.
+    if (!testMode) ui.showSplash();
     var stage = 0;
     function nextStage() {
       if (stage >= stages.length) return finish();
       var s = stages[stage];
       ui.setProgress(stage / stages.length, ui.lang === 'ar' ? s[1] : s[0]);
+      if (!testMode && stage === 1) ui.skipSplash();
       stage++;
       // let the browser paint the progress bar before the heavy call
       root.setTimeout(function () {
@@ -11432,6 +12591,7 @@
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
+
 
 
 
