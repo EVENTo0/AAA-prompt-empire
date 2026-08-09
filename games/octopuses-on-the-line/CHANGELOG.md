@@ -4,6 +4,36 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-08-09 — The skill tree
+
+From the new screenshots: a class skill tree with points, ranked nodes,
+prerequisites and a detail card. It is the piece that makes the combat layer
+a build rather than a fixed loadout.
+
+### Added
+
+- **A point per level, spent across a three-row tree.** Row 2 needs three
+  points spent above it and row 3 needs eight, so a build is a sequence of
+  decisions instead of a shopping list.
+- **Ten ranks per node.** A rank is not a flat damage bump: it adds 9% to the
+  skill's own power, takes 3% off its focus cost and 4% off its cooldown, so
+  ranking a Tank's *Bridge the Line* does something different from ranking a
+  Mage's *Ember*.
+- **Two passives per discipline**, sharing the same point pool and feeding
+  the same vitals everything else reads. The grip passives (*Light Step*,
+  *Steady Nerve*) go into the inverted-pendulum model rather than a stat
+  block — they change how the rope feels, not a number on a card.
+- **A detail card** per node showing what the next point actually buys, and
+  why a node is refused when it is: no points, row locked, or level too low.
+- **Respec is free and always available.** In a game with no trade and no
+  second character, a dead-end build is only a punishment.
+
+### Fixed
+
+- The node name and its rank badge collided on a narrow phone.
+- At rank 0 the detail card showed "1.45 → 1.45", an arrow from a number to
+  itself. The plain figures are shown until a rank has actually been taken.
+
 ## [1.3.0] — 2026-08-09 — The fight
 
 The skill wheel, the bag and the auction were asked for, and none of them

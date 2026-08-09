@@ -20,6 +20,7 @@
     settings:     { en: 'Settings',                ar: 'الإعدادات' },
     controls:     { en: 'Controls',                ar: 'التحكم' },
     hero:         { en: 'Hero',                    ar: 'البطل' },
+    skills:       { en: 'Skills',                  ar: 'المهارات' },
     bag:          { en: 'Bag',                     ar: 'الحقيبة' },
     auction:      { en: 'Auction',                 ar: 'المزاد' },
     jobs:         { en: 'Jobs',                    ar: 'الأعمال' },
@@ -851,7 +852,7 @@
     this.tab = tab;
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
-      ? [['hero', this.t('hero')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
+      ? [['hero', this.t('hero')], ['skills', this.t('skills')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
          ['auction', this.t('auction')], ['shop', this.t('shop')], ['map', this.t('map')],
          ['controls', this.t('controls')], ['settings', this.t('settings')]]
       : [['controls', this.t('controls')], ['settings', this.t('settings')]];
@@ -866,6 +867,7 @@
     var body = this.bodyEl;
     body.innerHTML = '';
     if (tab === 'hero') this.renderHero(body);
+    else if (tab === 'skills') this.renderSkills(body);
     else if (tab === 'bag') this.renderBag(body);
     else if (tab === 'auction') this.renderAuction(body);
     else if (tab === 'jobs') this.renderJobs(body);
@@ -948,6 +950,142 @@
     body.appendChild(el('p', 'octo-note', ar
       ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
       : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
+  };
+
+  /* ------------------------------------------------------ skill tree */
+
+  /**
+   * The tree, as three rows of nodes with a detail card beside the
+   * selection. Rows gate on points already spent above them, so a build
+   * is a sequence of decisions rather than a shopping list. Respec is
+   * free and always available — a dead-end build in a game with no trade
+   * and no second character would just be a punishment.
+   */
+  Ui.prototype.renderSkills = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    var c = g.combat;
+    if (!c) return;
+    var C = OCTO.combat;
+    var tree = C.treeFor(g.save.classId || 'muqatil');
+
+    var head = el('div', 'octo-tree-head');
+    head.innerHTML =
+      '<div><b>' + c.pointsFree() + '</b> ' + (ar ? 'نقاط متاحة' : 'points free') + '</div>' +
+      '<div class="dim">' + c.pointsSpent() + ' / ' + c.pointsEarned() + ' ' +
+        (ar ? 'مُنفقة' : 'spent') + ' · ' + (ar ? 'نقطة لكل مستوى' : '1 per level') + '</div>';
+    var reset = el('button', 'octo-btn-small ghost', ar ? 'إعادة التوزيع' : 'Respec');
+    reset.addEventListener('click', function () {
+      c.respec(); g.audio && g.audio.play('ui'); self.renderPanel('skills');
+    });
+    head.appendChild(reset);
+    body.appendChild(head);
+
+    if (this._treePick === undefined) this._treePick = '0:0';
+
+    var wrap = el('div', 'octo-tree');
+    tree.forEach(function (row, ri) {
+      var open = c.spentAbove(ri) >= row.needs;
+      var rowEl = el('div', 'octo-tree-row' + (open ? '' : ' shut'));
+      if (row.needs) {
+        rowEl.appendChild(el('div', 'octo-tree-gate',
+          (ar ? 'تحتاج ' : 'Needs ') + row.needs + (ar ? ' نقاط أعلاه' : ' points above')));
+      }
+      var nodes = el('div', 'octo-tree-nodes');
+      row.nodes.forEach(function (node, ni) {
+        var id = c.nodeId(node);
+        var rank = c.rankOf(id);
+        var key = ri + ':' + ni;
+        var n = el('button', 'octo-node' +
+          (rank ? ' taken' : '') + (self._treePick === key ? ' sel' : '') +
+          (node.kind === 'passive' ? ' passive' : ''));
+        var label = node.kind === 'passive'
+          ? (ar ? node.passive.ar : node.passive.en)
+          : (ar ? node.skill.ar : node.skill.en);
+        n.innerHTML =
+          '<span class="octo-node-ico">' +
+            (node.kind === 'passive' ? '◈' : (SKILL_GLYPH[node.skill.kind] ? '' : '✦')) + '</span>' +
+          '<span class="octo-node-name">' + label + '</span>' +
+          '<span class="octo-node-rank">' + rank + ' / ' + C.MAX_RANK + '</span>';
+        if (node.kind === 'active') {
+          n.querySelector('.octo-node-ico').innerHTML = SKILL_GLYPH[node.skill.kind] || '';
+        }
+        n.addEventListener('click', function () {
+          self._treePick = key;
+          self.renderPanel('skills');
+        });
+        nodes.appendChild(n);
+      });
+      rowEl.appendChild(nodes);
+      wrap.appendChild(rowEl);
+    });
+    body.appendChild(wrap);
+
+    // ---- detail card for the selected node
+    var pick = String(this._treePick).split(':');
+    var row = tree[+pick[0]], node = row && row.nodes[+pick[1]];
+    if (!node) return;
+    var id = c.nodeId(node);
+    var rank = c.rankOf(id);
+    var card = el('div', 'octo-node-card');
+
+    if (node.kind === 'active') {
+      var t0 = c.tuned(node.skill);
+      var next = Object.assign({}, node.skill);
+      var t1 = { power: +(node.skill.power * (1 + 0.09 * rank)).toFixed(2),
+                 sp: Math.max(1, Math.round(node.skill.sp * (1 - 0.03 * rank))),
+                 cd: +(node.skill.cd * (1 - 0.04 * rank)).toFixed(2) };
+      // At rank 0 the first point buys the base values, so an arrow from a
+      // number to itself is noise — show the plain figures instead.
+      var arrow = rank > 0 && rank < C.MAX_RANK;
+      card.innerHTML =
+        '<div class="octo-node-title">' + (ar ? node.skill.ar : node.skill.en) +
+          '<em>' + (ar ? 'مهارة فعّالة' : 'Active') + '</em></div>' +
+        '<div class="octo-node-rows">' +
+        (node.skill.power ? '<div><span>' + (ar ? 'القوة' : 'Power') + '</span><b>' +
+          (rank ? t0.power : node.skill.power) + (arrow ? ' → ' + t1.power : '') + '</b></div>' : '') +
+        '<div><span>' + (ar ? 'الطاقة' : 'Focus cost') + '</span><b>' +
+          (rank ? t0.sp : node.skill.sp) + (arrow ? ' → ' + t1.sp : '') + '</b></div>' +
+        '<div><span>' + (ar ? 'الانتظار' : 'Cooldown') + '</span><b>' +
+          (rank ? t0.cd : node.skill.cd) + 's' + (arrow ? ' → ' + t1.cd + 's' : '') + '</b></div>' +
+        '<div><span>' + (ar ? 'يُفتح عند' : 'Unlocks at') + '</span><b>' +
+          (ar ? 'مستوى ' : 'Lv ') + C.SKILL_LEVELS[node.index] + '</b></div>' +
+        '</div>';
+    } else {
+      var names = { attack: ar ? 'الهجوم' : 'Attack', defence: ar ? 'الدفاع' : 'Defence',
+                    maxHp: ar ? 'الصحة' : 'Health', maxSp: ar ? 'الطاقة' : 'Focus',
+                    grip: ar ? 'التوازن على الخيط' : 'Balance on the line' };
+      card.innerHTML =
+        '<div class="octo-node-title">' + (ar ? node.passive.ar : node.passive.en) +
+          '<em>' + (ar ? 'صفة دائمة' : 'Passive') + '</em></div>' +
+        '<div class="octo-node-rows">' +
+        '<div><span>' + names[node.passive.stat] + '</span><b>+' +
+          Math.round(node.passive.per * 100) + '% ' + (ar ? 'لكل رتبة' : 'per rank') + '</b></div>' +
+        '<div><span>' + (ar ? 'الآن' : 'Currently') + '</span><b>+' +
+          Math.round(node.passive.per * rank * 100) + '%</b></div>' +
+        '</div>';
+    }
+
+    var why = c.rankBlocker(+pick[0], node);
+    var up = el('button', 'octo-select-go' + (why ? ' ghost' : ''),
+      why === 'max' ? (ar ? 'أقصى رتبة' : 'Max rank')
+      : why === 'points' ? (ar ? 'لا نقاط' : 'No points')
+      : why === 'locked' ? (ar ? 'الصف مغلق' : 'Row locked')
+      : why === 'level' ? (ar ? 'المستوى منخفض' : 'Level too low')
+      : (ar ? 'ارفع الرتبة' : 'Rank up'));
+    up.addEventListener('click', function () {
+      if (c.rankUp(+pick[0], node) === 'ok') {
+        g.audio && g.audio.play('coin');
+        self.renderPanel('skills');
+      } else {
+        g.audio && g.audio.play('fail', 0.4);
+      }
+    });
+    card.appendChild(up);
+    body.appendChild(card);
+
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'كل رتبة ترفع قوة المهارة ٩٪ وتخفض كلفتها ٣٪ وانتظارها ٤٪. إعادة التوزيع مجانية دائماً.'
+      : 'Each rank adds 9% power, and takes 3% off the focus cost and 4% off the cooldown. Respec is always free.'));
   };
 
   /* --------------------------------------------------------- the bag */

@@ -199,7 +199,17 @@
       t.balanceControl = Math.max(1.2, t.balanceControl + (b.grip || 0));
       t.lineWeight = Math.max(12, t.lineWeight + (b.weight || 0));
     }
-    if (this.game && this.game.combat) this.game.combat.applyClass();
+    // A grip passive belongs to the pendulum, not to a stat block, so it
+    // is applied here rather than folded into the combat vitals.
+    if (this.game && this.game.combat) {
+      this.game.combat.applyClass();
+      var pas = OCTO.combat.passivesFor(this.classId);
+      for (var pj = 0; pj < pas.length; pj++) {
+        if (pas[pj].stat !== 'grip') continue;
+        var rk = this.game.combat.rankOf(pas[pj].id);
+        if (rk) t.balanceControl *= (1 + pas[pj].per * rk);
+      }
+    }
     return this;
   };
 

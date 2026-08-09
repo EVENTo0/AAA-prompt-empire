@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Octopuses on the Line — an open-map browser action game. Balance an eight-armed octopus along the washing lines of an old Arabian souq and climb to the neon sky towers above.">
 <meta name="theme-color" content="#1a120b">
-<title>Octopuses on the Line — Open Map Beta v1.3.0</title>
+<title>Octopuses on the Line — Open Map Beta v1.4.0</title>
 <style>
   /* ---------------------------------------------------------- reset */
   *, *::before, *::after { box-sizing: border-box; }
@@ -928,6 +928,60 @@
   .octo-q.seal .octo-q-head b { color: var(--teal); }
   .octo-q-line { font-size: 10px; opacity: 0.82; margin-top: 2px; }
   .octo-q-line.dim, .octo-q.dim { opacity: 0.55; }
+
+  /* ---- skill tree */
+  .octo-tree-head {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    border: 1px solid var(--edge); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+    background: linear-gradient(90deg, rgba(227,181,88,0.10), transparent);
+  }
+  .octo-tree-head b { color: var(--gold); font-size: 18px; }
+  .octo-tree-head .dim { font-size: 11px; opacity: 0.6; flex: 1; }
+  .octo-tree { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .octo-tree-row { position: relative; padding-top: 4px; }
+  .octo-tree-row.shut { opacity: 0.45; }
+  .octo-tree-gate {
+    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 800; color: var(--teal); opacity: 0.85; margin-bottom: 5px;
+  }
+  .octo-tree-nodes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .octo-node {
+    display: flex; align-items: center; gap: 9px; cursor: pointer; font-family: inherit;
+    padding: 9px 11px; border-radius: 12px; text-align: start;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+    color: #f2e7d2;
+  }
+  .octo-node.taken { border-color: var(--gold); background: rgba(227,181,88,0.10); }
+  .octo-node.sel { box-shadow: 0 0 0 2px var(--teal); }
+  .octo-node-ico {
+    width: 30px; height: 30px; flex: 0 0 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.14);
+  }
+  .octo-node-ico svg { width: 18px; height: 18px; fill: #f6ecd8; }
+  .octo-node.passive .octo-node-ico { color: var(--teal); }
+  .octo-node-name { flex: 1; font-size: 12px; font-weight: 700; line-height: 1.25; min-width: 0; padding-inline-end: 6px; }
+  .octo-node-rank { font-size: 10px; font-weight: 800; color: var(--gold); white-space: nowrap; flex: 0 0 auto; }
+  .octo-node-card {
+    border: 1px solid var(--edge); border-radius: 14px; padding: 14px 16px;
+    background: rgba(255,255,255,0.04);
+  }
+  .octo-node-title {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    font-size: 16px; font-weight: 800; color: var(--sand); margin-bottom: 10px;
+  }
+  .octo-node-title em {
+    font-size: 10px; font-style: normal; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--teal);
+  }
+  .octo-node-rows { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .octo-node-rows div { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  .octo-node-rows span { opacity: 0.7; }
+  .octo-node-rows b { color: var(--gold); font-weight: 800; }
+  .octo-node-card .octo-select-go { width: 100%; max-width: none; box-shadow: none; }
+  .octo-node-card .octo-select-go.ghost {
+    background: rgba(255,255,255,0.08); color: #cdbfa8; border-color: rgba(255,255,255,0.16);
+  }
 
   /* ---- bag + auction */
   .octo-worn { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }

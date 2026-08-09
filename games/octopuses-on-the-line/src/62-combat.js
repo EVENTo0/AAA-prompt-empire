@@ -95,6 +95,58 @@
   /** A skill unlocks at these levels, in order. */
   var SKILL_LEVELS = [1, 6, 14, 26];
 
+  /**
+   * Every skill can be ranked 1..10 with points earned on level-up. A rank
+   * is not a flat damage bump — it moves the number the skill is actually
+   * about, so ranking a Tank's Bridge does something different from
+   * ranking a Mage's Ember.
+   *
+   *   power  +9% per rank    sp  -3% per rank    cd  -4% per rank
+   *
+   * Passives sit alongside the four actives on the same point pool and
+   * feed the same vitals the rest of the game reads.
+   */
+  var MAX_RANK = 10;
+  var POINTS_PER_LEVEL = 1;
+
+  var PASSIVES = {
+    sayyad:  [{ id: 'keen',   en: 'Keen Eye',      ar: 'العين الحادة',  stat: 'attack', per: 0.035 },
+              { id: 'light',  en: 'Light Step',    ar: 'الخطوة الخفيفة', stat: 'grip',   per: 0.06 }],
+    muqatil: [{ id: 'temper', en: 'Tempered',      ar: 'المصقول',       stat: 'attack', per: 0.04 },
+              { id: 'hardy',  en: 'Hardy',         ar: 'الجَلد',        stat: 'maxHp',  per: 0.035 }],
+    dir:     [{ id: 'bulwark',en: 'Bulwark',       ar: 'الحصن',         stat: 'defence',per: 0.055 },
+              { id: 'root',   en: 'Rooted',        ar: 'المتجذّر',      stat: 'maxHp',  per: 0.045 }],
+    shafi:   [{ id: 'wellspr',en: 'Wellspring',    ar: 'النبع',         stat: 'maxSp',  per: 0.05 },
+              { id: 'calm',   en: 'Steady Nerve',  ar: 'الأعصاب الهادئة', stat: 'grip', per: 0.07 }],
+    sahir:   [{ id: 'focus',  en: 'Inner Focus',   ar: 'التركيز',       stat: 'attack', per: 0.045 },
+              { id: 'deep',   en: 'Deep Well',     ar: 'البئر العميق',  stat: 'maxSp',  per: 0.055 }]
+  };
+
+  function passivesFor(classId) { return PASSIVES[classId] || PASSIVES.muqatil; }
+
+  /**
+   * The tree, as rows of nodes. Row 1 is the openers, row 2 needs three
+   * points spent above it, row 3 needs eight. Prerequisites are what stop
+   * a player pouring everything into the last node the moment they can.
+   */
+  function treeFor(classId) {
+    var acts = skillsFor(classId), pas = passivesFor(classId);
+    return [
+      { needs: 0, nodes: [
+        { kind: 'active', index: 0, skill: acts[0] },
+        { kind: 'passive', passive: pas[0] }
+      ] },
+      { needs: 3, nodes: [
+        { kind: 'active', index: 1, skill: acts[1] },
+        { kind: 'passive', passive: pas[1] }
+      ] },
+      { needs: 8, nodes: [
+        { kind: 'active', index: 2, skill: acts[2] },
+        { kind: 'active', index: 3, skill: acts[3] }
+      ] }
+    ];
+  }
+
   /* ----------------------------------------------------------- enemies */
 
   /**
@@ -262,6 +314,7 @@
     this.steady = 0;
     this.deathTimer = 0;
     this.dead = false;
+    this.ranks = (game.save.ranks && game.save.ranks[game.save.classId]) || {};
     this.applyClass();
   }
 
@@ -270,6 +323,14 @@
     var g = this.game;
     var cls = OCTO.classById(g.save.classId || 'muqatil');
     var v = vitalsFor(cls, g.hero.level);
+    // passives fold into the same vitals everything else reads
+    var pas = passivesFor(cls.id);
+    for (var pi = 0; pi < pas.length; pi++) {
+      var r = this.rankOf(pas[pi].id);
+      if (!r) continue;
+      if (pas[pi].stat === 'grip') continue;      // handled by the player tuning
+      v[pas[pi].stat] = Math.round(v[pas[pi].stat] * (1 + pas[pi].per * r));
+    }
     var hpFrac = this.maxHp ? this.hp / this.maxHp : 1;
     var spFrac = this.maxSp ? this.sp / this.maxSp : 1;
     this.vitals = v;
@@ -277,6 +338,80 @@
     this.hp = Math.round(v.maxHp * hpFrac);
     this.sp = Math.round(v.maxSp * spFrac);
     this.skills = skillsFor(cls.id);
+  };
+
+  /* -------------------------------------------------------- the tree */
+
+  Combat.prototype.rankOf = function (id) { return this.ranks[id] || 0; };
+
+  /** Points earned so far, minus everything already spent. */
+  Combat.prototype.pointsSpent = function () {
+    var n = 0;
+    for (var k in this.ranks) n += this.ranks[k];
+    return n;
+  };
+  Combat.prototype.pointsEarned = function () {
+    return Math.max(0, (this.game.hero.level - 1) * POINTS_PER_LEVEL);
+  };
+  Combat.prototype.pointsFree = function () {
+    return this.pointsEarned() - this.pointsSpent();
+  };
+
+  /** Points spent at or above a row, for prerequisite checks. */
+  Combat.prototype.spentAbove = function (rowIndex) {
+    var tree = treeFor(this.game.save.classId || 'muqatil'), n = 0;
+    for (var r = 0; r < rowIndex && r < tree.length; r++) {
+      for (var i = 0; i < tree[r].nodes.length; i++) {
+        n += this.rankOf(this.nodeId(tree[r].nodes[i]));
+      }
+    }
+    return n;
+  };
+
+  Combat.prototype.nodeId = function (node) {
+    return node.kind === 'passive' ? node.passive.id : node.skill.id;
+  };
+
+  /** Why a node cannot be raised, or null if it can. */
+  Combat.prototype.rankBlocker = function (rowIndex, node) {
+    var tree = treeFor(this.game.save.classId || 'muqatil');
+    var row = tree[rowIndex];
+    if (this.rankOf(this.nodeId(node)) >= MAX_RANK) return 'max';
+    if (this.pointsFree() <= 0) return 'points';
+    if (this.spentAbove(rowIndex) < row.needs) return 'locked';
+    if (node.kind === 'active' && this.game.hero.level < SKILL_LEVELS[node.index]) return 'level';
+    return null;
+  };
+
+  Combat.prototype.rankUp = function (rowIndex, node) {
+    var why = this.rankBlocker(rowIndex, node);
+    if (why) return why;
+    var id = this.nodeId(node);
+    this.ranks[id] = this.rankOf(id) + 1;
+    this.applyClass();
+    this.game.player && this.game.player.applyClass();
+    this.game.persist();
+    return 'ok';
+  };
+
+  /** Give every point back, so a build is never a dead end. */
+  Combat.prototype.respec = function () {
+    this.ranks = {};
+    this.applyClass();
+    this.game.player && this.game.player.applyClass();
+    this.game.persist();
+  };
+
+  /** A skill's numbers at its current rank. */
+  Combat.prototype.tuned = function (skill) {
+    var r = this.rankOf(skill.id);
+    var k = Math.max(0, r - 1);
+    return {
+      rank: r,
+      power: skill.power ? +(skill.power * (1 + 0.09 * k)).toFixed(2) : 0,
+      sp: Math.max(1, Math.round(skill.sp * (1 - 0.03 * k))),
+      cd: +(skill.cd * (1 - 0.04 * k)).toFixed(2)
+    };
   };
 
   /** Skills the player has unlocked, in bar order. */
@@ -287,7 +422,9 @@
         skill: this.skills[i],
         unlocked: lvl >= SKILL_LEVELS[i],
         needs: SKILL_LEVELS[i],
-        cd: this.cooldowns[this.skills[i].id] || 0
+        cd: this.cooldowns[this.skills[i].id] || 0,
+        rank: this.rankOf(this.skills[i].id),
+        tuned: this.tuned(this.skills[i])
       });
     }
     return out;
@@ -368,14 +505,16 @@
     if (this.dead) return 'dead';
     if (!b.unlocked) return 'locked';
     if (b.cd > 0 || this.globalCd > 0) return 'cooldown';
-    if (this.sp < b.skill.sp) return 'sp';
+    var tune = this.tuned(b.skill);
+    if (this.sp < tune.sp) return 'sp';
 
     var s = b.skill, g = this.game, p = g.player;
-    this.sp -= s.sp;
-    this.cooldowns[s.id] = s.cd;
+    this.sp -= tune.sp;
+    this.cooldowns[s.id] = tune.cd;
     this.globalCd = 0.35;
 
-    var atk = this.vitals.attack;
+    // rank raises the skill's own power rather than a flat damage number
+    var atk = this.vitals.attack * (1 + 0.09 * Math.max(0, tune.rank - 1));
     var tgt = this.syncTarget();
     // Turn to face the target before swinging. Requiring the player to aim
     // with the camera while also steering with a thumb-stick is a desktop
@@ -584,6 +723,10 @@
     FOES: FOES,
     SKILLS: SKILLS,
     SKILL_LEVELS: SKILL_LEVELS,
+    MAX_RANK: MAX_RANK,
+    PASSIVES: PASSIVES,
+    passivesFor: passivesFor,
+    treeFor: treeFor,
     skillsFor: skillsFor,
     vitalsFor: vitalsFor
   };

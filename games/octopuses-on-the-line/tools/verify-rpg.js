@@ -768,7 +768,57 @@ async function run() {
     record('panel', 'the bag shows every equipment slot', panels.slots === 4, panels.slots);
     record('panel', 'the bag lists loose items', panels.items > 0, panels.items);
     record('panel', 'the auction offers purchases', panels.buys > 0, panels.buys);
-    record('panel', 'bag and auction are tabs in the panel', panels.tabs === 8, panels.tabs);
+    record('panel', 'bag and auction are tabs in the panel', panels.tabs === 9, panels.tabs);
+
+    const tree = await page.evaluate(() => {
+      const g = window.GAME.game, ui = window.GAME.ui, C = window.OCTO.combat;
+      const c = g.combat;
+      g.hero.level = 20; c.applyClass(); c.respec();
+      const t = C.treeFor(g.save.classId || 'muqatil');
+      const out = { free: c.pointsFree(), rows: t.length };
+      // row 2 must refuse until three points are spent above it
+      out.gated = c.rankBlocker(1, t[1].nodes[0]);
+      for (let i = 0; i < 3; i++) c.rankUp(0, t[0].nodes[0]);
+      out.opened = c.rankBlocker(1, t[1].nodes[0]);
+      const tu = c.tuned(t[0].nodes[0].skill);
+      out.rank = tu.rank;
+      out.powerUp = tu.power > t[0].nodes[0].skill.power;
+      out.cheaper = tu.sp < t[0].nodes[0].skill.sp;
+      out.faster = tu.cd < t[0].nodes[0].skill.cd;
+      // a passive must move a real vital
+      const hp0 = c.maxHp;
+      const hardy = t[1].nodes[1];
+      c.rankUp(1, hardy); c.rankUp(1, hardy);
+      out.passiveMovesVitals = c.maxHp !== hp0;
+      out.spent = c.pointsSpent();
+      c.respec();
+      out.respec = c.pointsSpent();
+      // and a grip passive must reach the rope model
+      g.save.classId = 'shafi'; g.player.applyClass('shafi'); c.applyClass();
+      const b0 = g.player.tune.balanceControl;
+      c.ranks.calm = 5; g.player.applyClass();
+      out.gripReachesRope = g.player.tune.balanceControl > b0;
+      c.respec();
+      ui.openPanel('skills');
+      out.nodes = document.querySelectorAll('.octo-node').length;
+      out.card = !!document.querySelector('.octo-node-card');
+      out.gates = document.querySelectorAll('.octo-tree-gate').length;
+      return out;
+    });
+    record('tree', 'a point per level', tree.free === 19, tree.free);
+    record('tree', 'three rows of nodes', tree.rows === 3, tree.rows);
+    record('tree', 'a row is gated until points are spent above it',
+      tree.gated === 'locked' && tree.opened === null, tree.gated + ' -> ' + tree.opened);
+    record('tree', 'rank raises power', tree.powerUp && tree.rank === 3, tree.rank);
+    record('tree', 'rank lowers focus cost and cooldown', tree.cheaper && tree.faster,
+      tree.cheaper + '/' + tree.faster);
+    record('tree', 'a passive moves a real vital', tree.passiveMovesVitals, tree.passiveMovesVitals);
+    record('tree', 'a grip passive reaches the rope model', tree.gripReachesRope, tree.gripReachesRope);
+    record('tree', 'respec returns every point', tree.spent > 0 && tree.respec === 0,
+      tree.spent + ' -> ' + tree.respec);
+    record('tree', 'the panel renders nodes, gates and a detail card',
+      tree.nodes === 6 && tree.gates === 2 && tree.card, tree.nodes + ' nodes / ' + tree.gates + ' gates');
+    await page.screenshot({ path: path.join(SHOTS, 'skill-tree.png') });
 
     await page.close();
   }

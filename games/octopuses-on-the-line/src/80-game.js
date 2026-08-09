@@ -14,7 +14,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.3.0';
+  var VERSION = '1.4.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -1210,6 +1210,8 @@
       this.save.dirhams = this.dirhams;
       this.save.progress = progress;
       this.save.hero = this.hero.toJSON();
+      this.save.ranks = this.save.ranks || {};
+      if (this.combat) this.save.ranks[this.save.classId || 'muqatil'] = this.combat.ranks;
       this.save.inventory = this.inventory.toJSON();
       this.save.auction = this.auction.toJSON();
       this.save.pearls = pearls;
