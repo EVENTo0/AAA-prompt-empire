@@ -128,7 +128,7 @@
     this._tmp = { x: 0, y: 0, z: 0 };
     this._tmp2 = { x: 0, y: 0, z: 0 };
     this._near = {};
-    this.stats = { distance: 0, falls: 0, jumps: 0, lineMeters: 0 };
+    this.stats = { distance: 0, falls: 0, jumps: 0, lineMeters: 0, crossings: 0 };
 
     // Place the limbs properly: without this the gait targets sit at the world
     // origin until each tentacle takes its first step, and the tentacles are
@@ -572,6 +572,7 @@
     if (span > 0.55 && this.game.awardXp) {
       this.game.awardXp(Math.round(OCTO.progress.XP.lineCross * span), 'crossing');
       this.game.daily && this.game.daily.note('cross', 1);
+      this.stats.crossings = (this.stats.crossings || 0) + 1;
     }
     this.lineEntryT = undefined;
     this.line = null;

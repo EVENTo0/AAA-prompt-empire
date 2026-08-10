@@ -14,7 +14,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.5.0';
+  var VERSION = '1.6.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -231,6 +231,7 @@
     this.bosses = new OCTO.bosses.Bosses(this);
     this.bosses.spawn(this.world);
     this.daily = new OCTO.daily.Daily(this);
+    this.chronicle = new OCTO.chronicle.Chronicle(this);
     var spawn = this.world.spawn;
     spawn.classId = this.save.classId || 'muqatil';
     spawn.form = 'human';
@@ -879,6 +880,7 @@
   Game.prototype.onFoeKilled = function (foe) {
     var ar = this.lang === 'ar';
     this.daily && this.daily.note('kill', 1);
+    this.save.totalKills = (this.save.totalKills || 0) + 1;
     if (this.bosses && this.bosses.onKilled(foe)) {
       this.daily.note('boss', 1);
       this.awardXp(foe.def.xp + foe.level * 3, 'boss');
@@ -1226,6 +1228,8 @@
       this.save.hero = this.hero.toJSON();
       if (this.bosses) this.save.bosses = this.bosses.toJSON();
       if (this.daily) this.save.daily = this.daily.toJSON();
+      if (this.chronicle) this.save.chronicle = this.chronicle.toJSON();
+      this.save.totalKills = this.save.totalKills || 0;
       this.save.ranks = this.save.ranks || {};
       if (this.combat) this.save.ranks[this.save.classId || 'muqatil'] = this.combat.ranks;
       this.save.inventory = this.inventory.toJSON();
@@ -1289,12 +1293,15 @@
     if (this.combat) {
       var fb = this.foeBuilder || (this.foeBuilder = new OCTO.MeshBuilder());
       fb.reset();
-      var drew = 0;
+      var drew = 0, drewTest = 0;
       for (var fi = 0; fi < this.combat.foes.length; fi++) {
         var foe = this.combat.foes[fi];
         if (foe.dead && foe.deadTimer <= 0) continue;
         var fdx = foe.pos.x - cam.x, fdz = foe.pos.z - cam.z;
-        if (fdx * fdx + fdz * fdz > 170 * 170) continue;
+        // 170m of foes is more geometry than the frame can afford once
+        // the population is this large; 110m still fills the horizon.
+        if (fdx * fdx + fdz * fdz > 110 * 110) continue;
+        if (++drewTest > 26) break;      // hard cap on rebuilt foe meshes
         OCTO.npc.buildFoeMesh(fb, foe, this.time);
         drew++;
       }

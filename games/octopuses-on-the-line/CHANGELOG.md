@@ -4,6 +4,48 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] — 2026-08-09 — The spine
+
+Asked to compare this against Diablo, WoW, Wobbly Life, Minecraft, Don't
+Starve and Honor of Kings, the honest finding is not that any of those has
+more systems than this build. It is that they have a **story every system
+hangs off**, and a level band that tells you which part of the world is
+yours this week. By v1.5 this game had progression, combat, loot, an
+auction, bosses, a skill tree and a daily loop — and a player met all of it
+as a pile of separate menus.
+
+### Added
+
+- **The Chronicle: five acts** (`src/69-chronicle.js`). Each owns a level
+  band, a district, an MVP and a few objectives, and **the bands tile 1–60
+  with no gaps** — asserted, not assumed. Every objective reads a counter
+  another system was already keeping, so nothing here is a new task type.
+  The act is the sentence; the systems are the words.
+- **A story with a turn.** Act I asks why a city walks on rope instead of on
+  the ground and cannot get a straight answer. Act V answers it: the ground
+  gave way four hundred years ago, the city tied itself to the octopus
+  because something had to hold it up, and the calligraphy on the beacons has
+  been saying *hold* to it ever since. Cutting the thread does not free the
+  city — it drops it.
+- **Pages reveal with progress.** One on opening an act, more as objectives
+  land, the last on closing it. The turn at the end of Act V is not readable
+  on day one, and `verify-rpg` asserts that.
+- **A Story panel** with act chips, level bands, sealed states, the pages,
+  live objective bars and the close-the-act reward.
+
+### Fixed
+
+- `Chronicle.close()` checked completeness before checking whether the act was
+  already closed, which made the already-closed branch unreachable: closing a
+  finished act reported "incomplete". Ordering corrected.
+- Distant, unaggressive foes are now stepped at a sixth of the rate and the
+  per-frame foe mesh rebuild is capped at 26. **Measured first**: 62 foes cost
+  0.34 ms of a 16.7 ms simulation budget, so this is headroom for larger
+  populations, not a fix for a frame-rate problem the game did not have. The
+  verification timeout that surfaced it was SwiftShader's screenshot readback
+  of a fuller scene; that allowance was raised in the test, where it belongs,
+  rather than by cutting content.
+
 ## [1.5.0] — 2026-08-09 — The MVPs, and a reason to come back tomorrow
 
 "Boss, system, missions" — so: five named bosses with real clocks, and a

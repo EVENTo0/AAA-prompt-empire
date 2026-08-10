@@ -768,7 +768,7 @@ async function run() {
     record('panel', 'the bag shows every equipment slot', panels.slots === 4, panels.slots);
     record('panel', 'the bag lists loose items', panels.items > 0, panels.items);
     record('panel', 'the auction offers purchases', panels.buys > 0, panels.buys);
-    record('panel', 'bag and auction are tabs in the panel', panels.tabs === 11, panels.tabs);
+    record('panel', 'bag and auction are tabs in the panel', panels.tabs === 12, panels.tabs);
 
     const tree = await page.evaluate(() => {
       const g = window.GAME.game, ui = window.GAME.ui, C = window.OCTO.combat;
@@ -906,6 +906,69 @@ async function run() {
     record('daily', 'the panel renders the calendar and the list',
       daily.days === 7 && daily.rows === 6, daily.days + ' days / ' + daily.rows + ' tasks');
     await page.screenshot({ path: path.join(SHOTS, 'daily.png') });
+
+    const story = await page.evaluate(() => {
+      const g = window.GAME.game, ui = window.GAME.ui;
+      ui.closePanel();
+      const c = g.chronicle, A = window.OCTO.chronicle.ACTS;
+      const out = { acts: A.length };
+      // bands must tile 1..60 with no gap and no overlap
+      let tiled = A[0].band[0] === 1;
+      for (let i = 1; i < A.length; i++) {
+        if (A[i].band[0] !== A[i - 1].band[1] + 1) tiled = false;
+      }
+      out.tiled = tiled && A[A.length - 1].band[1] === 60;
+      // every act names a district and a boss that actually exist
+      out.linked = A.every((a) =>
+        !!g.world.districts[a.district] && !!window.OCTO.bosses.bossById(a.boss));
+      g.hero.level = 1;
+      c.done = {};
+      out.act1 = c.state(A[0]);
+      out.act5sealed = c.state(A[4]);
+      // pages reveal with progress, and the final turn is not readable early
+      out.pagesEarly = c.pagesRead(A[0]);
+      out.finalHidden = c.pagesRead(A[4]);
+      // an act cannot be closed until its goals are met
+      out.closeEarly = c.close(A[0]);
+      g.save.totalKills = 500;
+      g.player.stats.crossings = 200;
+      g.hero.visited = ['souq', 'oasis', 'minaret', 'harbour', 'rings', 'spire', 'deep', 'titan'];
+      g.missions.forEach((m) => { m.state = 'complete'; });
+      g.bosses.state.weaver = { kills: 1 };
+      out.goalsMet = c.canClose(A[0]);
+      const xp0 = g.hero.totalXp;
+      out.close = c.close(A[0]);
+      out.paid = g.hero.totalXp > xp0;
+      out.closeTwice = c.close(A[0]);
+      out.pagesAfter = c.pagesRead(A[0]);
+      // the current act advances
+      g.hero.level = 20;
+      out.current = c.current().id;
+      ui.openPanel('story');
+      out.chips = document.querySelectorAll('.octo-act').length;
+      out.goalRows = document.querySelectorAll('.octo-act-goal').length;
+      out.pageEls = document.querySelectorAll('.octo-act-pages p').length;
+      return out;
+    });
+    record('story', 'five acts', story.acts === 5, story.acts);
+    record('story', 'the level bands tile 1 to 60 with no gaps', story.tiled, story.tiled);
+    record('story', 'every act names a real district and a real boss', story.linked, story.linked);
+    record('story', 'act one is open at level 1', story.act1 === 'open', story.act1);
+    record('story', 'the last act is sealed early', story.act5sealed === 'sealed', story.act5sealed);
+    record('story', 'pages reveal with progress, not all at once',
+      story.pagesEarly > 0 && story.pagesEarly < 3, story.pagesEarly + '/3');
+    record('story', 'the final turn is not readable on day one', story.finalHidden === 0, story.finalHidden);
+    record('story', 'an act refuses to close with goals outstanding',
+      story.closeEarly === 'incomplete', story.closeEarly);
+    record('story', 'meeting every goal allows the close', story.goalsMet, story.goalsMet);
+    record('story', 'closing an act pays', story.close === 'ok' && story.paid, story.close);
+    record('story', 'an act cannot be closed twice', story.closeTwice === 'done', story.closeTwice);
+    record('story', 'closing reveals the last page', story.pagesAfter === 3, story.pagesAfter);
+    record('story', 'the current act follows the level', story.current === 'well', story.current);
+    record('story', 'the panel renders chips, pages and goals',
+      story.chips === 5 && story.pageEls === 3 && story.goalRows === 3,
+      story.chips + '/' + story.pageEls + '/' + story.goalRows);
+    await page.screenshot({ path: path.join(SHOTS, 'story.png') });
 
     await page.close();
   }

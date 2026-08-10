@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Octopuses on the Line — an open-map browser action game. Balance an eight-armed octopus along the washing lines of an old Arabian souq and climb to the neon sky towers above.">
 <meta name="theme-color" content="#1a120b">
-<title>Octopuses on the Line — Open Map Beta v1.5.0</title>
+<title>Octopuses on the Line — Open Map Beta v1.6.0</title>
 <style>
   /* ---------------------------------------------------------- reset */
   *, *::before, *::after { box-sizing: border-box; }
@@ -929,6 +929,47 @@
   .octo-q-line { font-size: 10px; opacity: 0.82; margin-top: 2px; }
   .octo-q-line.dim, .octo-q.dim { opacity: 0.55; }
 
+  /* ---- the story */
+  .octo-acts { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+  .octo-act {
+    flex: 1 0 78px; padding: 9px 6px; border-radius: 11px; cursor: pointer; font-family: inherit;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); color: #f2e7d2;
+  }
+  .octo-act b { display: block; font-size: 13px; font-weight: 800; }
+  .octo-act span { display: block; font-size: 9px; opacity: 0.6; margin-top: 2px; }
+  .octo-act i { display: block; font-style: normal; font-size: 11px; margin-top: 3px; }
+  .octo-act.done { border-color: #79e6a0; background: rgba(121,230,160,0.10); }
+  .octo-act.sealed { opacity: 0.45; }
+  .octo-act.sel { box-shadow: 0 0 0 2px var(--teal); }
+  .octo-act-card {
+    border: 1px solid var(--edge); border-radius: 14px; padding: 15px 17px;
+    background: linear-gradient(180deg, rgba(227,181,88,0.07), rgba(255,255,255,0.03));
+  }
+  .octo-act-title { font-size: 18px; font-weight: 800; color: var(--sand); }
+  .octo-act-sub { font-size: 11px; opacity: 0.62; margin-top: 2px; margin-bottom: 12px; letter-spacing: 0.04em; }
+  .octo-act-sealed { font-size: 13px; color: var(--teal); font-weight: 700; padding: 10px 0; }
+  .octo-act-pages p {
+    margin: 0 0 11px; font-size: 13.5px; line-height: 1.75; color: #f0e5d2;
+    padding-inline-start: 11px; border-inline-start: 2px solid rgba(227,181,88,0.35);
+  }
+  .octo-act-pages p.unread {
+    color: #8d8172; font-style: italic; border-inline-start-color: rgba(255,255,255,0.10);
+    font-size: 12px;
+  }
+  .octo-act-goals { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+  .octo-act-goal {
+    display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font-size: 12px;
+    padding: 8px 11px; border-radius: 10px; background: rgba(0,0,0,0.26);
+  }
+  .octo-act-goal.done { background: rgba(121,230,160,0.10); color: #b8ffd2; }
+  .octo-act-goal b { color: var(--gold); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .octo-act-goal .octo-mini-bar { grid-column: 1 / -1; margin-top: 3px; }
+  .octo-act-done { font-size: 13px; font-weight: 800; color: #79e6a0; padding: 10px 0 2px; }
+  .octo-act-card .octo-select-go { width: 100%; max-width: none; box-shadow: none; }
+  .octo-act-card .octo-select-go.ghost {
+    background: rgba(255,255,255,0.08); color: #cdbfa8; border-color: rgba(255,255,255,0.16);
+  }
+
   /* ---- MVP roster */
   .octo-mvp-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
   .octo-mvp {
@@ -1237,6 +1278,7 @@
 <script src="src/64-items.js"></script>
 <script src="src/66-bosses.js"></script>
 <script src="src/68-daily.js"></script>
+<script src="src/69-chronicle.js"></script>
 <script src="src/60-player.js"></script>
 <script src="src/70-npc.js"></script>
 <script src="src/80-game.js"></script>

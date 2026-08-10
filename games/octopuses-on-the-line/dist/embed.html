@@ -921,6 +921,47 @@
   .octo-q-line { font-size: 10px; opacity: 0.82; margin-top: 2px; }
   .octo-q-line.dim, .octo-q.dim { opacity: 0.55; }
 
+  /* ---- the story */
+  .octo-acts { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+  .octo-act {
+    flex: 1 0 78px; padding: 9px 6px; border-radius: 11px; cursor: pointer; font-family: inherit;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); color: #f2e7d2;
+  }
+  .octo-act b { display: block; font-size: 13px; font-weight: 800; }
+  .octo-act span { display: block; font-size: 9px; opacity: 0.6; margin-top: 2px; }
+  .octo-act i { display: block; font-style: normal; font-size: 11px; margin-top: 3px; }
+  .octo-act.done { border-color: #79e6a0; background: rgba(121,230,160,0.10); }
+  .octo-act.sealed { opacity: 0.45; }
+  .octo-act.sel { box-shadow: 0 0 0 2px var(--teal); }
+  .octo-act-card {
+    border: 1px solid var(--edge); border-radius: 14px; padding: 15px 17px;
+    background: linear-gradient(180deg, rgba(227,181,88,0.07), rgba(255,255,255,0.03));
+  }
+  .octo-act-title { font-size: 18px; font-weight: 800; color: var(--sand); }
+  .octo-act-sub { font-size: 11px; opacity: 0.62; margin-top: 2px; margin-bottom: 12px; letter-spacing: 0.04em; }
+  .octo-act-sealed { font-size: 13px; color: var(--teal); font-weight: 700; padding: 10px 0; }
+  .octo-act-pages p {
+    margin: 0 0 11px; font-size: 13.5px; line-height: 1.75; color: #f0e5d2;
+    padding-inline-start: 11px; border-inline-start: 2px solid rgba(227,181,88,0.35);
+  }
+  .octo-act-pages p.unread {
+    color: #8d8172; font-style: italic; border-inline-start-color: rgba(255,255,255,0.10);
+    font-size: 12px;
+  }
+  .octo-act-goals { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+  .octo-act-goal {
+    display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font-size: 12px;
+    padding: 8px 11px; border-radius: 10px; background: rgba(0,0,0,0.26);
+  }
+  .octo-act-goal.done { background: rgba(121,230,160,0.10); color: #b8ffd2; }
+  .octo-act-goal b { color: var(--gold); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .octo-act-goal .octo-mini-bar { grid-column: 1 / -1; margin-top: 3px; }
+  .octo-act-done { font-size: 13px; font-weight: 800; color: #79e6a0; padding: 10px 0 2px; }
+  .octo-act-card .octo-select-go { width: 100%; max-width: none; box-shadow: none; }
+  .octo-act-card .octo-select-go.ghost {
+    background: rgba(255,255,255,0.08); color: #cdbfa8; border-color: rgba(255,255,255,0.16);
+  }
+
   /* ---- MVP roster */
   .octo-mvp-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
   .octo-mvp {
@@ -7284,11 +7325,22 @@
       return;
     }
 
-    // regeneration, slower while something is actively hunting you
+    // Regeneration, slower while something is actively hunting you.
+    //
+    // Foes far from the player are stepped at a fraction of the rate: a
+    // creature drifting around its spawn 200m away does not need 60Hz,
+    // and paying for it on every one of sixty-odd foes is the difference
+    // between a phone holding frame rate and not. Anything within its own
+    // aggro range still runs full speed.
     var hunted = false;
+    var p = g.player.pos;
+    this._farTick = ((this._farTick || 0) + 1) % 6;
     for (var i = 0; i < this.foes.length; i++) {
-      this.foes[i].update(dt, g);
-      if (!this.foes[i].dead && this.foes[i].state === 'chase') hunted = true;
+      var f = this.foes[i];
+      var far = !f.dead && f.state !== 'chase' && dist2(f.pos, p) > 90 * 90;
+      if (far && (i % 6) !== this._farTick) continue;
+      f.update(far ? dt * 6 : dt, g);
+      if (!f.dead && f.state === 'chase') hunted = true;
     }
     var rate = hunted ? 0.35 : 1;
     this.hp = Math.min(this.maxHp, this.hp + this.vitals.hpRegen * rate * dt);
@@ -8052,6 +8104,232 @@
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
+/* ===== src/69-chronicle.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 69-chronicle.js
+ *
+ * The campaign. Five acts that bind everything else together.
+ *
+ * The problem this file solves: by v1.5 the game had progression, combat,
+ * loot, an auction, bosses and a daily loop — and no spine. A player met
+ * all of it as a pile of separate menus. Diablo and WoW do not have more
+ * systems than this; they have a story that every system hangs off, and
+ * a level band that says which part of the world is yours this week.
+ *
+ * So each Act owns a level band, a district, a boss and a handful of
+ * objectives, and every objective is read from a counter some other
+ * system was already keeping. Nothing here is a new task type. The Act
+ * is the sentence; the systems are the words.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+
+  /**
+   * The five acts.
+   *
+   *   `band`      level range this act is written for
+   *   `opens`     level at which its pages unseal
+   *   `district`  where it happens
+   *   `boss`      the MVP that closes it
+   *   `beats`     the story, revealed one page at a time
+   *   `goals`     objectives, each reading an existing counter
+   */
+  var ACTS = [
+    {
+      id: 'knot', band: [1, 9], opens: 1, district: 'souq', boss: 'weaver',
+      en: 'I — The First Knot', ar: 'الأول — العقدة الأولى',
+      beats: [
+        { en: 'Nobody in the old souq will tell you why the city walks on rope instead of on the ground. Ask, and they change the subject to weather.',
+          ar: 'لا أحد في السوق القديم سيخبرك لماذا تمشي المدينة على الحبال بدل الأرض. اسأل، فيحوّلون الحديث إلى الطقس.' },
+        { en: 'The guild register goes back four hundred years and starts mid-sentence, as though the first page was cut out. The oldest entry is a knot, drawn, not named.',
+          ar: 'سجل النقابة يعود أربعمئة سنة ويبدأ في منتصف جملة، كأن الصفحة الأولى قُطعت. أقدم مدخل فيه عقدة مرسومة، بلا اسم.' },
+        { en: 'Umm Layla says the woman who tied that knot is still working. She says it the way you say a thing you have decided not to think about.',
+          ar: 'تقول أم ليلى إن التي ربطت تلك العقدة ما زالت تعمل. تقولها كما يقول المرء شيئاً قرر ألا يفكر فيه.' }
+      ],
+      goals: [
+        { id: 'cross',  need: 12, en: 'Cross twelve lines',        ar: 'اعبر اثني عشر خيطاً' },
+        { id: 'job',    need: 2,  en: 'Finish two souq jobs',      ar: 'أنجز عملين في السوق' },
+        { id: 'boss',   need: 1,  en: 'Face the Knot Weaver',      ar: 'واجه ناسجة العُقد' }
+      ],
+      xp: 400, coin: 250
+    },
+    {
+      id: 'well', band: [10, 19], opens: 10, district: 'oasis', boss: 'thirst',
+      en: 'II — What the Well Remembers', ar: 'الثاني — ما تذكره البئر',
+      beats: [
+        { en: 'The oasis is lower than it was. Not drier — lower. The palms have been walking downhill for a century and nobody noticed until the water went under them.',
+          ar: 'الواحة أخفض مما كانت. لا أجفّ — أخفض. النخيل يهبط منذ قرن ولم ينتبه أحد حتى غار الماء تحته.' },
+        { en: 'Under the sand there is rope. Not buried — anchored. It runs down, and it is taut, and something at the far end is pulling steadily and has been for a long time.',
+          ar: 'تحت الرمل حبل. لا مدفون — مربوط. ينزل مشدوداً، وشيء في آخره يشدّ بثبات منذ زمن طويل.' },
+        { en: 'The Long Thirst is not drinking the oasis. It is being drunk from. Something is using it as a straw.',
+          ar: 'الظمأ الطويل لا يشرب الواحة. بل يُشرَب منه. شيء ما يستخدمه كقصبة.' }
+      ],
+      goals: [
+        { id: 'anchor', need: 2, en: 'Open two Anchors',           ar: 'افتح مرساتين' },
+        { id: 'pearl',  need: 12, en: 'Recover twelve pearls',     ar: 'استخرج اثنتي عشرة لؤلؤة' },
+        { id: 'boss',   need: 1, en: 'Face the Long Thirst',       ar: 'واجه الظمأ الطويل' }
+      ],
+      xp: 900, coin: 600
+    },
+    {
+      id: 'harbour', band: [20, 29], opens: 20, district: 'harbour', boss: 'harbourmaster',
+      en: 'III — The Harbour That Flies', ar: 'الثالث — الميناء الطائر',
+      beats: [
+        { en: 'Sky Harbour did not rise. The sea fell, and the harbour stayed exactly where it was, forty metres above where the water used to be.',
+          ar: 'ميناء السماء لم يرتفع. البحر هو الذي انحسر، وبقي الميناء حيث كان تماماً، على أربعين متراً فوق ما كان ماءً.' },
+        { en: 'The dhows never learned to fly. They were always tied. Every single one of them, to the same network you have been walking on since you arrived.',
+          ar: 'السفن لم تتعلم الطيران قط. كانت مربوطة دائماً. كل واحدة منها، إلى الشبكة نفسها التي تمشي عليها منذ وصلت.' },
+        { en: 'The Harbourmaster signed for every rope in the harbour. He is not stealing them back. He is trying to return them, and he does not care what they are holding up.',
+          ar: 'وقّع الربّان على كل حبل في الميناء. وهو لا يسرقها. بل يحاول إعادتها، ولا يعنيه ما الذي تحمله.' }
+      ],
+      goals: [
+        { id: 'kill',   need: 40, en: 'Fell forty harbour things', ar: 'اصرع أربعين من كائنات الميناء' },
+        { id: 'anchor', need: 4,  en: 'Open four Anchors',         ar: 'افتح أربع مراسٍ' },
+        { id: 'boss',   need: 1,  en: 'Face the Harbourmaster',    ar: 'واجه ربّان الميناء' }
+      ],
+      xp: 2200, coin: 1400
+    },
+    {
+      id: 'sentence', band: [30, 44], opens: 30, district: 'towers', boss: 'calligrapher',
+      en: 'IV — The Sentence', ar: 'الرابع — الجملة',
+      beats: [
+        { en: 'The calligraphy on the Neo-Falak rings is not decoration and it is not scripture. Read across all four beacons, in order, it is an instruction.',
+          ar: 'الخط على حلقات نيوفلك ليس زخرفاً ولا نصاً مقدساً. اقرأه على المنارات الأربع بالترتيب، تجده أمراً.' },
+        { en: 'It says: hold. It has said hold for four hundred years, in letters two storeys tall, to something that can read.',
+          ar: 'يقول: أمسِك. ظل يقول أمسِك أربعمئة سنة، بحروف بارتفاع طابقين، لشيء يستطيع القراءة.' },
+        { en: 'The Calligrapher wrote it. Somewhere in the writing he stopped being the one giving the order and became part of the order being given.',
+          ar: 'الخطّاط هو من كتبه. وفي مكان ما من الكتابة، كفّ عن كونه صاحب الأمر وصار جزءاً من الأمر نفسه.' }
+      ],
+      goals: [
+        { id: 'cross',  need: 60, en: 'Cross sixty lines',         ar: 'اعبر ستين خيطاً' },
+        { id: 'anchor', need: 6,  en: 'Open six Anchors',          ar: 'افتح ست مراسٍ' },
+        { id: 'boss',   need: 1,  en: 'Face the Calligrapher',     ar: 'واجه الخطّاط' }
+      ],
+      xp: 6000, coin: 3600
+    },
+    {
+      id: 'head', band: [45, 60], opens: 45, district: 'line', boss: 'khayt',
+      en: 'V — The Head of the Thread', ar: 'الخامس — رأس الخيط',
+      beats: [
+        { en: 'Every rope in the city is one rope. Follow any washing line long enough and it becomes a cable, and the cable becomes a mooring, and the mooring goes out onto the sand.',
+          ar: 'كل حبال المدينة حبل واحد. اتبع أي حبل غسيل طويلاً بما يكفي يصر كابلاً، والكابل يصير مرساة، والمرساة تخرج إلى الرمل.' },
+        { en: 'It has eight arms and it has been on the horizon since before the souq. The city did not tie itself to the octopus to hold the octopus down.',
+          ar: 'له ثمانية أذرع، وهو على الأفق من قبل أن يقوم السوق. لم تربط المدينة نفسها بالأخطبوط لتثبّته.' },
+        { en: 'It tied itself to the octopus because the ground gave way four hundred years ago, and something had to hold the city up. It has been holding. That is what the beacons were asking it to do. Cut the thread and you do not free the city. You drop it.',
+          ar: 'ربطت نفسها به لأن الأرض انهارت قبل أربعمئة سنة، وكان لا بد لشيء أن يحمل المدينة. وهو يحمل منذ ذلك الحين. هذا ما كانت المنارات تطلبه منه. اقطع الخيط فلن تحرر المدينة. بل تُسقطها.' }
+      ],
+      goals: [
+        { id: 'anchor', need: 8, en: 'Open every Anchor',          ar: 'افتح كل المراسي' },
+        { id: 'kill',   need: 120, en: 'Fell one hundred and twenty', ar: 'اصرع مئة وعشرين' },
+        { id: 'boss',   need: 1, en: "Stand before Ra's al-Khayt", ar: 'قف أمام رأس الخيط' }
+      ],
+      xp: 20000, coin: 12000, final: true
+    }
+  ];
+
+  function actById(id) {
+    for (var i = 0; i < ACTS.length; i++) if (ACTS[i].id === id) return ACTS[i];
+    return null;
+  }
+
+  /**
+   * The chronicle reads existing counters rather than keeping its own,
+   * so an act cannot drift out of step with the systems it describes.
+   */
+  function Chronicle(game) {
+    this.game = game;
+    var s = game.save.chronicle || {};
+    this.done = s.done || {};          // actId -> true
+    this.read = s.read || {};          // actId -> pages revealed
+    this.claimed = s.claimed || {};
+  }
+
+  /** How far along a goal is, from whatever system owns that number. */
+  Chronicle.prototype.progressOf = function (act, goal) {
+    var g = this.game;
+    switch (goal.id) {
+      case 'cross':  return (g.player && g.player.stats.crossings) || 0;
+      case 'pearl':  return g.pearlsTaken();
+      case 'kill':   return this.kills();
+      case 'anchor': return g.hero.visited.length;
+      case 'job':    return g.missions.filter(function (m) { return m.state === 'complete'; }).length;
+      case 'boss':   return (g.bosses && g.bosses.state[act.boss] && g.bosses.state[act.boss].kills) || 0;
+      default:       return 0;
+    }
+  };
+
+  Chronicle.prototype.kills = function () {
+    return (this.game.save.totalKills || 0);
+  };
+
+  Chronicle.prototype.state = function (act) {
+    var g = this.game;
+    if (this.done[act.id]) return 'done';
+    if (g.hero.level < act.opens) return 'sealed';
+    return 'open';
+  };
+
+  Chronicle.prototype.goals = function (act) {
+    var self = this;
+    return act.goals.map(function (goal) {
+      var have = self.progressOf(act, goal);
+      return { goal: goal, have: Math.min(have, goal.need), done: have >= goal.need };
+    });
+  };
+
+  Chronicle.prototype.canClose = function (act) {
+    if (this.state(act) !== 'open') return false;
+    return this.goals(act).every(function (g) { return g.done; });
+  };
+
+  /**
+   * Pages reveal as the act progresses: one for opening it, one at the
+   * halfway mark, one for closing it. The last page of Act V is the turn
+   * the whole story is built on, so it is not readable early.
+   */
+  Chronicle.prototype.pagesRead = function (act) {
+    if (this.done[act.id]) return act.beats.length;
+    if (this.state(act) === 'sealed') return 0;
+    var goals = this.goals(act);
+    var completed = goals.filter(function (g) { return g.done; }).length;
+    return Math.min(act.beats.length - 1, 1 + completed);
+  };
+
+  Chronicle.prototype.close = function (act) {
+    // The already-closed check must come first: canClose() reports false
+    // for a closed act (its state is 'done', not 'open'), so ordering it
+    // second made the 'done' branch unreachable and a second close
+    // reported 'incomplete' — which is both wrong and confusing.
+    if (this.done[act.id]) return 'done';
+    if (!this.canClose(act)) return 'incomplete';
+    this.done[act.id] = true;
+    var g = this.game, ar = g.lang === 'ar';
+    g.awardXp(act.xp, 'act');
+    g.addDirhams(act.coin);
+    g.toast((ar ? 'انتهى الفصل: ' : 'Act complete: ') + (ar ? act.ar : act.en), 'success');
+    g.persist();
+    return 'ok';
+  };
+
+  /** The act the player should be reading right now. */
+  Chronicle.prototype.current = function () {
+    for (var i = 0; i < ACTS.length; i++) {
+      if (!this.done[ACTS[i].id] && this.state(ACTS[i]) === 'open') return ACTS[i];
+    }
+    for (var j = 0; j < ACTS.length; j++) if (!this.done[ACTS[j].id]) return ACTS[j];
+    return ACTS[ACTS.length - 1];
+  };
+
+  Chronicle.prototype.toJSON = function () {
+    return { done: this.done, read: this.read, claimed: this.claimed };
+  };
+
+  OCTO.chronicle = { ACTS: ACTS, Chronicle: Chronicle, actById: actById };
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
 /* ===== src/60-player.js ===== */
 /* =====================================================================
  * OCTOPUSES ON THE LINE — 60-player.js
@@ -8183,7 +8461,7 @@
     this._tmp = { x: 0, y: 0, z: 0 };
     this._tmp2 = { x: 0, y: 0, z: 0 };
     this._near = {};
-    this.stats = { distance: 0, falls: 0, jumps: 0, lineMeters: 0 };
+    this.stats = { distance: 0, falls: 0, jumps: 0, lineMeters: 0, crossings: 0 };
 
     // Place the limbs properly: without this the gait targets sit at the world
     // origin until each tentacle takes its first step, and the tentacles are
@@ -8627,6 +8905,7 @@
     if (span > 0.55 && this.game.awardXp) {
       this.game.awardXp(Math.round(OCTO.progress.XP.lineCross * span), 'crossing');
       this.game.daily && this.game.daily.note('cross', 1);
+      this.stats.crossings = (this.stats.crossings || 0) + 1;
     }
     this.lineEntryT = undefined;
     this.line = null;
@@ -9599,7 +9878,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.5.0';
+  var VERSION = '1.6.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -9816,6 +10095,7 @@
     this.bosses = new OCTO.bosses.Bosses(this);
     this.bosses.spawn(this.world);
     this.daily = new OCTO.daily.Daily(this);
+    this.chronicle = new OCTO.chronicle.Chronicle(this);
     var spawn = this.world.spawn;
     spawn.classId = this.save.classId || 'muqatil';
     spawn.form = 'human';
@@ -10464,6 +10744,7 @@
   Game.prototype.onFoeKilled = function (foe) {
     var ar = this.lang === 'ar';
     this.daily && this.daily.note('kill', 1);
+    this.save.totalKills = (this.save.totalKills || 0) + 1;
     if (this.bosses && this.bosses.onKilled(foe)) {
       this.daily.note('boss', 1);
       this.awardXp(foe.def.xp + foe.level * 3, 'boss');
@@ -10811,6 +11092,8 @@
       this.save.hero = this.hero.toJSON();
       if (this.bosses) this.save.bosses = this.bosses.toJSON();
       if (this.daily) this.save.daily = this.daily.toJSON();
+      if (this.chronicle) this.save.chronicle = this.chronicle.toJSON();
+      this.save.totalKills = this.save.totalKills || 0;
       this.save.ranks = this.save.ranks || {};
       if (this.combat) this.save.ranks[this.save.classId || 'muqatil'] = this.combat.ranks;
       this.save.inventory = this.inventory.toJSON();
@@ -10874,12 +11157,15 @@
     if (this.combat) {
       var fb = this.foeBuilder || (this.foeBuilder = new OCTO.MeshBuilder());
       fb.reset();
-      var drew = 0;
+      var drew = 0, drewTest = 0;
       for (var fi = 0; fi < this.combat.foes.length; fi++) {
         var foe = this.combat.foes[fi];
         if (foe.dead && foe.deadTimer <= 0) continue;
         var fdx = foe.pos.x - cam.x, fdz = foe.pos.z - cam.z;
-        if (fdx * fdx + fdz * fdz > 170 * 170) continue;
+        // 170m of foes is more geometry than the frame can afford once
+        // the population is this large; 110m still fills the horizon.
+        if (fdx * fdx + fdz * fdz > 110 * 110) continue;
+        if (++drewTest > 26) break;      // hard cap on rebuilt foe meshes
         OCTO.npc.buildFoeMesh(fb, foe, this.time);
         drew++;
       }
@@ -11660,6 +11946,7 @@
     controls:     { en: 'Controls',                ar: 'التحكم' },
     hero:         { en: 'Hero',                    ar: 'البطل' },
     skills:       { en: 'Skills',                  ar: 'المهارات' },
+    story:        { en: 'Story',                   ar: 'القصة' },
     mvp:          { en: 'MVP',                     ar: 'الزعماء' },
     dailyTab:     { en: 'Daily',                   ar: 'اليومي' },
     bag:          { en: 'Bag',                     ar: 'الحقيبة' },
@@ -12493,7 +12780,7 @@
     this.tab = tab;
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
-      ? [['hero', this.t('hero')], ['skills', this.t('skills')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
+      ? [['story', this.t('story')], ['hero', this.t('hero')], ['skills', this.t('skills')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
          ['mvp', this.t('mvp')], ['dailyTab', this.t('dailyTab')],
          ['auction', this.t('auction')], ['shop', this.t('shop')], ['map', this.t('map')],
          ['controls', this.t('controls')], ['settings', this.t('settings')]]
@@ -12508,7 +12795,8 @@
 
     var body = this.bodyEl;
     body.innerHTML = '';
-    if (tab === 'hero') this.renderHero(body);
+    if (tab === 'story') this.renderStory(body);
+    else if (tab === 'hero') this.renderHero(body);
     else if (tab === 'skills') this.renderSkills(body);
     else if (tab === 'mvp') this.renderMvp(body);
     else if (tab === 'dailyTab') this.renderDaily(body);
@@ -12594,6 +12882,101 @@
     body.appendChild(el('p', 'octo-note', ar
       ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
       : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
+  };
+
+  /* ------------------------------------------------------- the story */
+
+  /**
+   * Five acts, each a level band, a district, a boss and a few goals. The
+   * pages reveal as the act progresses, so the turn at the end of Act V
+   * cannot be read on the first day.
+   */
+  Ui.prototype.renderStory = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    var c = g.chronicle;
+    if (!c) return;
+    var ACTS = OCTO.chronicle.ACTS;
+    if (this._actPick === undefined) this._actPick = c.current().id;
+
+    var strip = el('div', 'octo-acts');
+    ACTS.forEach(function (act) {
+      var st = c.state(act);
+      var b = el('button', 'octo-act ' + st + (self._actPick === act.id ? ' sel' : ''));
+      b.innerHTML =
+        '<b>' + (ar ? act.ar : act.en).split('—')[0].trim() + '</b>' +
+        '<span>' + act.band[0] + '–' + act.band[1] + '</span>' +
+        (st === 'done' ? '<i>✓</i>' : st === 'sealed' ? '<i>🔒</i>' : '');
+      b.addEventListener('click', function () {
+        self._actPick = act.id;
+        self.renderPanel('story');
+      });
+      strip.appendChild(b);
+    });
+    body.appendChild(strip);
+
+    var act = OCTO.chronicle.actById(this._actPick);
+    if (!act) return;
+    var st = c.state(act);
+
+    var card = el('div', 'octo-act-card');
+    card.innerHTML =
+      '<div class="octo-act-title">' + (ar ? act.ar : act.en) + '</div>' +
+      '<div class="octo-act-sub">' + g.districtName(act.district) + ' · ' +
+        (ar ? 'المستويات ' : 'Levels ') + act.band[0] + '–' + act.band[1] + '</div>';
+
+    if (st === 'sealed') {
+      card.innerHTML += '<div class="octo-act-sealed">' +
+        (ar ? 'مختوم حتى المستوى ' : 'Sealed until level ') + act.opens + '</div>';
+      body.appendChild(card);
+      return;
+    }
+
+    // ---- the pages
+    var pages = c.pagesRead(act);
+    var text = el('div', 'octo-act-pages');
+    act.beats.forEach(function (beat, i) {
+      if (i < pages) {
+        text.innerHTML += '<p>' + (ar ? beat.ar : beat.en) + '</p>';
+      } else {
+        text.innerHTML += '<p class="unread">' +
+          (ar ? '— لم تصل إلى هذه الصفحة بعد —' : '— this page is not yours yet —') + '</p>';
+      }
+    });
+    card.appendChild(text);
+
+    // ---- the goals
+    var goals = el('div', 'octo-act-goals');
+    c.goals(act).forEach(function (gl) {
+      var pct = Math.round(gl.have / gl.goal.need * 100);
+      goals.innerHTML +=
+        '<div class="octo-act-goal' + (gl.done ? ' done' : '') + '">' +
+        '  <span>' + (gl.done ? '✓ ' : '') + (ar ? gl.goal.ar : gl.goal.en) + '</span>' +
+        '  <b>' + gl.have + ' / ' + gl.goal.need + '</b>' +
+        '  <div class="octo-mini-bar"><i style="width:' + pct + '%"></i></div>' +
+        '</div>';
+    });
+    card.appendChild(goals);
+
+    if (st === 'done') {
+      card.appendChild(el('div', 'octo-act-done', ar ? '✓ انتهى هذا الفصل' : '✓ This act is closed'));
+    } else {
+      var can = c.canClose(act);
+      var b2 = el('button', 'octo-select-go' + (can ? '' : ' ghost'),
+        can ? (ar ? 'أغلق الفصل  +' : 'Close the act  +') + act.xp + ' XP'
+            : (ar ? 'الأهداف غير مكتملة' : 'Objectives incomplete'));
+      b2.addEventListener('click', function () {
+        if (c.close(act) === 'ok') {
+          g.audio && g.audio.play('success');
+          self.renderPanel('story');
+        } else { g.audio && g.audio.play('fail', 0.4); }
+      });
+      card.appendChild(b2);
+    }
+    body.appendChild(card);
+
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'كل هدف هنا يقرأ عدّاداً تحتفظ به أنظمة اللعبة أصلاً — لا توجد مهمة جديدة، بل ترتيب لما تفعله.'
+      : 'Every objective here reads a counter another system was already keeping. Nothing is a new task; the act is only the order they go in.'));
   };
 
   /* --------------------------------------------------------- the MVPs */

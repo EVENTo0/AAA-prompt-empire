@@ -63,18 +63,18 @@ async function suiteDesktop(browser) {
     const r = await page.evaluate(() => window.GAME.report());
     const finite = [r.player.x, r.player.y, r.player.z].every(Number.isFinite);
     if (!ok || !finite || r.draws < 4) allOk = false;
-    await page.screenshot({ path: path.join(SHOTS, 'all-district-' + d + '.png') });
+    await page.screenshot({ timeout: 120000, path: path.join(SHOTS, 'all-district-' + d + '.png') });
   }
   record('desktop', 'all five districts reachable and drawing', allOk);
 
   await page.evaluate(() => window.GAME.setTime(21.5));
   await page.evaluate(() => window.GAME.stepFrames(45));
-  await page.screenshot({ path: path.join(SHOTS, 'all-night.png') });
+  await page.screenshot({ timeout: 120000, path: path.join(SHOTS, 'all-night.png') });
   record('desktop', 'night renders', true);
 
   await page.evaluate(() => window.GAME.openMap());
   await page.evaluate(() => window.GAME.stepFrames(10));
-  await page.screenshot({ path: path.join(SHOTS, 'all-map.png') });
+  await page.screenshot({ timeout: 120000, path: path.join(SHOTS, 'all-map.png') });
   await page.evaluate(() => window.GAME.closeMap());
 
   const st = await page.evaluate(() => window.GAME.selfTest());
@@ -173,7 +173,7 @@ async function suitePhone(browser) {
   record('phone', 'mute button works', quick.sound);
   record('phone', 'diagnostics button works', quick.diag);
   record('phone', 'settings reachable without a keyboard', quick.menu);
-  await page.screenshot({ path: path.join(SHOTS, 'all-phone.png') });
+  await page.screenshot({ timeout: 120000, path: path.join(SHOTS, 'all-phone.png') });
   record('phone', 'no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
   await page.close();
 }
@@ -188,7 +188,7 @@ async function suiteFlow(browser) {
   await page.evaluate(() => window.GAME.stepFrames(90));
   const cineRunning = await page.evaluate(() => window.GAME.game.cine.active && window.GAME.ui.screen === 'cine');
   record('flow', 'opening cinematic plays', cineRunning);
-  await page.screenshot({ path: path.join(SHOTS, 'all-intro.png') });
+  await page.screenshot({ timeout: 120000, path: path.join(SHOTS, 'all-intro.png') });
 
   await page.evaluate(() => window.GAME.game.cine.finish());
   await page.evaluate(() => window.GAME.stepFrames(30));
@@ -204,7 +204,7 @@ async function suiteFlow(browser) {
       return p.classId === c && p.form === 'human' && p.mesh && p.mesh.count > 300;
     }, id);
     if (!ok) classesOk = false;
-    await page.screenshot({ path: path.join(SHOTS, 'all-class-' + id + '.png') });
+    await page.screenshot({ timeout: 120000, path: path.join(SHOTS, 'all-class-' + id + '.png') });
   }
   record('flow', 'all five disciplines build a distinct avatar', classesOk);
 
@@ -222,7 +222,7 @@ async function suiteFlow(browser) {
   const inGame = await page.evaluate(() => ({ screen: window.GAME.ui.screen, state: window.GAME.game.player.state }));
   record('flow', 'confirm enters play', inGame.screen === 'game' && inGame.state !== 'air',
     JSON.stringify(inGame));
-  await page.screenshot({ path: path.join(SHOTS, 'all-ingame.png') });
+  await page.screenshot({ timeout: 120000, path: path.join(SHOTS, 'all-ingame.png') });
   record('flow', 'no page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
   await page.close();
 }

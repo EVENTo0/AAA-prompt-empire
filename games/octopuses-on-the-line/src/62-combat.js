@@ -636,11 +636,22 @@
       return;
     }
 
-    // regeneration, slower while something is actively hunting you
+    // Regeneration, slower while something is actively hunting you.
+    //
+    // Foes far from the player are stepped at a fraction of the rate: a
+    // creature drifting around its spawn 200m away does not need 60Hz,
+    // and paying for it on every one of sixty-odd foes is the difference
+    // between a phone holding frame rate and not. Anything within its own
+    // aggro range still runs full speed.
     var hunted = false;
+    var p = g.player.pos;
+    this._farTick = ((this._farTick || 0) + 1) % 6;
     for (var i = 0; i < this.foes.length; i++) {
-      this.foes[i].update(dt, g);
-      if (!this.foes[i].dead && this.foes[i].state === 'chase') hunted = true;
+      var f = this.foes[i];
+      var far = !f.dead && f.state !== 'chase' && dist2(f.pos, p) > 90 * 90;
+      if (far && (i % 6) !== this._farTick) continue;
+      f.update(far ? dt * 6 : dt, g);
+      if (!f.dead && f.state === 'chase') hunted = true;
     }
     var rate = hunted ? 0.35 : 1;
     this.hp = Math.min(this.maxHp, this.hp + this.vitals.hpRegen * rate * dt);

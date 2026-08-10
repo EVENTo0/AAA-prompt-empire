@@ -21,6 +21,7 @@
     controls:     { en: 'Controls',                ar: 'التحكم' },
     hero:         { en: 'Hero',                    ar: 'البطل' },
     skills:       { en: 'Skills',                  ar: 'المهارات' },
+    story:        { en: 'Story',                   ar: 'القصة' },
     mvp:          { en: 'MVP',                     ar: 'الزعماء' },
     dailyTab:     { en: 'Daily',                   ar: 'اليومي' },
     bag:          { en: 'Bag',                     ar: 'الحقيبة' },
@@ -854,7 +855,7 @@
     this.tab = tab;
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
-      ? [['hero', this.t('hero')], ['skills', this.t('skills')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
+      ? [['story', this.t('story')], ['hero', this.t('hero')], ['skills', this.t('skills')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
          ['mvp', this.t('mvp')], ['dailyTab', this.t('dailyTab')],
          ['auction', this.t('auction')], ['shop', this.t('shop')], ['map', this.t('map')],
          ['controls', this.t('controls')], ['settings', this.t('settings')]]
@@ -869,7 +870,8 @@
 
     var body = this.bodyEl;
     body.innerHTML = '';
-    if (tab === 'hero') this.renderHero(body);
+    if (tab === 'story') this.renderStory(body);
+    else if (tab === 'hero') this.renderHero(body);
     else if (tab === 'skills') this.renderSkills(body);
     else if (tab === 'mvp') this.renderMvp(body);
     else if (tab === 'dailyTab') this.renderDaily(body);
@@ -955,6 +957,101 @@
     body.appendChild(el('p', 'octo-note', ar
       ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
       : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
+  };
+
+  /* ------------------------------------------------------- the story */
+
+  /**
+   * Five acts, each a level band, a district, a boss and a few goals. The
+   * pages reveal as the act progresses, so the turn at the end of Act V
+   * cannot be read on the first day.
+   */
+  Ui.prototype.renderStory = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    var c = g.chronicle;
+    if (!c) return;
+    var ACTS = OCTO.chronicle.ACTS;
+    if (this._actPick === undefined) this._actPick = c.current().id;
+
+    var strip = el('div', 'octo-acts');
+    ACTS.forEach(function (act) {
+      var st = c.state(act);
+      var b = el('button', 'octo-act ' + st + (self._actPick === act.id ? ' sel' : ''));
+      b.innerHTML =
+        '<b>' + (ar ? act.ar : act.en).split('—')[0].trim() + '</b>' +
+        '<span>' + act.band[0] + '–' + act.band[1] + '</span>' +
+        (st === 'done' ? '<i>✓</i>' : st === 'sealed' ? '<i>🔒</i>' : '');
+      b.addEventListener('click', function () {
+        self._actPick = act.id;
+        self.renderPanel('story');
+      });
+      strip.appendChild(b);
+    });
+    body.appendChild(strip);
+
+    var act = OCTO.chronicle.actById(this._actPick);
+    if (!act) return;
+    var st = c.state(act);
+
+    var card = el('div', 'octo-act-card');
+    card.innerHTML =
+      '<div class="octo-act-title">' + (ar ? act.ar : act.en) + '</div>' +
+      '<div class="octo-act-sub">' + g.districtName(act.district) + ' · ' +
+        (ar ? 'المستويات ' : 'Levels ') + act.band[0] + '–' + act.band[1] + '</div>';
+
+    if (st === 'sealed') {
+      card.innerHTML += '<div class="octo-act-sealed">' +
+        (ar ? 'مختوم حتى المستوى ' : 'Sealed until level ') + act.opens + '</div>';
+      body.appendChild(card);
+      return;
+    }
+
+    // ---- the pages
+    var pages = c.pagesRead(act);
+    var text = el('div', 'octo-act-pages');
+    act.beats.forEach(function (beat, i) {
+      if (i < pages) {
+        text.innerHTML += '<p>' + (ar ? beat.ar : beat.en) + '</p>';
+      } else {
+        text.innerHTML += '<p class="unread">' +
+          (ar ? '— لم تصل إلى هذه الصفحة بعد —' : '— this page is not yours yet —') + '</p>';
+      }
+    });
+    card.appendChild(text);
+
+    // ---- the goals
+    var goals = el('div', 'octo-act-goals');
+    c.goals(act).forEach(function (gl) {
+      var pct = Math.round(gl.have / gl.goal.need * 100);
+      goals.innerHTML +=
+        '<div class="octo-act-goal' + (gl.done ? ' done' : '') + '">' +
+        '  <span>' + (gl.done ? '✓ ' : '') + (ar ? gl.goal.ar : gl.goal.en) + '</span>' +
+        '  <b>' + gl.have + ' / ' + gl.goal.need + '</b>' +
+        '  <div class="octo-mini-bar"><i style="width:' + pct + '%"></i></div>' +
+        '</div>';
+    });
+    card.appendChild(goals);
+
+    if (st === 'done') {
+      card.appendChild(el('div', 'octo-act-done', ar ? '✓ انتهى هذا الفصل' : '✓ This act is closed'));
+    } else {
+      var can = c.canClose(act);
+      var b2 = el('button', 'octo-select-go' + (can ? '' : ' ghost'),
+        can ? (ar ? 'أغلق الفصل  +' : 'Close the act  +') + act.xp + ' XP'
+            : (ar ? 'الأهداف غير مكتملة' : 'Objectives incomplete'));
+      b2.addEventListener('click', function () {
+        if (c.close(act) === 'ok') {
+          g.audio && g.audio.play('success');
+          self.renderPanel('story');
+        } else { g.audio && g.audio.play('fail', 0.4); }
+      });
+      card.appendChild(b2);
+    }
+    body.appendChild(card);
+
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'كل هدف هنا يقرأ عدّاداً تحتفظ به أنظمة اللعبة أصلاً — لا توجد مهمة جديدة، بل ترتيب لما تفعله.'
+      : 'Every objective here reads a counter another system was already keeping. Nothing is a new task; the act is only the order they go in.'));
   };
 
   /* --------------------------------------------------------- the MVPs */
