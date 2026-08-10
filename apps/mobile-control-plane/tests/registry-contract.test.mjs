@@ -17,14 +17,25 @@ test('registry contains no provider credentials or service-role keys', async () 
   assert.doesNotMatch(registry, /service_role|sb_secret_|ghp_|github_pat_|VERCEL_TOKEN|SUPABASE_ACCESS_TOKEN/i)
 })
 
-test('EVENTO and Empire remain separate tracked systems', async () => {
+test('EVENTO web, mobile, and Empire remain separate tracked systems', async () => {
   const registry = JSON.parse(await readFile(registryPath, 'utf8'))
   const evento = registry.projects.find((project) => project.id === 'evento-core')
+  const eventoMobile = registry.projects.find((project) => project.id === 'evento-mobile')
   const empire = registry.projects.find((project) => project.id === 'aaa-empire')
+
   assert.equal(evento.vercelProject, 'evento-empire')
   assert.equal(evento.supabaseProjectRef, 'jaxhaiaftpegcodkzaus')
+  assert.equal(evento.repository, null)
+
+  assert.equal(eventoMobile.repository, 'EVENTo0/evento-mobile')
+  assert.equal(eventoMobile.supabaseProjectRef, 'jaxhaiaftpegcodkzaus')
+  assert.equal(eventoMobile.vercelProject, null)
+  assert.deepEqual(eventoMobile.platforms, ['android', 'ios'])
+  assert.ok(eventoMobile.workflows.includes('phone-dev-rc3-v2.yml'))
+
   assert.equal(empire.repository, 'EVENTo0/AAA-prompt-empire')
-  assert.notEqual(evento.id, empire.id)
+  assert.notEqual(evento.id, eventoMobile.id)
+  assert.notEqual(eventoMobile.repository, empire.repository)
 })
 
 test('OCTORIMAL is tracked as an independent product repository', async () => {
