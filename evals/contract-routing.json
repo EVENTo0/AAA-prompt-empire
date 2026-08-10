@@ -18,6 +18,7 @@
     {"id":"E014","route":"capability-curation","input_tags":["capability","regression"],"expect_agents":["capability_curator","qa_verifier"],"expect_no_permission":"deploy_preview"},
     {"id":"E015","route":"project-continuity","input_tags":["resume","handoff"],"expect_agents":["continuity_analyst"],"expect_no_permission":"write_branch"},
     {"id":"E016","route":"integration-planning","input_tags":["connector","webhook"],"expect_agents":["systems_optimizer"],"expect_no_permission":"write_branch"},
-    {"id":"E017","route":"systems-optimization","input_tags":["cost","reliability"],"expect_agents":["systems_optimizer"],"expect_no_permission":"write_branch"}
+    {"id":"E017","route":"systems-optimization","input_tags":["cost","reliability"],"expect_agents":["systems_optimizer"],"expect_no_permission":"write_branch"},
+    {"id":"E018","route":"game-studio","input_tags":["game-studio","octorimal"],"expect_agents":["game_studio_director"],"expect_no_permission":"write_branch"}
   ]
 }
