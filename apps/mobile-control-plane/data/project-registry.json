@@ -44,6 +44,20 @@
       "notes": "Supporting prompt repository."
     },
     {
+      "id": "octorimal",
+      "name": "OCTORIMAL: Sands of the First Tide",
+      "kind": "game-product",
+      "status": "active",
+      "saleStatus": "portfolio",
+      "priority": "P1",
+      "repository": "EVENTo0/OCTORIMAL",
+      "vercelProject": null,
+      "supabaseProjectRef": null,
+      "platforms": ["windows", "steam", "meta-quest", "android", "ios", "web"],
+      "workflows": ["repo-guard.yml"],
+      "notes": "Independent commercial game product. Phase 0 repository governance is merged; M1 Unity runtime foundation is in progress. Product code, game decisions and verification evidence remain authoritative in the OCTORIMAL repository."
+    },
+    {
       "id": "evex-official",
       "name": "EVEX Official",
       "kind": "product",

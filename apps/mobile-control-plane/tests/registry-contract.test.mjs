@@ -26,3 +26,16 @@ test('EVENTO and Empire remain separate tracked systems', async () => {
   assert.equal(empire.repository, 'EVENTo0/AAA-prompt-empire')
   assert.notEqual(evento.id, empire.id)
 })
+
+test('OCTORIMAL is tracked as an independent product repository', async () => {
+  const registry = JSON.parse(await readFile(registryPath, 'utf8'))
+  const octorimal = registry.projects.find((project) => project.id === 'octorimal')
+  const empire = registry.projects.find((project) => project.id === 'aaa-empire')
+
+  assert.equal(octorimal.repository, 'EVENTo0/OCTORIMAL')
+  assert.equal(octorimal.kind, 'game-product')
+  assert.equal(octorimal.status, 'active')
+  assert.equal(octorimal.vercelProject, null)
+  assert.equal(octorimal.supabaseProjectRef, null)
+  assert.notEqual(octorimal.repository, empire.repository)
+})
