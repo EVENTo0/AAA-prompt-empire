@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Octopuses on the Line — an open-map browser action game. Balance an eight-armed octopus along the washing lines of an old Arabian souq and climb to the neon sky towers above.">
 <meta name="theme-color" content="#1a120b">
-<title>Octopuses on the Line — Open Map Beta v1.4.0</title>
+<title>Octopuses on the Line — Open Map Beta v1.5.0</title>
 <style>
   /* ---------------------------------------------------------- reset */
   *, *::before, *::after { box-sizing: border-box; }
@@ -929,6 +929,73 @@
   .octo-q-line { font-size: 10px; opacity: 0.82; margin-top: 2px; }
   .octo-q-line.dim, .octo-q.dim { opacity: 0.55; }
 
+  /* ---- MVP roster */
+  .octo-mvp-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+  .octo-mvp {
+    display: flex; align-items: center; gap: 10px; cursor: pointer; font-family: inherit;
+    padding: 8px 12px; border-radius: 12px; text-align: start; color: #f2e7d2;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  }
+  .octo-mvp.up { border-color: #ff8a6a; background: rgba(255,138,106,0.08); }
+  .octo-mvp.sel { box-shadow: 0 0 0 2px var(--teal); }
+  .octo-mvp-badge {
+    font-size: 8px; font-weight: 800; letter-spacing: 0.08em; color: #2a1f0c;
+    background: linear-gradient(180deg, #ffdc93, #c98a2c);
+    padding: 3px 6px; border-radius: 5px; flex: 0 0 auto;
+  }
+  .octo-mvp-meta { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .octo-mvp-meta b { font-size: 13px; font-weight: 800; }
+  .octo-mvp-meta i { font-size: 10px; font-style: normal; opacity: 0.65; }
+  .octo-mvp-time {
+    font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
+    color: #cdbfa8; flex: 0 0 auto;
+  }
+  .octo-mvp-time.live { color: #ff9a7a; }
+  .octo-mvp-kills { font-size: 10px; opacity: 0.6; font-weight: 800; }
+  .octo-mvp-card {
+    border: 1px solid var(--edge); border-radius: 14px; padding: 14px 16px;
+    background: rgba(255,255,255,0.04);
+  }
+  .octo-mvp-title {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 17px; font-weight: 800; color: var(--sand); margin-bottom: 9px;
+  }
+  .octo-mvp-title em {
+    font-size: 9px; font-style: normal; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #ff9a7a;
+  }
+  .octo-mvp-rule { font-size: 12px; line-height: 1.6; margin-bottom: 8px; color: #f0e5d2; }
+  .octo-mvp-rule b { color: var(--teal); }
+  .octo-mvp-lore { font-size: 11.5px; line-height: 1.65; font-style: italic; opacity: 0.66; margin-bottom: 12px; }
+  .octo-mvp-drops { margin: 12px 0; }
+  .octo-mvp-drops em { font-style: normal; opacity: 0.7; text-transform: none; letter-spacing: 0; }
+  .octo-drop-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .octo-drop {
+    padding: 7px 11px; border-radius: 9px; font-size: 11px;
+    background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.12);
+  }
+  .octo-drop.sure { border-color: var(--gold); background: rgba(227,181,88,0.14); }
+  .octo-mvp-card .octo-select-go { width: 100%; max-width: none; box-shadow: none; margin-top: 4px; }
+  .octo-mvp-card .octo-select-go.ghost {
+    background: rgba(255,255,255,0.08); color: #cdbfa8; border-color: rgba(255,255,255,0.16);
+  }
+
+  /* ---- daily */
+  .octo-signin { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .octo-day {
+    flex: 1 0 56px; text-align: center; padding: 8px 4px; border-radius: 10px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  }
+  .octo-day b { display: block; font-size: 12px; color: var(--sand); }
+  .octo-day span { display: block; font-size: 11px; color: var(--gold); font-weight: 700; margin-top: 2px; }
+  .octo-day i { display: block; font-size: 8px; font-style: normal; color: var(--teal); letter-spacing: 0.08em; }
+  .octo-day.got { border-color: #79e6a0; background: rgba(121,230,160,0.10); }
+  .octo-day.next { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(227,181,88,0.35); }
+  .octo-signin + .octo-select-go { width: 100%; max-width: none; box-shadow: none; margin-bottom: 6px; }
+  .octo-signin + .octo-select-go.ghost {
+    background: rgba(255,255,255,0.08); color: #cdbfa8; border-color: rgba(255,255,255,0.16);
+  }
+
   /* ---- skill tree */
   .octo-tree-head {
     display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
@@ -1168,6 +1235,8 @@
 <script src="src/55-classes.js"></script>
 <script src="src/62-combat.js"></script>
 <script src="src/64-items.js"></script>
+<script src="src/66-bosses.js"></script>
+<script src="src/68-daily.js"></script>
 <script src="src/60-player.js"></script>
 <script src="src/70-npc.js"></script>
 <script src="src/80-game.js"></script>

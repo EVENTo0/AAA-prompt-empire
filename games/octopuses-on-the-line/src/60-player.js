@@ -571,6 +571,7 @@
     var span = Math.abs(this.lineT - (this.lineEntryT === undefined ? this.lineT : this.lineEntryT));
     if (span > 0.55 && this.game.awardXp) {
       this.game.awardXp(Math.round(OCTO.progress.XP.lineCross * span), 'crossing');
+      this.game.daily && this.game.daily.note('cross', 1);
     }
     this.lineEntryT = undefined;
     this.line = null;

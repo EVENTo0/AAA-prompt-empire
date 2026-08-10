@@ -4,6 +4,36 @@ All notable changes to this project are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] — 2026-08-09 — The MVPs, and a reason to come back tomorrow
+
+"Boss, system, missions" — so: five named bosses with real clocks, and a
+daily loop.
+
+### Added
+
+- **Five MVPs, one per district** (`src/66-bosses.js`). A boss here is not a
+  big foe with more health. **Each one breaks a rule of the game inside its
+  own district**, and that rule is the whole fight:
+  - **The Knot Weaver** cuts the rope out from under you.
+  - **The Long Thirst** drains your focus while you stand near it.
+  - **The Harbourmaster** drags every nearby line down until the crossings
+    you know stop being level.
+  - **The Calligrapher** turns the wind against you.
+  - **Ra's al-Khayt** does all three at once, at level 55.
+  Every rule reaches into the rope and wind systems the player already lives
+  in, so the fight is still the balance model. Beating one teaches you
+  something about the rope, not about a damage rotation.
+- **A real respawn clock** per boss, surviving a reload, plus a kill count and
+  a drop table whose first entry is guaranteed — Relic quality, or Thread from
+  Ra's al-Khayt.
+- **The MVP roster panel**: level, district, live timer, the rule it breaks,
+  its lore, its drop table, and Travel-to-it when it is up.
+- **A daily loop** (`src/68-daily.js`): a seven-day sign-in with a streak, and
+  six tasks drawn only from things the game already measures — ropes crossed,
+  pearls found, foes felled, an MVP downed, an Anchor visited, a job finished.
+  Nothing asks the player to do something they would not otherwise do; today
+  it just pays more. Resets at the player's own midnight.
+
 ## [1.4.0] — 2026-08-09 — The skill tree
 
 From the new screenshots: a class skill tree with points, ranked nodes,

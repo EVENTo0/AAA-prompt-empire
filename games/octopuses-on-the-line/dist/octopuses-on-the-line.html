@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Octopuses on the Line — an open-map browser action game. Balance an eight-armed octopus along the washing lines of an old Arabian souq and climb to the neon sky towers above.">
 <meta name="theme-color" content="#1a120b">
-<title>Octopuses on the Line — Open Map Beta v1.4.0</title>
+<title>Octopuses on the Line — Open Map Beta v1.5.0</title>
 <style>
   /* ---------------------------------------------------------- reset */
   *, *::before, *::after { box-sizing: border-box; }
@@ -928,6 +928,73 @@
   .octo-q.seal .octo-q-head b { color: var(--teal); }
   .octo-q-line { font-size: 10px; opacity: 0.82; margin-top: 2px; }
   .octo-q-line.dim, .octo-q.dim { opacity: 0.55; }
+
+  /* ---- MVP roster */
+  .octo-mvp-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+  .octo-mvp {
+    display: flex; align-items: center; gap: 10px; cursor: pointer; font-family: inherit;
+    padding: 8px 12px; border-radius: 12px; text-align: start; color: #f2e7d2;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  }
+  .octo-mvp.up { border-color: #ff8a6a; background: rgba(255,138,106,0.08); }
+  .octo-mvp.sel { box-shadow: 0 0 0 2px var(--teal); }
+  .octo-mvp-badge {
+    font-size: 8px; font-weight: 800; letter-spacing: 0.08em; color: #2a1f0c;
+    background: linear-gradient(180deg, #ffdc93, #c98a2c);
+    padding: 3px 6px; border-radius: 5px; flex: 0 0 auto;
+  }
+  .octo-mvp-meta { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .octo-mvp-meta b { font-size: 13px; font-weight: 800; }
+  .octo-mvp-meta i { font-size: 10px; font-style: normal; opacity: 0.65; }
+  .octo-mvp-time {
+    font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
+    color: #cdbfa8; flex: 0 0 auto;
+  }
+  .octo-mvp-time.live { color: #ff9a7a; }
+  .octo-mvp-kills { font-size: 10px; opacity: 0.6; font-weight: 800; }
+  .octo-mvp-card {
+    border: 1px solid var(--edge); border-radius: 14px; padding: 14px 16px;
+    background: rgba(255,255,255,0.04);
+  }
+  .octo-mvp-title {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 17px; font-weight: 800; color: var(--sand); margin-bottom: 9px;
+  }
+  .octo-mvp-title em {
+    font-size: 9px; font-style: normal; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #ff9a7a;
+  }
+  .octo-mvp-rule { font-size: 12px; line-height: 1.6; margin-bottom: 8px; color: #f0e5d2; }
+  .octo-mvp-rule b { color: var(--teal); }
+  .octo-mvp-lore { font-size: 11.5px; line-height: 1.65; font-style: italic; opacity: 0.66; margin-bottom: 12px; }
+  .octo-mvp-drops { margin: 12px 0; }
+  .octo-mvp-drops em { font-style: normal; opacity: 0.7; text-transform: none; letter-spacing: 0; }
+  .octo-drop-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .octo-drop {
+    padding: 7px 11px; border-radius: 9px; font-size: 11px;
+    background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.12);
+  }
+  .octo-drop.sure { border-color: var(--gold); background: rgba(227,181,88,0.14); }
+  .octo-mvp-card .octo-select-go { width: 100%; max-width: none; box-shadow: none; margin-top: 4px; }
+  .octo-mvp-card .octo-select-go.ghost {
+    background: rgba(255,255,255,0.08); color: #cdbfa8; border-color: rgba(255,255,255,0.16);
+  }
+
+  /* ---- daily */
+  .octo-signin { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .octo-day {
+    flex: 1 0 56px; text-align: center; padding: 8px 4px; border-radius: 10px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  }
+  .octo-day b { display: block; font-size: 12px; color: var(--sand); }
+  .octo-day span { display: block; font-size: 11px; color: var(--gold); font-weight: 700; margin-top: 2px; }
+  .octo-day i { display: block; font-size: 8px; font-style: normal; color: var(--teal); letter-spacing: 0.08em; }
+  .octo-day.got { border-color: #79e6a0; background: rgba(121,230,160,0.10); }
+  .octo-day.next { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(227,181,88,0.35); }
+  .octo-signin + .octo-select-go { width: 100%; max-width: none; box-shadow: none; margin-bottom: 6px; }
+  .octo-signin + .octo-select-go.ghost {
+    background: rgba(255,255,255,0.08); color: #cdbfa8; border-color: rgba(255,255,255,0.16);
+  }
 
   /* ---- skill tree */
   .octo-tree-head {
@@ -7619,6 +7686,382 @@
 
 })(typeof window !== 'undefined' ? window : globalThis);
 
+/* ===== src/66-bosses.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 66-bosses.js
+ *
+ * The MVPs, and the daily loop.
+ *
+ * A boss here is not a big foe with more health. Each one owns a
+ * district and breaks one rule of the game inside it: the Weaver cuts
+ * ropes out from under you, the Harbourmaster drags the lines down until
+ * they sag into the sea, the Calligrapher rewrites which way is up. The
+ * fight is still the balance model — that is the point. Beating a boss
+ * teaches you something about the rope, not about a damage rotation.
+ *
+ * Each has a real respawn clock, a drop table with a guaranteed piece,
+ * and a place on the map you have to walk to.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+
+  /**
+   * The roster. `rule` is the rule of the world this boss breaks, and it
+   * is the whole design of the fight. `site` is a tie-off point the world
+   * generator computed, resolved the same way the Anchors are.
+   */
+  var BOSSES = [
+    {
+      id: 'weaver', site: 'plaza', off: [18, 0, -20], district: 'souq',
+      en: 'The Knot Weaver', ar: 'ناسجة العُقد',
+      level: 12, hp: 2600, damage: 26, respawn: 300, rule: 'cut',
+      loreEn: 'She tied the first line over the souq, and she has never forgiven the city for walking on it.',
+      loreAr: 'هي من ربطت أول خيط فوق السوق، ولم تسامح المدينة قط على المشي عليه.',
+      ruleEn: 'Cuts the rope beneath you every few seconds. Do not be standing on one.',
+      ruleAr: 'تقطع الخيط تحتك كل بضع ثوانٍ. لا تكن واقفاً عليه.',
+      drops: ['stave', 'wrap', 'charm'], colour: [0.52, 0.26, 0.34], accent: [1.0, 0.72, 0.36], scale: 2.0
+    },
+    {
+      id: 'thirst', site: 'oasis', off: [10, 0, -14], district: 'oasis',
+      en: 'The Long Thirst', ar: 'الظمأ الطويل',
+      level: 20, hp: 4200, damage: 34, respawn: 420, rule: 'drain',
+      loreEn: 'It was a well once. It remembers being full, and it wants that back.',
+      loreAr: 'كانت بئراً ذات يوم. تذكر أنها كانت ملأى، وتريد ذلك مجدداً.',
+      ruleEn: 'Drains your focus while you are near it. Land your skills early.',
+      ruleAr: 'يستنزف طاقتك ما دمت قريباً. استخدم مهاراتك مبكراً.',
+      drops: ['silks', 'slippers', 'sigil'], colour: [0.34, 0.44, 0.40], accent: [0.60, 1.0, 0.86], scale: 2.2
+    },
+    {
+      id: 'harbourmaster', site: 'harbour', off: [16, 0, 14], district: 'harbour',
+      en: 'The Harbourmaster', ar: 'ربّان الميناء',
+      level: 30, hp: 7400, damage: 46, respawn: 600, rule: 'sag',
+      loreEn: 'He signed for every rope in the harbour. He intends to collect them all back.',
+      loreAr: 'وقّع على كل حبل في الميناء، وينوي استرجاعها جميعاً.',
+      ruleEn: 'Drags every nearby line down. The crossings you know stop being level.',
+      ruleAr: 'يشد كل خيط قريب إلى الأسفل. المعابر التي تعرفها لن تبقى مستوية.',
+      drops: ['hauberk', 'buckler', 'boots'], colour: [0.22, 0.30, 0.44], accent: [0.50, 0.88, 1.0], scale: 2.4
+    },
+    {
+      id: 'calligrapher', site: 'towers', off: [-18, 0, 12], district: 'towers',
+      en: 'The Calligrapher', ar: 'الخطّاط',
+      level: 42, hp: 12000, damage: 58, respawn: 900, rule: 'wind',
+      loreEn: 'He wrote the beacons. Somewhere in the writing he stopped being a man and became the sentence.',
+      loreAr: 'هو من كتب المنارات. وفي مكان ما من الكتابة، كفّ عن كونه رجلاً وصار الجملة نفسها.',
+      ruleEn: 'Turns the wind against you, hard. Grip, or be written off the line.',
+      ruleAr: 'يقلب الريح عليك بعنف. تشبّث، أو تُمحَ عن الخيط.',
+      drops: ['silks', 'stave', 'sigil'], colour: [0.30, 0.22, 0.46], accent: [0.86, 0.62, 1.0], scale: 2.6
+    },
+    {
+      id: 'khayt', site: 'farGate', off: [-6, 0, -8], district: 'line',
+      en: "Ra's al-Khayt", ar: 'رأس الخيط',
+      level: 55, hp: 26000, damage: 76, respawn: 1800, rule: 'all', final: true,
+      loreEn: 'Every rope in the city is one rope. This is the end of it, and it has been watching the whole time.',
+      loreAr: 'كل حبال المدينة حبل واحد. وهذه نهايته، وقد كان يراقب طوال الوقت.',
+      ruleEn: 'Cuts, drags and turns the wind — everything the others do, at once.',
+      ruleAr: 'يقطع ويشدّ ويقلب الريح — كل ما يفعله الآخرون، دفعة واحدة.',
+      drops: ['blade', 'bow', 'hauberk', 'sigil'], colour: [0.80, 0.50, 0.20], accent: [0.30, 0.92, 1.0], scale: 3.4
+    }
+  ];
+
+  function bossById(id) {
+    for (var i = 0; i < BOSSES.length; i++) if (BOSSES[i].id === id) return BOSSES[i];
+    return null;
+  }
+
+  /**
+   * A live boss. It reuses the Foe contract so the combat loop, the
+   * target plate and the damage numbers all work on it unchanged — a
+   * boss is a foe with a clock, a name and a rule.
+   */
+  function makeBoss(def, world, state) {
+    var site = world.anchors[def.site];
+    if (!site) {
+      var d = world.districts[def.district];
+      site = d ? d.center : { x: 0, y: 0, z: 0 };
+    }
+    var x = site.x + def.off[0], z = site.z + def.off[2];
+    var y = world.groundHeight(x, z);
+    var foe = new OCTO.combat.Foe('warden', x, y, z, def.level, 9000 + BOSSES.indexOf(def));
+    foe.boss = def;
+    foe.def = {
+      en: def.en, ar: def.ar, hp: def.hp, dmg: def.damage, speed: 2.6,
+      aggro: 26, reach: 3.4, xp: def.level * 26, coin: def.level * 9,
+      colour: def.colour, accent: def.accent, scale: def.scale, elite: true
+    };
+    foe.maxHp = def.hp;
+    foe.hp = def.hp;
+    foe.damage = def.damage;
+    foe.ruleTimer = 0;
+    // A boss killed recently stays down until its clock runs out.
+    var s = state && state[def.id];
+    if (s && s.downUntil > Date.now()) {
+      foe.dead = true;
+      foe.deadTimer = 0;
+      foe.respawn = (s.downUntil - Date.now()) / 1000;
+    } else {
+      foe.respawn = 0;
+    }
+    return foe;
+  }
+
+  /**
+   * Bosses register themselves with the combat system and then run their
+   * rule every few seconds while they are chasing.
+   */
+  function Bosses(game) {
+    this.game = game;
+    this.list = [];
+    this.state = (game.save.bosses && JSON.parse(JSON.stringify(game.save.bosses))) || {};
+  }
+
+  Bosses.prototype.spawn = function (world) {
+    var self = this;
+    this.list = [];
+    BOSSES.forEach(function (def) {
+      var foe = makeBoss(def, world, self.state);
+      self.list.push(foe);
+      self.game.combat.foes.push(foe);
+    });
+    return this.list.length;
+  };
+
+  /** How long until this boss is back, in seconds. 0 means it is up. */
+  Bosses.prototype.timeLeft = function (id) {
+    var s = this.state[id];
+    if (!s || !s.downUntil) return 0;
+    return Math.max(0, Math.round((s.downUntil - Date.now()) / 1000));
+  };
+
+  Bosses.prototype.isUp = function (id) {
+    var f = this.find(id);
+    return !!f && !f.dead;
+  };
+
+  Bosses.prototype.find = function (id) {
+    for (var i = 0; i < this.list.length; i++) {
+      if (this.list[i].boss && this.list[i].boss.id === id) return this.list[i];
+    }
+    return null;
+  };
+
+  /** Called by the game when any foe dies; ignores anything not a boss. */
+  Bosses.prototype.onKilled = function (foe) {
+    if (!foe.boss) return false;
+    var def = foe.boss, g = this.game, ar = g.lang === 'ar';
+    this.state[def.id] = {
+      downUntil: Date.now() + def.respawn * 1000,
+      kills: ((this.state[def.id] && this.state[def.id].kills) || 0) + 1,
+      best: Math.min((this.state[def.id] && this.state[def.id].best) || 1e9, Math.round(g.time - (foe.engagedAt || g.time)))
+    };
+    foe.respawn = def.respawn;
+
+    // guaranteed drop, plus a roll on the rest of the table
+    var made = [];
+    var first = OCTO.items.makeItem(def.drops[0], def.level, def.final ? 'thread' : 'relic');
+    if (g.inventory.add(first)) made.push(first);
+    for (var i = 1; i < def.drops.length; i++) {
+      if (Math.random() > 0.5) continue;
+      var it = OCTO.items.makeItem(def.drops[i], def.level,
+        OCTO.items.rollRarity(def.level, 1.2));
+      if (g.inventory.add(it)) made.push(it);
+    }
+    g.toast((ar ? 'سقط ' : 'Felled ') + (ar ? def.ar : def.en) +
+      (made.length ? '  ·  ' + made.length + (ar ? ' غنيمة' : ' drops') : ''), 'success');
+    g.persist();
+    return true;
+  };
+
+  /**
+   * Run each live boss's rule. This is where a boss becomes a boss: it
+   * reaches into the same rope and wind systems the player lives in.
+   */
+  Bosses.prototype.update = function (dt) {
+    var g = this.game, p = g.player;
+    for (var i = 0; i < this.list.length; i++) {
+      var f = this.list[i];
+      if (f.dead || f.state !== 'chase') continue;
+      if (!f.engagedAt) f.engagedAt = g.time;
+      f.ruleTimer -= dt;
+      if (f.ruleTimer > 0) continue;
+      f.ruleTimer = 4.5;
+      var rule = f.boss.rule;
+
+      if (rule === 'cut' || rule === 'all') {
+        // cut the line out from under the player
+        if (p.line) {
+          p.detachLine({ x: 0, y: 1.2, z: 0 }, 0.9);
+          g.toast(g.lang === 'ar' ? 'قُطع الخيط!' : 'The line is cut!', 'warn');
+          g.camera && g.camera.addShake(0.6);
+        }
+      }
+      if (rule === 'drain' || rule === 'all') {
+        g.combat.sp = Math.max(0, g.combat.sp - g.combat.maxSp * 0.18);
+      }
+      if (rule === 'sag' || rule === 'all') {
+        for (var r = 0; r < g.ropes.length; r++) {
+          var rope = g.ropes[r];
+          var dx = (rope.a.x + rope.b.x) * 0.5 - f.pos.x;
+          var dz = (rope.a.z + rope.b.z) * 0.5 - f.pos.z;
+          if (dx * dx + dz * dz > 40 * 40) continue;
+          rope.extraLoad = (rope.extraLoad || 0) + 30;
+          rope.loadTimer = 6;
+        }
+      }
+      if (rule === 'wind' || rule === 'all') {
+        g.windStrength = Math.min(1, g.windStrength + 0.35);
+        g.windRestore = 8;
+        if (p.state === 'line') p.tiltVel += (Math.random() < 0.5 ? -1 : 1) * 3.2;
+      }
+    }
+    // wind settles back once the Calligrapher stops pushing
+    if (g.windRestore > 0) {
+      g.windRestore -= dt;
+      if (g.windRestore <= 0) g.windStrength = 0.35;
+    }
+  };
+
+  Bosses.prototype.toJSON = function () { return this.state; };
+
+  OCTO.bosses = { BOSSES: BOSSES, Bosses: Bosses, bossById: bossById };
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ===== src/68-daily.js ===== */
+/* =====================================================================
+ * OCTOPUSES ON THE LINE — 68-daily.js
+ *
+ * The daily loop: sign-in, and a short list of things worth doing today.
+ *
+ * The tasks are deliberately drawn from what the game already measures —
+ * ropes crossed, pearls found, foes felled, an Anchor visited. Nothing
+ * here asks the player to do something they would not otherwise do; it
+ * only tells them that today, doing it pays extra. That is the whole
+ * honest version of a daily system.
+ * ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var OCTO = root.OCTO;
+
+  /** Local calendar day, so a reset happens at the player's midnight. */
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+
+  var TASKS = [
+    { id: 'cross',  en: 'Cross five lines',        ar: 'اعبر خمسة خيوط',      need: 5,  xp: 140, coin: 60 },
+    { id: 'pearl',  en: 'Find three pearls',       ar: 'اعثر على ثلاث لآلئ',  need: 3,  xp: 120, coin: 45 },
+    { id: 'kill',   en: 'Fell twelve foes',        ar: 'اصرع اثني عشر عدواً', need: 12, xp: 260, coin: 90 },
+    { id: 'boss',   en: 'Fell one MVP',            ar: 'اصرع زعيماً واحداً',  need: 1,  xp: 600, coin: 300 },
+    { id: 'anchor', en: 'Visit an Anchor',         ar: 'زر مرساة',            need: 1,  xp: 100, coin: 40 },
+    { id: 'job',    en: 'Finish a job',            ar: 'أنجز عملاً',          need: 1,  xp: 220, coin: 120 }
+  ];
+
+  /** Seven days of sign-in, then it loops. Day seven is the good one. */
+  var SIGNIN = [
+    { coin: 80,  xp: 60 },
+    { coin: 120, xp: 90 },
+    { coin: 160, xp: 130, item: 'charm' },
+    { coin: 220, xp: 180 },
+    { coin: 300, xp: 240, item: 'slippers' },
+    { coin: 400, xp: 320 },
+    { coin: 700, xp: 640, item: 'blade', rare: true }
+  ];
+
+  function Daily(game) {
+    this.game = game;
+    var s = (game.save.daily) || {};
+    this.day = s.day || '';
+    this.counts = s.counts || {};
+    this.claimed = s.claimed || {};
+    this.streak = s.streak || 0;
+    this.signedOn = s.signedOn || '';
+    this.roll();
+  }
+
+  /** Reset the sheet when the calendar day changes. */
+  Daily.prototype.roll = function () {
+    var t = today();
+    if (this.day === t) return false;
+    this.day = t;
+    this.counts = {};
+    this.claimed = {};
+    return true;
+  };
+
+  Daily.prototype.tasks = function () {
+    var self = this;
+    return TASKS.map(function (t) {
+      var have = self.counts[t.id] || 0;
+      return {
+        task: t, have: Math.min(have, t.need),
+        done: have >= t.need,
+        claimed: !!self.claimed[t.id]
+      };
+    });
+  };
+
+  /** Record progress. Called from the systems that already track these. */
+  Daily.prototype.note = function (id, n) {
+    this.roll();
+    this.counts[id] = (this.counts[id] || 0) + (n || 1);
+    return this.counts[id];
+  };
+
+  Daily.prototype.claim = function (id) {
+    this.roll();
+    var t = null;
+    for (var i = 0; i < TASKS.length; i++) if (TASKS[i].id === id) t = TASKS[i];
+    if (!t) return 'unknown';
+    if (this.claimed[id]) return 'claimed';
+    if ((this.counts[id] || 0) < t.need) return 'incomplete';
+    this.claimed[id] = true;
+    this.game.awardXp(t.xp, 'daily');
+    this.game.addDirhams(t.coin);
+    this.game.persist();
+    return 'ok';
+  };
+
+  Daily.prototype.canSignIn = function () { return this.signedOn !== today(); };
+
+  Daily.prototype.signIn = function () {
+    if (!this.canSignIn()) return 'done';
+    this.signedOn = today();
+    this.streak = (this.streak % SIGNIN.length) + 1;
+    var r = SIGNIN[this.streak - 1];
+    this.game.addDirhams(r.coin);
+    this.game.awardXp(r.xp, 'signin');
+    if (r.item) {
+      var it = OCTO.items.makeItem(r.item, Math.max(1, this.game.hero.level),
+        r.rare ? 'relic' : 'fine');
+      this.game.inventory.add(it);
+    }
+    this.game.persist();
+    return 'ok';
+  };
+
+  Daily.prototype.rewards = function () { return SIGNIN; };
+
+  Daily.prototype.pending = function () {
+    var n = this.canSignIn() ? 1 : 0;
+    this.tasks().forEach(function (t) { if (t.done && !t.claimed) n++; });
+    return n;
+  };
+
+  Daily.prototype.toJSON = function () {
+    return {
+      day: this.day, counts: this.counts, claimed: this.claimed,
+      streak: this.streak, signedOn: this.signedOn
+    };
+  };
+
+  OCTO.daily = { Daily: Daily, TASKS: TASKS, SIGNIN: SIGNIN, today: today };
+
+})(typeof window !== 'undefined' ? window : globalThis);
+
 /* ===== src/60-player.js ===== */
 /* =====================================================================
  * OCTOPUSES ON THE LINE — 60-player.js
@@ -8193,6 +8636,7 @@
     var span = Math.abs(this.lineT - (this.lineEntryT === undefined ? this.lineT : this.lineEntryT));
     if (span > 0.55 && this.game.awardXp) {
       this.game.awardXp(Math.round(OCTO.progress.XP.lineCross * span), 'crossing');
+      this.game.daily && this.game.daily.note('cross', 1);
     }
     this.lineEntryT = undefined;
     this.line = null;
@@ -9165,7 +9609,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -9379,6 +9823,9 @@
     // player (for vitals), so it is built here rather than in the ctor.
     this.combat = new OCTO.combat.Combat(this);
     this.combat.spawn(this.world, new OCTO.Rng((opts && opts.seed) || 20260807));
+    this.bosses = new OCTO.bosses.Bosses(this);
+    this.bosses.spawn(this.world);
+    this.daily = new OCTO.daily.Daily(this);
     var spawn = this.world.spawn;
     spawn.classId = this.save.classId || 'muqatil';
     spawn.form = 'human';
@@ -9598,6 +10045,7 @@
     }
 
     this.combat && this.combat.update(dt);
+    this.bosses && this.bosses.update(dt);
     this._expireWovenLines(dt);
     this.auction && this.auction.tick(this.hero.level, this.time);
     this._updateParticles(dt);
@@ -9758,6 +10206,7 @@
         pearl.taken = true;
         this.addDirhams(15);
         this.awardXp(OCTO.progress.XP.pearl, 'pearl');
+        this.daily && this.daily.note('pearl', 1);
         this.audio && this.audio.play('pearl');
         this.spawnSparkle(pearl, 12);
         var m = this.missionById('pearls');
@@ -9901,6 +10350,7 @@
     mission.count = mission.target;
     this.addDirhams(mission.reward);
     this.awardXp(OCTO.progress.XP.missionBase * (mission.order || 1), 'mission');
+    this.daily && this.daily.note('job', 1);
     this.audio && this.audio.play('success');
     this.camera.addShake(0.3);
     this.toast(
@@ -10023,6 +10473,13 @@
   /** A foe died: pay experience, coin and whatever it was carrying. */
   Game.prototype.onFoeKilled = function (foe) {
     var ar = this.lang === 'ar';
+    this.daily && this.daily.note('kill', 1);
+    if (this.bosses && this.bosses.onKilled(foe)) {
+      this.daily.note('boss', 1);
+      this.awardXp(foe.def.xp + foe.level * 3, 'boss');
+      this.addDirhams(foe.def.coin);
+      return;
+    }
     this.awardXp(foe.def.xp + foe.level * 3, 'kill');
     this.addDirhams(foe.def.coin + Math.round(foe.level * 0.8));
     this.spawnSparkle({ x: foe.pos.x, y: foe.pos.y + 1.2, z: foe.pos.z }, foe.def.elite ? 30 : 12);
@@ -10136,6 +10593,7 @@
         if (this.hero.visit(a.id)) {
           this._anchorCooldown = 3;
           this.awardXp(OCTO.progress.XP.anchorFirstVisit, 'anchor');
+          this.daily && this.daily.note('anchor', 1);
           this.spawnSparkle({ x: a.at[0], y: p.y + 1.4, z: a.at[2] }, 22);
           this.toast(
             (this.lang === 'ar' ? 'مرساة مفتوحة: ' : 'Anchor open: ') +
@@ -10361,6 +10819,8 @@
       this.save.dirhams = this.dirhams;
       this.save.progress = progress;
       this.save.hero = this.hero.toJSON();
+      if (this.bosses) this.save.bosses = this.bosses.toJSON();
+      if (this.daily) this.save.daily = this.daily.toJSON();
       this.save.ranks = this.save.ranks || {};
       if (this.combat) this.save.ranks[this.save.classId || 'muqatil'] = this.combat.ranks;
       this.save.inventory = this.inventory.toJSON();
@@ -11210,6 +11670,8 @@
     controls:     { en: 'Controls',                ar: 'التحكم' },
     hero:         { en: 'Hero',                    ar: 'البطل' },
     skills:       { en: 'Skills',                  ar: 'المهارات' },
+    mvp:          { en: 'MVP',                     ar: 'الزعماء' },
+    dailyTab:     { en: 'Daily',                   ar: 'اليومي' },
     bag:          { en: 'Bag',                     ar: 'الحقيبة' },
     auction:      { en: 'Auction',                 ar: 'المزاد' },
     jobs:         { en: 'Jobs',                    ar: 'الأعمال' },
@@ -12042,6 +12504,7 @@
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
       ? [['hero', this.t('hero')], ['skills', this.t('skills')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
+         ['mvp', this.t('mvp')], ['dailyTab', this.t('dailyTab')],
          ['auction', this.t('auction')], ['shop', this.t('shop')], ['map', this.t('map')],
          ['controls', this.t('controls')], ['settings', this.t('settings')]]
       : [['controls', this.t('controls')], ['settings', this.t('settings')]];
@@ -12057,6 +12520,8 @@
     body.innerHTML = '';
     if (tab === 'hero') this.renderHero(body);
     else if (tab === 'skills') this.renderSkills(body);
+    else if (tab === 'mvp') this.renderMvp(body);
+    else if (tab === 'dailyTab') this.renderDaily(body);
     else if (tab === 'bag') this.renderBag(body);
     else if (tab === 'auction') this.renderAuction(body);
     else if (tab === 'jobs') this.renderJobs(body);
@@ -12139,6 +12604,162 @@
     body.appendChild(el('p', 'octo-note', ar
       ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
       : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
+  };
+
+  /* --------------------------------------------------------- the MVPs */
+
+  function clockString(sec) {
+    var m = Math.floor(sec / 60), s2 = sec % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s2 < 10 ? '0' : '') + s2;
+  }
+
+  /**
+   * The boss roster. Each entry says where it stands, what rule of the
+   * world it breaks inside its district, when it is back, and what it
+   * drops — the four things worth knowing before walking out there.
+   */
+  Ui.prototype.renderMvp = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    if (!g.bosses) return;
+
+    if (this._mvpPick === undefined) this._mvpPick = OCTO.bosses.BOSSES[0].id;
+
+    var list = el('div', 'octo-mvp-list');
+    OCTO.bosses.BOSSES.forEach(function (def) {
+      var up = g.bosses.isUp(def.id);
+      var left = g.bosses.timeLeft(def.id);
+      var st = g.bosses.state[def.id] || {};
+      var row = el('button', 'octo-mvp' + (self._mvpPick === def.id ? ' sel' : '') + (up ? ' up' : ''));
+      row.innerHTML =
+        '<span class="octo-mvp-badge">MVP</span>' +
+        '<span class="octo-mvp-meta">' +
+        '  <b>' + (ar ? def.ar : def.en) + '</b>' +
+        '  <i>' + (ar ? 'مستوى ' : 'Lv ') + def.level + ' · ' + g.districtName(def.district) + '</i>' +
+        '</span>' +
+        '<span class="octo-mvp-time' + (up ? ' live' : '') + '">' +
+          (up ? (ar ? 'ظاهر' : 'UP') : clockString(left)) + '</span>' +
+        (st.kills ? '<span class="octo-mvp-kills">×' + st.kills + '</span>' : '');
+      row.addEventListener('click', function () {
+        self._mvpPick = def.id;
+        self.renderPanel('mvp');
+      });
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+
+    var def = OCTO.bosses.bossById(this._mvpPick);
+    if (!def) return;
+    var up = g.bosses.isUp(def.id);
+    var card = el('div', 'octo-mvp-card');
+    card.innerHTML =
+      '<div class="octo-mvp-title">' + (ar ? def.ar : def.en) +
+        (def.final ? '<em>' + (ar ? 'النهاية' : 'Final') + '</em>' : '') + '</div>' +
+      '<div class="octo-mvp-rule"><b>' + (ar ? 'يكسر القاعدة:' : 'Breaks the rule:') + '</b> ' +
+        (ar ? def.ruleAr : def.ruleEn) + '</div>' +
+      '<div class="octo-mvp-lore">' + (ar ? def.loreAr : def.loreEn) + '</div>' +
+      '<div class="octo-node-rows">' +
+      '  <div><span>' + (ar ? 'المستوى' : 'Level') + '</span><b>' + def.level + '</b></div>' +
+      '  <div><span>' + (ar ? 'الصحة' : 'Health') + '</span><b>' + def.hp.toLocaleString() + '</b></div>' +
+      '  <div><span>' + (ar ? 'الموقع' : 'Spawn') + '</span><b>' + g.districtName(def.district) + '</b></div>' +
+      '  <div><span>' + (ar ? 'العودة بعد' : 'Respawn') + '</span><b>' +
+           Math.round(def.respawn / 60) + (ar ? ' دقيقة' : ' min') + '</b></div>' +
+      '</div>';
+
+    var drops = el('div', 'octo-mvp-drops');
+    drops.innerHTML = '<div class="octo-slot-name">' + (ar ? 'ما يسقط منه' : 'Item drop') +
+      ' · <em>' + (ar ? 'الأول مضمون' : 'first is guaranteed') + '</em></div>';
+    var strip = el('div', 'octo-drop-strip');
+    def.drops.forEach(function (baseId, i) {
+      var base = OCTO.items.baseById(baseId);
+      var cell = el('div', 'octo-drop' + (i === 0 ? ' sure' : ''));
+      cell.innerHTML = '<b>' + (ar ? base.ar : base.en) + '</b>';
+      strip.appendChild(cell);
+    });
+    drops.appendChild(strip);
+    card.appendChild(drops);
+
+    var go = el('button', 'octo-select-go' + (up ? '' : ' ghost'),
+      up ? (ar ? 'اذهب إليه' : 'Travel to it')
+         : (ar ? 'يعود بعد ' : 'Back in ') + clockString(g.bosses.timeLeft(def.id)));
+    go.addEventListener('click', function () {
+      if (!up) { g.audio && g.audio.play('fail', 0.4); return; }
+      var f = g.bosses.find(def.id);
+      if (!f) return;
+      g.player.teleport(f.pos.x + 9, f.pos.y + 1.2, f.pos.z + 9);
+      g.player.detachLine && g.player.detachLine(null, 1.0);
+      g.camera.free = false; g.frameCamera();
+      g.combat.target = f;
+      self.closePanel();
+      g.toast((ar ? 'أمامك ' : 'Before you: ') + (ar ? def.ar : def.en), 'mission');
+    });
+    card.appendChild(go);
+    body.appendChild(card);
+  };
+
+  /* -------------------------------------------------------- the daily */
+
+  Ui.prototype.renderDaily = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    if (!g.daily) return;
+    var d = g.daily;
+    d.roll();
+
+    // ---- sign-in strip
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'حضور اليوم' : 'Daily sign-in'));
+    var strip = el('div', 'octo-signin');
+    d.rewards().forEach(function (r, i) {
+      var day = i + 1;
+      var cell = el('div', 'octo-day' +
+        (day <= d.streak ? ' got' : '') + (day === d.streak + 1 && d.canSignIn() ? ' next' : ''));
+      cell.innerHTML = '<b>' + day + '</b>' +
+        '<span>' + r.coin + '</span>' +
+        (r.item ? '<i>' + (ar ? 'غرض' : 'item') + '</i>' : '');
+      strip.appendChild(cell);
+    });
+    body.appendChild(strip);
+
+    var sign = el('button', 'octo-select-go' + (d.canSignIn() ? '' : ' ghost'),
+      d.canSignIn() ? (ar ? 'سجّل الحضور' : 'Sign in')
+                    : (ar ? 'سجّلت اليوم' : 'Signed in today'));
+    sign.addEventListener('click', function () {
+      if (d.signIn() !== 'ok') { g.audio && g.audio.play('fail', 0.4); return; }
+      g.audio && g.audio.play('success');
+      self.renderPanel('dailyTab');
+    });
+    body.appendChild(sign);
+
+    // ---- today's list
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'مهام اليوم' : "Today's list"));
+    var list = el('div', 'octo-itemlist');
+    d.tasks().forEach(function (t) {
+      var row = el('div', 'octo-item' + (t.claimed ? ' sold' : ''));
+      var pct = Math.round(t.have / t.task.need * 100);
+      row.innerHTML =
+        '<div class="octo-item-head" style="color:var(--sand)">' +
+          (ar ? t.task.ar : t.task.en) + '</div>' +
+        '<div class="octo-item-sub">' + t.have + ' / ' + t.task.need +
+          '  ·  +' + t.task.xp + ' XP  ·  +' + t.task.coin + ' ' + self.t('dirhams') + '</div>' +
+        '<div class="octo-mini-bar"><i style="width:' + pct + '%"></i></div>';
+      if (t.claimed) {
+        row.appendChild(el('span', 'octo-anchor-seal', ar ? 'استُلمت' : 'Claimed'));
+      } else {
+        var b = el('button', 'octo-btn-small' + (t.done ? '' : ' ghost'),
+          t.done ? (ar ? 'استلم' : 'Claim') : (ar ? 'اذهب' : 'Go'));
+        b.addEventListener('click', function () {
+          if (!t.done) { self.closePanel(); return; }
+          if (d.claim(t.task.id) === 'ok') {
+            g.audio && g.audio.play('coin');
+            self.renderPanel('dailyTab');
+          }
+        });
+        row.appendChild(b);
+      }
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'تُعاد المهام عند منتصف الليل بتوقيت جهازك. كلها أشياء تفعلها أصلاً — اليوم فقط تدفع أكثر.'
+      : 'The list resets at your own midnight. Every task is something you were going to do anyway; today it just pays more.'));
   };
 
   /* ------------------------------------------------------ skill tree */
@@ -14767,6 +15388,8 @@
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
+
+
 
 
 

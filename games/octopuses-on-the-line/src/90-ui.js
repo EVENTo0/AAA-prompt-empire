@@ -21,6 +21,8 @@
     controls:     { en: 'Controls',                ar: 'التحكم' },
     hero:         { en: 'Hero',                    ar: 'البطل' },
     skills:       { en: 'Skills',                  ar: 'المهارات' },
+    mvp:          { en: 'MVP',                     ar: 'الزعماء' },
+    dailyTab:     { en: 'Daily',                   ar: 'اليومي' },
     bag:          { en: 'Bag',                     ar: 'الحقيبة' },
     auction:      { en: 'Auction',                 ar: 'المزاد' },
     jobs:         { en: 'Jobs',                    ar: 'الأعمال' },
@@ -853,6 +855,7 @@
     var inGame = !this.hud.classList.contains('hidden');
     var tabs = inGame
       ? [['hero', this.t('hero')], ['skills', this.t('skills')], ['bag', this.t('bag')], ['jobs', this.t('jobs')],
+         ['mvp', this.t('mvp')], ['dailyTab', this.t('dailyTab')],
          ['auction', this.t('auction')], ['shop', this.t('shop')], ['map', this.t('map')],
          ['controls', this.t('controls')], ['settings', this.t('settings')]]
       : [['controls', this.t('controls')], ['settings', this.t('settings')]];
@@ -868,6 +871,8 @@
     body.innerHTML = '';
     if (tab === 'hero') this.renderHero(body);
     else if (tab === 'skills') this.renderSkills(body);
+    else if (tab === 'mvp') this.renderMvp(body);
+    else if (tab === 'dailyTab') this.renderDaily(body);
     else if (tab === 'bag') this.renderBag(body);
     else if (tab === 'auction') this.renderAuction(body);
     else if (tab === 'jobs') this.renderJobs(body);
@@ -950,6 +955,162 @@
     body.appendChild(el('p', 'octo-note', ar
       ? 'اجمع اللآلئ، أنجز المهام، واعبر الخيوط لترفع مستواك. كل رتبة تفكّ ختم مرساة.'
       : 'Pearls, jobs and crossings all pay experience. Every rank breaks the seal on another Anchor.'));
+  };
+
+  /* --------------------------------------------------------- the MVPs */
+
+  function clockString(sec) {
+    var m = Math.floor(sec / 60), s2 = sec % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s2 < 10 ? '0' : '') + s2;
+  }
+
+  /**
+   * The boss roster. Each entry says where it stands, what rule of the
+   * world it breaks inside its district, when it is back, and what it
+   * drops — the four things worth knowing before walking out there.
+   */
+  Ui.prototype.renderMvp = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    if (!g.bosses) return;
+
+    if (this._mvpPick === undefined) this._mvpPick = OCTO.bosses.BOSSES[0].id;
+
+    var list = el('div', 'octo-mvp-list');
+    OCTO.bosses.BOSSES.forEach(function (def) {
+      var up = g.bosses.isUp(def.id);
+      var left = g.bosses.timeLeft(def.id);
+      var st = g.bosses.state[def.id] || {};
+      var row = el('button', 'octo-mvp' + (self._mvpPick === def.id ? ' sel' : '') + (up ? ' up' : ''));
+      row.innerHTML =
+        '<span class="octo-mvp-badge">MVP</span>' +
+        '<span class="octo-mvp-meta">' +
+        '  <b>' + (ar ? def.ar : def.en) + '</b>' +
+        '  <i>' + (ar ? 'مستوى ' : 'Lv ') + def.level + ' · ' + g.districtName(def.district) + '</i>' +
+        '</span>' +
+        '<span class="octo-mvp-time' + (up ? ' live' : '') + '">' +
+          (up ? (ar ? 'ظاهر' : 'UP') : clockString(left)) + '</span>' +
+        (st.kills ? '<span class="octo-mvp-kills">×' + st.kills + '</span>' : '');
+      row.addEventListener('click', function () {
+        self._mvpPick = def.id;
+        self.renderPanel('mvp');
+      });
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+
+    var def = OCTO.bosses.bossById(this._mvpPick);
+    if (!def) return;
+    var up = g.bosses.isUp(def.id);
+    var card = el('div', 'octo-mvp-card');
+    card.innerHTML =
+      '<div class="octo-mvp-title">' + (ar ? def.ar : def.en) +
+        (def.final ? '<em>' + (ar ? 'النهاية' : 'Final') + '</em>' : '') + '</div>' +
+      '<div class="octo-mvp-rule"><b>' + (ar ? 'يكسر القاعدة:' : 'Breaks the rule:') + '</b> ' +
+        (ar ? def.ruleAr : def.ruleEn) + '</div>' +
+      '<div class="octo-mvp-lore">' + (ar ? def.loreAr : def.loreEn) + '</div>' +
+      '<div class="octo-node-rows">' +
+      '  <div><span>' + (ar ? 'المستوى' : 'Level') + '</span><b>' + def.level + '</b></div>' +
+      '  <div><span>' + (ar ? 'الصحة' : 'Health') + '</span><b>' + def.hp.toLocaleString() + '</b></div>' +
+      '  <div><span>' + (ar ? 'الموقع' : 'Spawn') + '</span><b>' + g.districtName(def.district) + '</b></div>' +
+      '  <div><span>' + (ar ? 'العودة بعد' : 'Respawn') + '</span><b>' +
+           Math.round(def.respawn / 60) + (ar ? ' دقيقة' : ' min') + '</b></div>' +
+      '</div>';
+
+    var drops = el('div', 'octo-mvp-drops');
+    drops.innerHTML = '<div class="octo-slot-name">' + (ar ? 'ما يسقط منه' : 'Item drop') +
+      ' · <em>' + (ar ? 'الأول مضمون' : 'first is guaranteed') + '</em></div>';
+    var strip = el('div', 'octo-drop-strip');
+    def.drops.forEach(function (baseId, i) {
+      var base = OCTO.items.baseById(baseId);
+      var cell = el('div', 'octo-drop' + (i === 0 ? ' sure' : ''));
+      cell.innerHTML = '<b>' + (ar ? base.ar : base.en) + '</b>';
+      strip.appendChild(cell);
+    });
+    drops.appendChild(strip);
+    card.appendChild(drops);
+
+    var go = el('button', 'octo-select-go' + (up ? '' : ' ghost'),
+      up ? (ar ? 'اذهب إليه' : 'Travel to it')
+         : (ar ? 'يعود بعد ' : 'Back in ') + clockString(g.bosses.timeLeft(def.id)));
+    go.addEventListener('click', function () {
+      if (!up) { g.audio && g.audio.play('fail', 0.4); return; }
+      var f = g.bosses.find(def.id);
+      if (!f) return;
+      g.player.teleport(f.pos.x + 9, f.pos.y + 1.2, f.pos.z + 9);
+      g.player.detachLine && g.player.detachLine(null, 1.0);
+      g.camera.free = false; g.frameCamera();
+      g.combat.target = f;
+      self.closePanel();
+      g.toast((ar ? 'أمامك ' : 'Before you: ') + (ar ? def.ar : def.en), 'mission');
+    });
+    card.appendChild(go);
+    body.appendChild(card);
+  };
+
+  /* -------------------------------------------------------- the daily */
+
+  Ui.prototype.renderDaily = function (body) {
+    var self = this, g = this.game, ar = this.lang === 'ar';
+    if (!g.daily) return;
+    var d = g.daily;
+    d.roll();
+
+    // ---- sign-in strip
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'حضور اليوم' : 'Daily sign-in'));
+    var strip = el('div', 'octo-signin');
+    d.rewards().forEach(function (r, i) {
+      var day = i + 1;
+      var cell = el('div', 'octo-day' +
+        (day <= d.streak ? ' got' : '') + (day === d.streak + 1 && d.canSignIn() ? ' next' : ''));
+      cell.innerHTML = '<b>' + day + '</b>' +
+        '<span>' + r.coin + '</span>' +
+        (r.item ? '<i>' + (ar ? 'غرض' : 'item') + '</i>' : '');
+      strip.appendChild(cell);
+    });
+    body.appendChild(strip);
+
+    var sign = el('button', 'octo-select-go' + (d.canSignIn() ? '' : ' ghost'),
+      d.canSignIn() ? (ar ? 'سجّل الحضور' : 'Sign in')
+                    : (ar ? 'سجّلت اليوم' : 'Signed in today'));
+    sign.addEventListener('click', function () {
+      if (d.signIn() !== 'ok') { g.audio && g.audio.play('fail', 0.4); return; }
+      g.audio && g.audio.play('success');
+      self.renderPanel('dailyTab');
+    });
+    body.appendChild(sign);
+
+    // ---- today's list
+    body.appendChild(el('h3', 'octo-sheet-h', ar ? 'مهام اليوم' : "Today's list"));
+    var list = el('div', 'octo-itemlist');
+    d.tasks().forEach(function (t) {
+      var row = el('div', 'octo-item' + (t.claimed ? ' sold' : ''));
+      var pct = Math.round(t.have / t.task.need * 100);
+      row.innerHTML =
+        '<div class="octo-item-head" style="color:var(--sand)">' +
+          (ar ? t.task.ar : t.task.en) + '</div>' +
+        '<div class="octo-item-sub">' + t.have + ' / ' + t.task.need +
+          '  ·  +' + t.task.xp + ' XP  ·  +' + t.task.coin + ' ' + self.t('dirhams') + '</div>' +
+        '<div class="octo-mini-bar"><i style="width:' + pct + '%"></i></div>';
+      if (t.claimed) {
+        row.appendChild(el('span', 'octo-anchor-seal', ar ? 'استُلمت' : 'Claimed'));
+      } else {
+        var b = el('button', 'octo-btn-small' + (t.done ? '' : ' ghost'),
+          t.done ? (ar ? 'استلم' : 'Claim') : (ar ? 'اذهب' : 'Go'));
+        b.addEventListener('click', function () {
+          if (!t.done) { self.closePanel(); return; }
+          if (d.claim(t.task.id) === 'ok') {
+            g.audio && g.audio.play('coin');
+            self.renderPanel('dailyTab');
+          }
+        });
+        row.appendChild(b);
+      }
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+    body.appendChild(el('p', 'octo-note', ar
+      ? 'تُعاد المهام عند منتصف الليل بتوقيت جهازك. كلها أشياء تفعلها أصلاً — اليوم فقط تدفع أكثر.'
+      : 'The list resets at your own midnight. Every task is something you were going to do anyway; today it just pays more.'));
   };
 
   /* ------------------------------------------------------ skill tree */

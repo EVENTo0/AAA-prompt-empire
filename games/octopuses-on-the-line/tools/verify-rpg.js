@@ -768,7 +768,7 @@ async function run() {
     record('panel', 'the bag shows every equipment slot', panels.slots === 4, panels.slots);
     record('panel', 'the bag lists loose items', panels.items > 0, panels.items);
     record('panel', 'the auction offers purchases', panels.buys > 0, panels.buys);
-    record('panel', 'bag and auction are tabs in the panel', panels.tabs === 9, panels.tabs);
+    record('panel', 'bag and auction are tabs in the panel', panels.tabs === 11, panels.tabs);
 
     const tree = await page.evaluate(() => {
       const g = window.GAME.game, ui = window.GAME.ui, C = window.OCTO.combat;
@@ -819,6 +819,93 @@ async function run() {
     record('tree', 'the panel renders nodes, gates and a detail card',
       tree.nodes === 6 && tree.gates === 2 && tree.card, tree.nodes + ' nodes / ' + tree.gates + ' gates');
     await page.screenshot({ path: path.join(SHOTS, 'skill-tree.png') });
+
+    const boss = await page.evaluate(() => {
+      const g = window.GAME.game, ui = window.GAME.ui;
+      ui.closePanel();
+      g.hero.level = 55; g.combat.applyClass();
+      const out = { count: g.bosses.list.length, defs: window.OCTO.bosses.BOSSES.length };
+      const w = g.bosses.find('weaver');
+      out.hp = w.maxHp;
+      out.distinctHp = w.maxHp !== g.bosses.find('khayt').maxHp;
+      // A boss must reach into the rope simulation, not just hit harder.
+      const rope = g.ropes[0];
+      g.player.attachLine(rope, { t: 0.5, tangent: { x: 1, y: 0, z: 0 } });
+      w.state = 'chase'; w.ruleTimer = 0;
+      w.pos.x = g.player.pos.x; w.pos.z = g.player.pos.z;
+      g.bosses.update(0.016);
+      out.ruleCutsTheLine = g.player.line === null;
+      // the Harbourmaster's rule must load nearby ropes
+      const hm = g.bosses.find('harbourmaster');
+      hm.state = 'chase'; hm.ruleTimer = 0;
+      hm.pos.x = rope.a.x; hm.pos.z = rope.a.z;
+      const load0 = rope.extraLoad || 0;
+      g.bosses.update(0.016);
+      out.ruleSagsTheLine = (rope.extraLoad || 0) > load0;
+      // kill: guaranteed drop, coin, and a real respawn clock
+      const inv0 = g.inventory.items.length, coin0 = g.dirhams;
+      w.takeDamage(999999, g);
+      out.drops = g.inventory.items.length - inv0;
+      out.coin = g.dirhams - coin0;
+      out.clock = g.bosses.timeLeft('weaver');
+      out.downAfterKill = !g.bosses.isUp('weaver');
+      ui.openPanel('mvp');
+      out.rows = document.querySelectorAll('.octo-mvp').length;
+      out.card = !!document.querySelector('.octo-mvp-card');
+      out.dropStrip = document.querySelectorAll('.octo-drop').length;
+      out.guaranteed = document.querySelectorAll('.octo-drop.sure').length;
+      return out;
+    });
+    record('boss', 'five MVPs, one per district', boss.count === 5 && boss.defs === 5, boss.count);
+    record('boss', 'each has its own health pool', boss.distinctHp, boss.hp);
+    record('boss', 'a boss rule cuts the rope under you', boss.ruleCutsTheLine, boss.ruleCutsTheLine);
+    record('boss', 'a boss rule loads nearby ropes', boss.ruleSagsTheLine, boss.ruleSagsTheLine);
+    record('boss', 'a kill always drops something', boss.drops >= 1, boss.drops);
+    record('boss', 'a kill pays coin', boss.coin > 0, boss.coin);
+    record('boss', 'a killed boss starts a respawn clock',
+      boss.clock > 0 && boss.downAfterKill, boss.clock + 's');
+    record('boss', 'the roster lists every MVP with a detail card',
+      boss.rows === 5 && boss.card, boss.rows);
+    record('boss', 'the drop table marks the guaranteed piece',
+      boss.dropStrip > 0 && boss.guaranteed === 1, boss.guaranteed + '/' + boss.dropStrip);
+    await page.screenshot({ path: path.join(SHOTS, 'mvp.png') });
+
+    const daily = await page.evaluate(() => {
+      const g = window.GAME.game, ui = window.GAME.ui;
+      const d = g.daily;
+      d.day = ''; d.roll();                       // force a fresh sheet
+      d.signedOn = ''; d.streak = 0;
+      const out = { tasks: d.tasks().length };
+      out.notDone = d.claim('cross');
+      d.note('cross', 5);
+      out.done = d.tasks().find((t) => t.task.id === 'cross').done;
+      const xp0 = g.hero.totalXp;
+      out.claim = d.claim('cross');
+      out.paid = g.hero.totalXp > xp0;
+      out.twice = d.claim('cross');
+      out.sign = d.signIn();
+      out.signTwice = d.signIn();
+      out.streak = d.streak;
+      // a new calendar day must wipe the sheet
+      d.day = '1970-1-1'; d.roll();
+      out.resetWipes = (d.counts.cross || 0) === 0 && !d.claimed.cross;
+      ui.openPanel('dailyTab');
+      out.days = document.querySelectorAll('.octo-day').length;
+      out.rows = document.querySelectorAll('.octo-itemlist .octo-item').length;
+      return out;
+    });
+    record('daily', 'six tasks on the sheet', daily.tasks === 6, daily.tasks);
+    record('daily', 'an unfinished task cannot be claimed', daily.notDone === 'incomplete', daily.notDone);
+    record('daily', 'progress completes a task', daily.done, daily.done);
+    record('daily', 'claiming pays', daily.claim === 'ok' && daily.paid, daily.claim);
+    record('daily', 'a task cannot be claimed twice', daily.twice === 'claimed', daily.twice);
+    record('daily', 'sign-in works once a day',
+      daily.sign === 'ok' && daily.signTwice === 'done', daily.sign + '/' + daily.signTwice);
+    record('daily', 'sign-in advances the streak', daily.streak === 1, daily.streak);
+    record('daily', 'a new day wipes the sheet', daily.resetWipes, daily.resetWipes);
+    record('daily', 'the panel renders the calendar and the list',
+      daily.days === 7 && daily.rows === 6, daily.days + ' days / ' + daily.rows + ' tasks');
+    await page.screenshot({ path: path.join(SHOTS, 'daily.png') });
 
     await page.close();
   }

@@ -14,7 +14,7 @@
   var Physics = OCTO.Physics;
 
   var SAVE_KEY = 'octopuses-on-the-line:v1';
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
 
   /* ------------------------------------------------------------ quality */
 
@@ -228,6 +228,9 @@
     // player (for vitals), so it is built here rather than in the ctor.
     this.combat = new OCTO.combat.Combat(this);
     this.combat.spawn(this.world, new OCTO.Rng((opts && opts.seed) || 20260807));
+    this.bosses = new OCTO.bosses.Bosses(this);
+    this.bosses.spawn(this.world);
+    this.daily = new OCTO.daily.Daily(this);
     var spawn = this.world.spawn;
     spawn.classId = this.save.classId || 'muqatil';
     spawn.form = 'human';
@@ -447,6 +450,7 @@
     }
 
     this.combat && this.combat.update(dt);
+    this.bosses && this.bosses.update(dt);
     this._expireWovenLines(dt);
     this.auction && this.auction.tick(this.hero.level, this.time);
     this._updateParticles(dt);
@@ -607,6 +611,7 @@
         pearl.taken = true;
         this.addDirhams(15);
         this.awardXp(OCTO.progress.XP.pearl, 'pearl');
+        this.daily && this.daily.note('pearl', 1);
         this.audio && this.audio.play('pearl');
         this.spawnSparkle(pearl, 12);
         var m = this.missionById('pearls');
@@ -750,6 +755,7 @@
     mission.count = mission.target;
     this.addDirhams(mission.reward);
     this.awardXp(OCTO.progress.XP.missionBase * (mission.order || 1), 'mission');
+    this.daily && this.daily.note('job', 1);
     this.audio && this.audio.play('success');
     this.camera.addShake(0.3);
     this.toast(
@@ -872,6 +878,13 @@
   /** A foe died: pay experience, coin and whatever it was carrying. */
   Game.prototype.onFoeKilled = function (foe) {
     var ar = this.lang === 'ar';
+    this.daily && this.daily.note('kill', 1);
+    if (this.bosses && this.bosses.onKilled(foe)) {
+      this.daily.note('boss', 1);
+      this.awardXp(foe.def.xp + foe.level * 3, 'boss');
+      this.addDirhams(foe.def.coin);
+      return;
+    }
     this.awardXp(foe.def.xp + foe.level * 3, 'kill');
     this.addDirhams(foe.def.coin + Math.round(foe.level * 0.8));
     this.spawnSparkle({ x: foe.pos.x, y: foe.pos.y + 1.2, z: foe.pos.z }, foe.def.elite ? 30 : 12);
@@ -985,6 +998,7 @@
         if (this.hero.visit(a.id)) {
           this._anchorCooldown = 3;
           this.awardXp(OCTO.progress.XP.anchorFirstVisit, 'anchor');
+          this.daily && this.daily.note('anchor', 1);
           this.spawnSparkle({ x: a.at[0], y: p.y + 1.4, z: a.at[2] }, 22);
           this.toast(
             (this.lang === 'ar' ? 'مرساة مفتوحة: ' : 'Anchor open: ') +
@@ -1210,6 +1224,8 @@
       this.save.dirhams = this.dirhams;
       this.save.progress = progress;
       this.save.hero = this.hero.toJSON();
+      if (this.bosses) this.save.bosses = this.bosses.toJSON();
+      if (this.daily) this.save.daily = this.daily.toJSON();
       this.save.ranks = this.save.ranks || {};
       if (this.combat) this.save.ranks[this.save.classId || 'muqatil'] = this.combat.ranks;
       this.save.inventory = this.inventory.toJSON();
