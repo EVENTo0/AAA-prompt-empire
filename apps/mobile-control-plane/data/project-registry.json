@@ -13,7 +13,21 @@
       "supabaseProjectRef": "jaxhaiaftpegcodkzaus",
       "platforms": ["web", "pwa"],
       "workflows": [],
-      "notes": "Primary legal company platform. Verified Supabase backend: Evento project 1. Do not overwrite the existing public EVENTO deployment when deploying the Control Plane."
+      "notes": "Primary legal company platform. Verified Supabase backend: Evento project 1. Keep the public web/PWA surface separate from the private mobile product repository and from the internal Control Plane."
+    },
+    {
+      "id": "evento-mobile",
+      "name": "EVENTO Mobile",
+      "kind": "company-app",
+      "status": "active",
+      "saleStatus": "not-for-sale",
+      "priority": "P0",
+      "repository": "EVENTo0/evento-mobile",
+      "vercelProject": null,
+      "supabaseProjectRef": "jaxhaiaftpegcodkzaus",
+      "platforms": ["android", "ios"],
+      "workflows": ["phone-dev-rc3-v2.yml"],
+      "notes": "Private Flutter mobile product. RC5 phone-build workflow is active and has produced a successful bilingual pre-production Android APK build. Product code and mobile release evidence remain authoritative in EVENTo0/evento-mobile."
     },
     {
       "id": "aaa-empire",
