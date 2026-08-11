@@ -32,6 +32,14 @@ function preferredLocale(request: NextRequest) {
   return DEFAULT_LOCALE
 }
 
+/**
+ * Everything that is not a page is excluded. A file served at the site root —
+ * `llms.txt`, `robots.txt`, the manifest, the service worker — must never be
+ * rewritten under a locale, or clients fetching it by its well-known path get
+ * a redirect instead of the file.
+ */
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|sw\\.js|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml|icon.*\\.svg|favicon\\.ico).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|sw\\.js|llms\\.txt|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml|icon.*\\.svg|favicon\\.ico).*)',
+  ],
 }

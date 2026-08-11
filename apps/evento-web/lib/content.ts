@@ -12,7 +12,13 @@ export type Company = {
   tagline: Localized
   summary: Localized
   principles: { id: string; title: Localized; body: Localized }[]
-  contact: { email: string; github: string; responseTargetHours: number }
+  domain: string
+  /**
+   * Only client-facing addresses belong here. Operational mailboxes such as
+   * `admin@` authenticate tool accounts and must never be published on the
+   * site — a contract test fails the build if one appears.
+   */
+  contact: { general: string; projects: string; github: string; responseTargetHours: number }
 }
 
 export type Service = {

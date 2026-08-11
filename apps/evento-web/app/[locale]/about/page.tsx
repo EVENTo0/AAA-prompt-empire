@@ -44,8 +44,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <dl className="stageMeta" style={{ borderBlockStart: 'none', paddingBlockStart: 0, maxWidth: '46ch' }}>
             <dt>{t('about.email')}</dt>
             <dd>
-              <a href={`mailto:${company.contact.email}`} dir="ltr">
-                {company.contact.email}
+              <a href={`mailto:${company.contact.general}`} dir="ltr">
+                {company.contact.general}
               </a>
             </dd>
             <dt>{t('about.github')}</dt>

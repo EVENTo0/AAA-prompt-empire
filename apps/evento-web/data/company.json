@@ -45,8 +45,10 @@
       }
     }
   ],
+  "domain": "evento-dev.com",
   "contact": {
-    "email": "iooctopuss@gmail.com",
+    "general": "hello@evento-dev.com",
+    "projects": "projects@evento-dev.com",
     "github": "https://github.com/EVENTo0",
     "responseTargetHours": 48
   }

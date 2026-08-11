@@ -171,3 +171,78 @@ notes/workflows field update reversible on its own.
 3. Accept the preview from a physical phone, including PWA install and an
    offline session, and record that evidence here.
 4. Run an accessibility and performance pass against the deployed preview.
+
+---
+
+# Addendum — domain identity and AI business context
+
+Date: 2026-08-11 (same branch)
+Scope: `evento-dev.com` identity, `/llms.txt`, `/api/context`,
+`docs/product/EVENTO_SITE_AND_IDENTITY.md`
+
+## Outcome
+
+Bind the site to the registered domain, publish machine-readable business
+context for the AI toolchain, and document the page structure, email identity
+and DNS plan.
+
+**State: PARTIALLY VERIFIED** — same boundary as above. Nothing is deployed and
+no Hostinger resource was touched.
+
+## Changed
+
+- Contact identity moved from a personal Gmail to `hello@evento-dev.com`
+  (general) and `projects@evento-dev.com` (intake). `admin@` is defined as the
+  tool-authentication mailbox and is deliberately **not** published.
+- `/llms.txt` and `/api/context` publish company, capabilities, delivery
+  stages, engagement models, projects and the evidence vocabulary, generated
+  from the same data files the pages render.
+- `robots.ts` allows the two context routes while keeping the rest of `/api`
+  and the account area disallowed.
+- `docs/product/EVENTO_SITE_AND_IDENTITY.md` records the hosting
+  recommendation, page map, context design, mailbox roles and DNS records.
+
+## Verification
+
+| Check | Result |
+| --- | --- |
+| `npm run test:contracts` | **PASS** — 41/41 (5 new) |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+| `/llms.txt` | HTTP 200, 101 lines, correct content |
+| `/api/context` | HTTP 200, 8 top-level sections |
+| Canonical origin with `SITE_ORIGIN` set at build | sitemap, robots and context all emit `https://evento-dev.com` |
+| Branded address rendered | `hello@evento-dev.com` on the about page |
+| `admin@` leakage | **0 occurrences** across `/llms.txt`, `/api/context` and rendered pages |
+| Layout regression sweep | 0 px horizontal overflow, no console errors |
+
+New contract tests: branded-domain addresses; operational mailboxes never
+published; context generated from site data and never hardcoding an evidence
+state; context exposes no request/account/configuration data; context routes
+crawlable while the rest of the API is not.
+
+## Defects found and fixed
+
+1. **`/llms.txt` returned a 307 redirect** to `/ar/llms.txt` — the middleware
+   matcher excluded `robots.txt` and the manifest but not `llms.txt`, so a
+   well-known root path was rewritten under a locale.
+2. **`SITE_ORIGIN` had no effect when set only at runtime.** The metadata,
+   robots, sitemap and context routes are statically generated, so the value is
+   baked at build time. Documented in `.env.example`; a runtime-only setting
+   leaves every canonical URL pointing at localhost.
+3. Doubled full stops in the generated stage text where source strings already
+   ended in one.
+
+Note: two earlier "failures" during this pass were a stale `.next` directory
+and an orphaned server holding the port, not application defects. Confirmed by
+a clean rebuild.
+
+## Not verified
+
+Unchanged from the main record, plus:
+
+- No mailbox exists yet. `hello@`, `projects@` and `admin@` are specified, not
+  created. Until they are, the addresses on the site do not receive mail.
+- No DNS record was created or changed. SPF, DKIM and DMARC are unverified.
+- No Hostinger API call was made from this session; the Hostinger MCP servers
+  run on the operator's local machine and are not available here.

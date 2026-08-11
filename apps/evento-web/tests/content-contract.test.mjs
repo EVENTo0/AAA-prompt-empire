@@ -159,3 +159,55 @@ test('every UI string is defined in both languages', () => {
   }
   assert.deepEqual(missing, [], 'these dictionary entries are missing or empty')
 })
+
+test('published contact addresses use the company domain', () => {
+  assert.equal(company.domain, 'evento-dev.com')
+  for (const key of ['general', 'projects']) {
+    assert.ok(
+      company.contact[key].endsWith(`@${company.domain}`),
+      `contact.${key} must be a branded address on ${company.domain}`,
+    )
+  }
+})
+
+test('operational mailboxes are never published on the public site', async () => {
+  // admin@ authenticates tool accounts (GitHub, model providers, hosting).
+  // Publishing it turns a credential-recovery address into a spam and
+  // social-engineering target.
+  const operational = ['admin@', 'billing@', 'root@', 'postmaster@']
+  const surfaces = ['data/company.json', 'lib/content.ts', 'lib/business-context.ts']
+  for (const path of surfaces) {
+    const body = await readFile(new URL(path, root), 'utf8')
+    for (const mailbox of operational) {
+      assert.ok(
+        !body.includes(`${mailbox}${company.domain}`),
+        `${path} must not publish ${mailbox}${company.domain}`,
+      )
+    }
+  }
+})
+
+test('the AI business context is generated from the published data', async () => {
+  const source = await readFile(new URL('lib/business-context.ts', root), 'utf8')
+  // It must read the same data the pages render, not a hand-maintained copy
+  // that can quietly describe a different company.
+  assert.match(source, /from '@\/lib\/content'/)
+  for (const field of ['services', 'engagements', 'stages', 'portfolio', 'company']) {
+    assert.ok(source.includes(field), `business context must derive ${field} from the site data`)
+  }
+  assert.ok(!/evidence: 'VERIFIED'/.test(source), 'evidence states must come from the data, never be hardcoded')
+})
+
+test('the context surfaces expose no request, account or configuration data', async () => {
+  const source = await readFile(new URL('lib/business-context.ts', root), 'utf8')
+  for (const term of ['SUPABASE', 'project_requests', 'accessToken', 'cookies']) {
+    assert.ok(!source.includes(term), `business context must not reference ${term}`)
+  }
+})
+
+test('the public context routes are crawlable while the rest of the API is not', async () => {
+  const robots = await readFile(new URL('app/robots.ts', root), 'utf8')
+  assert.match(robots, /'\/api\/context'/)
+  assert.match(robots, /'\/llms\.txt'/)
+  assert.match(robots, /disallow: \['\/api\/'/)
+})

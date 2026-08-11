@@ -31,7 +31,7 @@ export default function SiteFooter({ locale }: { locale: Locale }) {
             <h4>{t('about.contactTitle')}</h4>
             <ul className="footerLinks">
               <li>
-                <a href={`mailto:${company.contact.email}`}>{company.contact.email}</a>
+                <a href={`mailto:${company.contact.general}`}>{company.contact.general}</a>
               </li>
               <li>
                 <a href={company.contact.github} rel="noreferrer noopener">

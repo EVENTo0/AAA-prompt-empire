@@ -117,7 +117,7 @@ export default function IntakeForm({ locale, defaultService, defaultEngagement, 
           <strong>{t('contact.fallbackTitle')}</strong>
           <p>{t('contact.fallbackBody')}</p>
           <p>
-            <a href={`mailto:${company.contact.email}`}>{company.contact.email}</a>
+            <a href={`mailto:${company.contact.projects}`}>{company.contact.projects}</a>
           </p>
         </div>
       ) : null}
