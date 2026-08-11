@@ -31,6 +31,15 @@
     },
     {
       "provider": "openai",
+      "surface": "api",
+      "model": "gpt-5.4",
+      "status": "available",
+      "sunset_date": null,
+      "fallback": null,
+      "allow_new_pin": true
+    },
+    {
+      "provider": "openai",
       "surface": "api/codex-compatible",
       "model": "gpt-5.2-codex",
       "status": "deprecated",
