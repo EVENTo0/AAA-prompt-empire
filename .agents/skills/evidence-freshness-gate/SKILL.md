@@ -1,4 +1,9 @@
-# Skill: evidence-freshness-gate
+---
+name: evidence-freshness-gate
+description: Require current official evidence for consequential engineering claims such as latest, current, supported, recommended, default, deprecated, or sunset before they are treated as architecture truth.
+---
+
+# Evidence Freshness Gate
 
 Use for consequential claims containing latest/current/supported/recommended/default/deprecated.
 
