@@ -53,9 +53,47 @@ email, and they stay on Hostinger.
 
 ### If you stay entirely on Hostinger
 
-Use the Node.js application feature, set the entry to `npm run start` after
-`npm run build`, Node 22, and set `SITE_ORIGIN` **at build time**. Nothing in
-the codebase needs to change.
+Verified against Hostinger's current documentation (August 2026): Node.js web
+apps are supported on Business and Cloud plans, **Next.js is an auto-detected
+framework**, and the runtime supports SSR, API routes and dynamic rendering —
+which is exactly what this app needs. Nothing in the codebase has to change.
+
+Steps in hPanel:
+
+1. **Websites → Add Website → Deploy Web App**.
+2. Source: **GitHub**, repository `EVENTo0/AAA-prompt-empire`, branch
+   `claude/evento-website-apps-dh5pfq` (or `main` once merged). Pushes trigger
+   rebuilds automatically.
+3. **Root directory: `apps/evento-web`.** This repository is a monorepo and the
+   app is not at the root. If the deploy form offers no root/subdirectory
+   field, that is the one blocker for this path — the fallback is a small
+   wrapper at the repo root, or Vercel, which supports a root directory
+   natively.
+4. Settings:
+
+   | Field | Value |
+   | --- | --- |
+   | Framework | Next.js (auto-detected) |
+   | Node version | 22 |
+   | Build command | `npm run build` |
+   | Output directory | `.next` |
+   | Start command | `npm run start` |
+
+5. Environment variables:
+
+   | Name | Value |
+   | --- | --- |
+   | `SITE_ORIGIN` | `https://evento-dev.com` |
+   | `SUPABASE_URL` | leave empty until the migration is approved |
+   | `SUPABASE_PUBLISHABLE_KEY` | leave empty until the migration is approved |
+
+   `SITE_ORIGIN` is read **at build time**. Adding it after the first build
+   leaves every canonical URL, the sitemap and the AI context pointing at
+   localhost — set it before the first deploy, and rebuild if it was missed.
+
+Sources: [Node.js hosting options](https://www.hostinger.com/support/node-js-hosting-options-at-hostinger/),
+[Creating a Node.js app](https://docs.hostinger.com/node.js/creating-an-app),
+[Next.js hosting](https://www.hostinger.com/web-apps-hosting/nextjs-hosting).
 
 ## 2. Page structure
 
