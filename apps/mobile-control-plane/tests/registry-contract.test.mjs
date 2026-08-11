@@ -17,7 +17,19 @@ test('registry contains no provider credentials or privileged keys', async () =>
   assert.doesNotMatch(registry, /service_role|sb_secret_|ghp_|github_pat_|VERCEL_TOKEN|SUPABASE_ACCESS_TOKEN/i)
 })
 
-test('EVENTO web, mobile, and Empire remain separate tracked systems', async () => {
+test('EVENTO is the legal parent and lifecycle source of truth', async () => {
+  const registry = JSON.parse(await readFile(registryPath, 'utf8'))
+  const evento = registry.projects.find((project) => project.id === 'evento-core')
+
+  assert.equal(registry.portfolioModel.legalParent, 'EVENTO Project Development')
+  assert.equal(registry.portfolioModel.legalParentId, 'evento-core')
+  assert.equal(evento.portfolioLayer, 'company-core')
+  assert.equal(evento.parentId, null)
+  assert.equal(evento.commercialRole, 'legal-parent-and-revenue-engine')
+  assert.deepEqual(registry.portfolioModel.lifecycle, ['idea','discovery','foundation','mvp','verified','beta','production','commercial','maintenance'])
+})
+
+test('EVENTO web, mobile, and Empire remain technically separate but share the company hierarchy', async () => {
   const registry = JSON.parse(await readFile(registryPath, 'utf8'))
   const evento = registry.projects.find((project) => project.id === 'evento-core')
   const eventoMobile = registry.projects.find((project) => project.id === 'evento-mobile')
@@ -28,27 +40,44 @@ test('EVENTO web, mobile, and Empire remain separate tracked systems', async () 
   assert.equal(evento.repository, null)
 
   assert.equal(eventoMobile.repository, 'EVENTo0/evento-mobile')
-  assert.equal(eventoMobile.supabaseProjectRef, 'jaxhaiaftpegcodkzaus')
-  assert.equal(eventoMobile.vercelProject, null)
+  assert.equal(eventoMobile.parentId, 'evento-core')
+  assert.equal(eventoMobile.portfolioLayer, 'company-core')
   assert.deepEqual(eventoMobile.platforms, ['android', 'ios'])
-  assert.ok(eventoMobile.workflows.includes('phone-dev-rc3-v2.yml'))
 
   assert.equal(empire.repository, 'EVENTo0/AAA-prompt-empire')
-  assert.notEqual(evento.id, eventoMobile.id)
+  assert.equal(empire.parentId, 'evento-core')
+  assert.equal(empire.portfolioLayer, 'internal-engineering-lab')
+  assert.equal(empire.saleStatus, 'internal')
   assert.notEqual(eventoMobile.repository, empire.repository)
 })
 
-test('OCTORIMAL is tracked as an independent product repository', async () => {
+test('internal engineering lab repositories are not treated as commercial portfolio products', async () => {
   const registry = JSON.parse(await readFile(registryPath, 'utf8'))
-  const octorimal = registry.projects.find((project) => project.id === 'octorimal')
-  const empire = registry.projects.find((project) => project.id === 'aaa-empire')
+  const internalIds = ['aaa-empire', 'aaa-prompt', 'empire-mobile-control-plane', 'omniform-nexus']
 
-  assert.equal(octorimal.repository, 'EVENTo0/OCTORIMAL')
-  assert.equal(octorimal.kind, 'game-product')
-  assert.equal(octorimal.status, 'active')
-  assert.equal(octorimal.vercelProject, null)
-  assert.equal(octorimal.supabaseProjectRef, null)
-  assert.notEqual(octorimal.repository, empire.repository)
+  for (const id of internalIds) {
+    const project = registry.projects.find((entry) => entry.id === id)
+    assert.equal(project.parentId, 'evento-core')
+    assert.equal(project.portfolioLayer, 'internal-engineering-lab')
+    assert.equal(project.saleStatus, 'internal')
+  }
+})
+
+test('EVENTO ventures inherit the company parent or an EVENTO venture-group parent', async () => {
+  const registry = JSON.parse(await readFile(registryPath, 'utf8'))
+  const evento = registry.projects.find((project) => project.id === 'evento-core')
+  const evex = registry.projects.find((project) => project.id === 'evex-official')
+  const octorimal = registry.projects.find((project) => project.id === 'octorimal')
+  const familyos = registry.projects.find((project) => project.id === 'familyos')
+  const evexMobile = registry.projects.find((project) => project.id === 'evex-mobile')
+
+  assert.equal(evento.id, 'evento-core')
+  assert.equal(octorimal.portfolioLayer, 'evento-venture')
+  assert.equal(octorimal.parentId, 'evento-core')
+  assert.equal(familyos.parentId, 'evento-core')
+  assert.equal(evex.parentId, 'evento-core')
+  assert.equal(evexMobile.parentId, 'evex-official')
+  assert.equal(evexMobile.portfolioLayer, 'evento-venture')
 })
 
 test('all current EVENTo0 repositories are represented in the portfolio registry', async () => {
@@ -83,8 +112,8 @@ test('known mixed and placeholder repositories are never treated as normal activ
   const mixed = registry.projects.find((project) => project.repository === 'EVENTo0/EVENTo0')
   const placeholder = registry.projects.find((project) => project.repository === 'EVENTo0/Evx')
 
-  assert.equal(mixed.kind, 'repository-recovery')
+  assert.equal(mixed.kind, 'company-source-recovery')
   assert.equal(mixed.status, 'needs-triage')
-  assert.equal(placeholder.kind, 'repository-placeholder')
+  assert.equal(placeholder.kind, 'portfolio-meta-candidate')
   assert.equal(placeholder.status, 'paused')
 })
