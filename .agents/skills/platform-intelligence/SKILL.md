@@ -1,4 +1,9 @@
-# Skill: platform-intelligence
+---
+name: platform-intelligence
+description: Keep Empire engineering guidance aligned with verified current platform reality through baseline catch-up audits, weekly official-source deltas, release-channel policy, evidence freshness, and governed promotion to Core.
+---
+
+# Platform Intelligence
 
 ## Purpose
 Continuously keep Empire engineering guidance aligned with verified official platform reality without destabilizing Core.
