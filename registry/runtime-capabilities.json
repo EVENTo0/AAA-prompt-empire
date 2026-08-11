@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "experimental",
+  "capabilities": {
+    "model-lifecycle": {
+      "provider_neutral": true,
+      "routing_dimensions": ["quality", "latency", "cost", "availability"],
+      "required_fields": ["provider", "surface", "model", "status", "checked_at", "official_sources", "sunset_date", "fallback"],
+      "unknown_sunset_behavior": "VERIFY_REQUIRED",
+      "deprecated_pin_behavior": "FAIL"
+    },
+    "secure-agent-execution": {
+      "sandbox_for": ["untrusted_code", "generated_code"],
+      "network_default": "deny",
+      "secrets_default": "deny",
+      "filesystem_default": "ephemeral_minimal",
+      "destructive_write": "approval_required",
+      "required_evidence": ["command", "exit_code", "artifacts", "logs", "teardown"]
+    },
+    "agent-harness-adapter": {
+      "provider_neutral": true,
+      "core_fields": ["plan", "tools", "permissions", "sandbox", "skills", "subagents", "evidence", "result"],
+      "providers": ["codex", "claude-code", "other"],
+      "provider_specific_extensions_allowed": true,
+      "cross_repository_mutation_default": "deny"
+    },
+    "capability-broker": {
+      "separate_discovery_install_invocation": true,
+      "default_access": "read_only",
+      "credentials": "least_privilege_scoped",
+      "destructive_actions": "owner_approval_required",
+      "audit_evidence_required": true,
+      "arbitrary_auto_install": "deny"
+    }
+  }
+}
