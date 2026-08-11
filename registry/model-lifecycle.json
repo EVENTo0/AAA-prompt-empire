@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-08-12",
+  "scope": "OpenAI API model catalog and Codex-compatible agentic coding models; Codex product-surface defaults must still be verified separately when consequential.",
+  "official_sources": [
+    "https://developers.openai.com/api/docs/models/all",
+    "https://developers.openai.com/api/docs/models/gpt-5.3-codex",
+    "https://developers.openai.com/api/docs/guides/latest-model"
+  ],
+  "routing_dimensions": ["quality", "latency", "cost", "availability"],
+  "current_agentic_coding_model": "gpt-5.3-codex",
+  "general_frontier_model_family": "gpt-5.6",
+  "models": [
+    {
+      "provider": "openai",
+      "surface": "api/codex-compatible",
+      "model": "gpt-5.3-codex",
+      "status": "available",
+      "sunset_date": null,
+      "fallback": "gpt-5.6",
+      "allow_new_pin": true
+    },
+    {
+      "provider": "openai",
+      "surface": "api",
+      "model": "gpt-5.6",
+      "status": "available",
+      "sunset_date": null,
+      "fallback": "gpt-5.4",
+      "allow_new_pin": true
+    },
+    {
+      "provider": "openai",
+      "surface": "api/codex-compatible",
+      "model": "gpt-5.2-codex",
+      "status": "deprecated",
+      "sunset_date": null,
+      "fallback": "gpt-5.3-codex",
+      "allow_new_pin": false,
+      "sunset_state": "VERIFY_REQUIRED"
+    },
+    {
+      "provider": "openai",
+      "surface": "api/codex-compatible",
+      "model": "gpt-5.1-codex",
+      "status": "deprecated",
+      "sunset_date": null,
+      "fallback": "gpt-5.3-codex",
+      "allow_new_pin": false,
+      "sunset_state": "VERIFY_REQUIRED"
+    },
+    {
+      "provider": "openai",
+      "surface": "api/codex-compatible",
+      "model": "gpt-5.1-codex-max",
+      "status": "deprecated",
+      "sunset_date": null,
+      "fallback": "gpt-5.3-codex",
+      "allow_new_pin": false,
+      "sunset_state": "VERIFY_REQUIRED"
+    },
+    {
+      "provider": "openai",
+      "surface": "api/codex-compatible",
+      "model": "gpt-5.1-codex-mini",
+      "status": "deprecated",
+      "sunset_date": null,
+      "fallback": "gpt-5.3-codex",
+      "allow_new_pin": false,
+      "sunset_state": "VERIFY_REQUIRED"
+    },
+    {
+      "provider": "openai",
+      "surface": "api/codex-compatible",
+      "model": "gpt-5-codex",
+      "status": "deprecated",
+      "sunset_date": null,
+      "fallback": "gpt-5.3-codex",
+      "allow_new_pin": false,
+      "sunset_state": "VERIFY_REQUIRED"
+    },
+    {
+      "provider": "openai",
+      "surface": "api/codex-cli-legacy",
+      "model": "codex-mini-latest",
+      "status": "deprecated",
+      "sunset_date": null,
+      "fallback": "gpt-5.3-codex",
+      "allow_new_pin": false,
+      "sunset_state": "VERIFY_REQUIRED"
+    }
+  ]
+}
