@@ -39,3 +39,120 @@ tracked_platforms:
   - preview_build_deployment
   - agents_skills_mcp
   - ci_cd_testing_security
+records:
+  anthropic_claude_code:
+    checked_at: 2026-08-11
+    current_stable: "channel-aware; changelog latest observed 2.1.226 on 2026-08-08"
+    preview_channels: [computer_use_preview, managed_agents_evaluation]
+    breaking_changes: ["older installs may lack critical permission/sandbox fixes"]
+    deprecations: ["legacy Workbench and experimental prompt tools end 2026-08-17", "Claude Opus 4.1 retired 2026-08-05"]
+    security: "workspace trust, sandbox, scoped permissions, update preflight required"
+    action: urgent-upgrade-correction
+    urgency: high
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://code.claude.com/docs/en/changelog
+      - https://code.claude.com/docs/en/overview
+      - https://platform.claude.com/docs/en/release-notes/overview
+  hostinger:
+    checked_at: 2026-08-11
+    current_stable: managed_service
+    preview_channels: []
+    breaking_changes: []
+    deprecations: []
+    security: "env/secrets and vulnerability monitoring required"
+    action: workflow-change
+    urgency: normal
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://www.hostinger.com/blog/product-updates-2026/
+      - https://www.hostinger.com/tutorials/how-to-deploy-a-codex-built-app
+  n8n:
+    checked_at: 2026-08-11
+    current_stable: VERIFY_REQUIRED
+    preview_channels: []
+    breaking_changes: ["v2.6.4+ S3 region validation", "main/worker/runner alignment required during upgrades"]
+    deprecations: []
+    security: "run n8n audit; harden webhooks, nodes, task runners and SSRF controls"
+    action: upgrade-audit
+    urgency: high_if_self_hosted
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://docs.n8n.io/hosting/scaling/external-storage/
+      - https://docs.n8n.io/hosting/securing/security-audit/
+      - https://docs.n8n.io/source-control-environments/create-environments/
+  zapier:
+    checked_at: 2026-08-11
+    current_stable: "v19 major family verified; exact latest patch VERIFY_REQUIRED"
+    preview_channels: [sdk_open_beta]
+    breaking_changes: ["zapier CLI binary removed in v19; use zapier-platform", "cross-major user migrations blocked"]
+    deprecations: ["legacy zapier binary removed"]
+    security: "MCP actions require explicit allowlist/scoped accounts/audit"
+    action: urgent-correction
+    urgency: high_if_platform_cli_used
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://docs.zapier.com/integrations/news/2026/v19.0.0
+      - https://docs.zapier.com/integrations/news/2026/migrations-same-major-version
+      - https://docs.zapier.com/mcp/quickstart
+      - https://docs.zapier.com/sdk
+  stripe:
+    checked_at: 2026-08-11
+    current_stable: "2026-06-24.dahlia per installed official Stripe upgrade skill"
+    preview_channels: []
+    breaking_changes: ["major API family upgrades can require code changes"]
+    deprecations: []
+    security: "explicit API version, webhook contract tests, idempotency and test-mode E2E"
+    action: upgrade-discipline
+    urgency: normal
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://docs.stripe.com/changelog
+  tap_payments:
+    checked_at: 2026-08-11
+    current_stable: "API v2 documentation"
+    preview_channels: []
+    breaking_changes: []
+    deprecations: []
+    security: "server-side keys, webhook hash verification, retrieve-charge verification, idempotency"
+    action: security-contract-eval
+    urgency: high_for_payment_flows
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://developers.tap.company/reference/api-endpoint
+      - https://developers.tap.company/docs/recommendations-best-practices
+      - https://developers.tap.company/docs/webhook
+  preview_build_deployment:
+    checked_at: 2026-08-11
+    current_stable: platform_specific
+    preview_channels: []
+    breaking_changes: []
+    deprecations: []
+    security: "required checks must gate promotion; inspect deployment manifest where supported"
+    action: workflow-change
+    urgency: high
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://vercel.com/changelog/native-deployment-checks
+      - https://vercel.com/changelog/dry-run-deployments-with-vercel-cli
+  ci_cd_testing_security:
+    checked_at: 2026-08-11
+    current_stable: platform_specific
+    preview_channels: []
+    breaking_changes: []
+    deprecations: []
+    security: "least privilege, OIDC, provenance/SBOM attestations and verification"
+    action: new-skill-workflow-change
+    urgency: high
+    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
+    next_review: 2026-08-17
+    official_sources:
+      - https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations
+      - https://docs.github.com/en/actions/how-tos/secure-your-work
