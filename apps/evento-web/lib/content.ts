@@ -230,6 +230,24 @@ const dictionary = {
     en: 'The accounts service is not connected yet. You can submit a request without an account, and your requests will be linked once the service is enabled.',
   },
 
+  'app.navHome': { ar: 'الرئيسية', en: 'Home' },
+  'app.navServices': { ar: 'الخدمات', en: 'Services' },
+  'app.navProjects': { ar: 'المشاريع', en: 'Projects' },
+  'app.navAccount': { ar: 'حسابي', en: 'Account' },
+  'app.navLabel': { ar: 'تنقل التطبيق', en: 'App navigation' },
+  'app.installTitle': { ar: 'ثبّت تطبيق إيفينتو', en: 'Install the EVENTO app' },
+  'app.installBody': {
+    ar: 'أضفه إلى شاشتك الرئيسية ليفتح كتطبيق مستقل ويعمل دون اتصال.',
+    en: 'Add it to your home screen to open as a standalone app that works offline.',
+  },
+  'app.installAction': { ar: 'تثبيت', en: 'Install' },
+  'app.installDismiss': { ar: 'ليس الآن', en: 'Not now' },
+  'app.installIosTitle': { ar: 'أضفه إلى الشاشة الرئيسية', en: 'Add to your home screen' },
+  'app.installIosBody': {
+    ar: 'من قائمة المشاركة في سفاري، اختر «إضافة إلى الشاشة الرئيسية».',
+    en: 'In the Safari share menu, choose “Add to Home Screen”.',
+  },
+
   'offline.title': { ar: 'لا يوجد اتصال', en: 'You are offline' },
   'offline.body': {
     ar: 'هذه النسخة محفوظة على جهازك. أعد الاتصال لعرض أحدث المحتوى والطلبات.',

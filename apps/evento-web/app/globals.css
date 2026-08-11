@@ -803,3 +803,113 @@ textarea:focus {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- install offer ---------- */
+
+.installBanner {
+  position: fixed;
+  inset-inline: 0.75rem;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  z-index: 60;
+  max-inline-size: 34rem;
+  margin-inline: auto;
+  background: var(--ink-card);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.installText {
+  min-inline-size: 12rem;
+  flex: 1 1 14rem;
+}
+
+.installText strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.installText p {
+  margin: 0.15rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.installActions {
+  display: flex;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.installActions .button {
+  min-height: 40px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.88rem;
+}
+
+/* ---------- installed-app mode ---------- */
+
+/* Hidden for ordinary browser visits. The bottom bar only exists once the
+   site has been installed to the home screen, where a browser chrome no
+   longer provides navigation. */
+.appNav {
+  display: none;
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  .appNav {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 50;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    background: rgba(11, 16, 25, 0.96);
+    backdrop-filter: blur(12px);
+    border-block-start: 1px solid var(--line);
+    padding-block: 0.35rem;
+    padding-block-end: calc(0.35rem + env(safe-area-inset-bottom));
+  }
+
+  .appNav a {
+    display: grid;
+    justify-items: center;
+    gap: 0.15rem;
+    padding: 0.35rem 0.25rem;
+    color: var(--text-faint);
+    text-decoration: none;
+    font-size: 0.68rem;
+    min-block-size: 48px;
+  }
+
+  .appNav a[aria-current='page'] {
+    color: var(--accent);
+  }
+
+  .appNavIcon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  /* Keep the last section clear of the bar. */
+  body {
+    padding-block-end: 4.5rem;
+  }
+
+  /* An installed app has no address bar to scroll away, so the sticky header
+     can shrink and give the content more room. */
+  .siteHeader {
+    position: static;
+  }
+
+  .installBanner {
+    display: none;
+  }
+}

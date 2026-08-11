@@ -246,3 +246,62 @@ Unchanged from the main record, plus:
 - No DNS record was created or changed. SPF, DKIM and DMARC are unverified.
 - No Hostinger API call was made from this session; the Hostinger MCP servers
   run on the operator's local machine and are not available here.
+
+---
+
+# Addendum 2 — installed-app experience
+
+Date: 2026-08-11 (same branch)
+Scope: `components/install-prompt.tsx`, `components/app-nav.tsx`, app-mode styles
+
+## Outcome
+
+Turn the installable web app from "a website with a manifest" into a real
+installed-app experience: an in-page install offer and a bottom navigation bar
+that exists only once the site runs standalone.
+
+**State: PARTIALLY VERIFIED** — verified in a browser genuinely running in app
+mode; not verified on physical hardware.
+
+## Changed
+
+- **Install offer.** Captures `beforeinstallprompt`, suppresses the browser's
+  own English mini-infobar, and offers installation in the visitor's language.
+  Dismissal persists. Never shown when already installed. iOS Safari never
+  fires that event, so it gets written "Add to Home Screen" guidance instead.
+- **Bottom navigation.** Four destinations, shown only under
+  `@media (display-mode: standalone|fullscreen|minimal-ui)`. Visibility is a
+  CSS decision, not a JavaScript one, so there is no flash of the wrong chrome
+  and no hydration mismatch. Body padding and safe-area insets keep content
+  clear of the bar, and the sticky header is released in app mode where there
+  is no address bar to scroll away.
+
+## Verification
+
+| Check | Result |
+| --- | --- |
+| `npm run test:contracts` | **PASS** — 41/41 |
+| `npm run typecheck` / `npm run build` | **PASS** |
+| `matchMedia('(display-mode: standalone)')` in app mode | **true** |
+| Bottom nav computed `display` in app mode | **grid** (hidden in browser mode) |
+| Bottom nav absent in ordinary browsing | **confirmed** on 13 page captures |
+| Horizontal overflow, app mode, AR and EN | **0 px** |
+| Active-destination highlighting, RTL order | **correct** |
+
+Captured across 16 screenshots: 8 Arabic phone pages, 2 English phone pages,
+3 desktop pages, 3 app-mode pages.
+
+## Method note
+
+Chromium's CDP `Emulation.setEmulatedMedia` **silently ignores** the
+`display-mode` feature — it accepted the call while `matchMedia` still reported
+`browser`, which initially looked like a CSS bug. The real check launches
+Chromium with `--app=<url>`, where the standalone media query genuinely
+matches. Anyone re-verifying this must use app mode, not media emulation.
+
+## Not verified
+
+- Actual installation to a phone home screen, and a real offline session.
+- `beforeinstallprompt` firing in a real Chrome install flow — the offer is
+  event-driven and was not triggered in a headless capture.
+- iOS guidance path on a real iPhone.

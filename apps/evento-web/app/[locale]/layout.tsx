@@ -9,6 +9,8 @@ import { navItems, siteOrigin } from '@/lib/routes'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import ServiceWorkerRegistrar from '@/components/service-worker'
+import InstallPrompt from '@/components/install-prompt'
+import AppNav from '@/components/app-nav'
 
 export const dynamicParams = false
 
@@ -93,6 +95,30 @@ export default async function LocaleLayout({
         <main id="main">{children}</main>
 
         <SiteFooter locale={locale} />
+
+        {/* Installed-app chrome. Both are inert for an ordinary browser
+            visit: the bottom bar is hidden by a display-mode media query, and
+            the install offer only renders when the browser actually reports
+            the site as installable. */}
+        <AppNav
+          label={t('app.navLabel')}
+          items={[
+            { href: `/${locale}`, label: t('app.navHome'), icon: '\u25C7' },
+            { href: `/${locale}/services`, label: t('app.navServices'), icon: '\u25C8' },
+            { href: `/${locale}/projects`, label: t('app.navProjects'), icon: '\u25A4' },
+            { href: `/${locale}/account`, label: t('app.navAccount'), icon: '\u25CB' },
+          ]}
+        />
+        <InstallPrompt
+          copy={{
+            title: t('app.installTitle'),
+            body: t('app.installBody'),
+            install: t('app.installAction'),
+            dismiss: t('app.installDismiss'),
+            iosTitle: t('app.installIosTitle'),
+            iosBody: t('app.installIosBody'),
+          }}
+        />
         <ServiceWorkerRegistrar />
       </body>
     </html>
