@@ -1,0 +1,41 @@
+schema_version: 1
+policy:
+  primary_sources_required: true
+  stale_state: VERIFY_REQUIRED
+  production_channel: stable
+  rc_policy: compatibility_ci_or_explicit_adr
+  beta_policy: isolated_evaluation
+  canary_nightly_preview_policy: isolated_scouting
+  core_promotion: proven_general_low_cost_stable_documented_rollback_safe_owner_reviewed
+fields:
+  - platform
+  - checked_at
+  - official_sources
+  - current_stable
+  - preview_channels
+  - breaking_changes
+  - deprecations
+  - security
+  - repository_impact
+  - action
+  - urgency
+  - evidence
+  - next_review
+tracked_platforms:
+  - openai_codex
+  - anthropic_claude_code
+  - github_actions
+  - vercel
+  - supabase
+  - hostinger
+  - n8n
+  - zapier
+  - flutter_dart
+  - android
+  - apple_xcode_ios_swift
+  - wordpress_gutenberg
+  - stripe
+  - tap_payments
+  - preview_build_deployment
+  - agents_skills_mcp
+  - ci_cd_testing_security
