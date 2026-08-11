@@ -1,4 +1,9 @@
-# Skill: automation-platform-upgrade-audit
+---
+name: automation-platform-upgrade-audit
+description: Audit upgrades and configuration changes for agentic and automation platforms such as Claude Code, n8n, Zapier, MCP runtimes, and comparable systems before production mutation.
+---
+
+# Automation Platform Upgrade Audit
 
 ## Purpose
 Safely evaluate upgrades and configuration changes for agentic/automation platforms such as Claude Code, n8n, Zapier and comparable systems.
