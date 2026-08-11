@@ -1,0 +1,51 @@
+name: EVENTO Web
+
+on:
+  pull_request:
+    paths:
+      - 'apps/evento-web/**'
+      - '.github/workflows/evento-web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evento-web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/evento-web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install pinned direct dependencies
+        run: npm install --ignore-scripts
+      - name: Content, security and intake contracts
+        run: npm run test:contracts
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+      - name: Assert no secret material is committed
+        run: |
+          python - <<'PY'
+          import pathlib, sys
+          root = pathlib.Path('.')
+          leaked = [str(p) for p in root.rglob('.env*')
+                    if p.is_file() and p.name != '.env.example' and 'node_modules' not in p.parts]
+          if leaked:
+              print('Environment files must never be committed:')
+              print('\n'.join(f'- {p}' for p in leaked))
+              sys.exit(1)
+          print('no environment files committed')
+          PY

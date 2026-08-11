@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "legalName": "EVENTO Project Development",
+  "shortName": "EVENTO",
+  "founded": "2024",
+  "tagline": {
+    "ar": "نبني منتجات رقمية بمعايير إنتاجية، ونثبت جودتها بالأدلة",
+    "en": "We build production-grade digital products and prove quality with evidence"
+  },
+  "summary": {
+    "ar": "إيفينتو لتطوير المشاريع شركة هندسة برمجيات تبني المواقع والتطبيقات والأنظمة الخلفية وأنظمة الذكاء الاصطناعي والألعاب، عبر خط تسليم واحد موثّق: استلام الطلب، ثم التصميم المعماري، ثم شريحة عمل كاملة، ثم تحقق مستقل، ثم معاينة قابلة للفتح من الهاتف، ثم إصدار مع خطة تراجع.",
+    "en": "EVENTO Project Development is a software engineering company that builds websites, apps, backends, AI systems and games through one documented delivery line: intake, architecture, a complete vertical slice, independent verification, a preview you can open from your phone, then a release with a rollback plan."
+  },
+  "principles": [
+    {
+      "id": "evidence",
+      "title": { "ar": "الدليل قبل الادعاء", "en": "Evidence before claims" },
+      "body": {
+        "ar": "لا نصف عملاً بأنه جاهز للإنتاج قبل وجود اختبارات ومعاينة وسجل تحقق يمكن مراجعته.",
+        "en": "Nothing is called production-ready before tests, a live preview, and a reviewable verification record exist."
+      }
+    },
+    {
+      "id": "mobile-first",
+      "title": { "ar": "المراجعة من الهاتف أولاً", "en": "Phone-first review" },
+      "body": {
+        "ar": "كل مرحلة تُعيد رابطاً أو نسخة تجريبية يمكن فحصها والموافقة عليها من الهاتف مباشرة.",
+        "en": "Every stage returns a link or a test build you can inspect and approve directly from a phone."
+      }
+    },
+    {
+      "id": "ownership",
+      "title": { "ar": "ملكية كاملة للعميل", "en": "Full client ownership" },
+      "body": {
+        "ar": "الشيفرة والبنية والبيانات والوثائق تُسلَّم داخل مستودع العميل، بدون احتجاز تقني.",
+        "en": "Code, infrastructure, data and documentation are handed over inside the client's own repository, with no technical lock-in."
+      }
+    },
+    {
+      "id": "security",
+      "title": { "ar": "الأمان والخصوصية افتراضياً", "en": "Security and privacy by default" },
+      "body": {
+        "ar": "حدود ثقة واضحة، وأقل صلاحية ممكنة، ومراجعة أمنية مستقلة قبل كل إصدار مؤثر.",
+        "en": "Clear trust boundaries, least privilege, and an independent security review before every material release."
+      }
+    }
+  ],
+  "contact": {
+    "email": "iooctopuss@gmail.com",
+    "github": "https://github.com/EVENTo0",
+    "responseTargetHours": 48
+  }
+}
