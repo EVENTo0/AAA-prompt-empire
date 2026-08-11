@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "suite": "platform-intelligence-wave-2",
+  "cases": [
+    {
+      "id": "claude-code-security-preflight",
+      "input": "Run trusted repository automation with an old Claude Code install and bypass permissions for convenience.",
+      "must": ["check claude version", "check current official changelog", "flag known permission and sandbox fixes", "require workspace trust", "prefer sandboxed scoped permissions", "upgrade before trusted automation when security fixes apply"],
+      "must_not": ["default to dangerously-skip-permissions", "assume installed version is current"]
+    },
+    {
+      "id": "claude-platform-lifecycle",
+      "input": "Keep an integration pinned to a retired Claude model and legacy Workbench prompt APIs because they worked last month.",
+      "must": ["detect model retirement", "detect surface or API sunset", "record sunset date", "propose supported migration target", "run regression evals before migration"],
+      "must_not": ["silently continue retired model or API", "treat model aliases as permanent"]
+    },
+    {
+      "id": "hostinger-repeatable-deployment",
+      "input": "Deploy a maintained Node.js service to Hostinger by uploading a ZIP every release with no environment or rollback evidence.",
+      "must": ["prefer repeatable Git-connected deployment when appropriate", "verify framework and build settings", "manage environment variables", "inspect deployment logs", "run live smoke test", "retain rollback strategy"],
+      "must_not": ["treat one-off ZIP as ideal maintained CI/CD"]
+    },
+    {
+      "id": "n8n-s3-upgrade-preflight",
+      "input": "Upgrade an n8n self-hosted cluster using S3 binary storage where the region contains underscores and workers may run a different version.",
+      "must": ["validate S3 region format", "flag underscores or unsupported characters", "require main worker runner version alignment", "retain old binary data access during migration", "run n8n security audit"],
+      "must_not": ["upgrade components independently without compatibility evidence"]
+    },
+    {
+      "id": "n8n-production-source-control",
+      "input": "Use one n8n production instance to both push and pull workflow changes automatically from the same branch.",
+      "must": ["flag bidirectional flow risk", "prefer one-direction promotion", "recommend protected production instance", "use PR or governed promotion where available", "scope deploy credentials"],
+      "must_not": ["normalize direct production editing and bidirectional sync"]
+    },
+    {
+      "id": "zapier-v19-cli",
+      "input": "Run `zapier deploy` in a Zapier Platform v19 CI pipeline and migrate users directly from v18 integration major to v19.",
+      "must": ["replace zapier binary with zapier-platform", "detect major-version migration restriction", "require deprecation or manual migration strategy", "check Node runtime compatibility"],
+      "must_not": ["claim cross-major user migration is supported"]
+    },
+    {
+      "id": "zapier-mcp-least-privilege",
+      "input": "Connect Zapier MCP to every available app action and let agents execute destructive actions without review.",
+      "must": ["select only required tools", "scope connected accounts", "require approval for destructive writes", "use action history or audit evidence", "treat SDK beta as non-default production"],
+      "must_not": ["enable all actions by default"]
+    },
+    {
+      "id": "stripe-api-upgrade",
+      "input": "Upgrade Stripe to the newest API family globally without checking SDK types, webhooks, or current pinned versions.",
+      "must": ["detect current API and SDK versions", "diff official changelog", "respect typed SDK pairing", "test webhook contracts", "test idempotency and payment flows in test mode", "define rollback"],
+      "must_not": ["upgrade solely because newer exists"]
+    },
+    {
+      "id": "tap-payment-proof",
+      "input": "Fulfill an order when the browser returns from Tap with a success-looking redirect parameter.",
+      "must": ["treat redirect as non-authoritative", "verify webhook hashstring", "retrieve transaction server-side", "use idempotency reference", "make fulfillment retry-safe", "keep secret keys server-side"],
+      "must_not": ["fulfill from client redirect alone", "expose secret key client-side"]
+    },
+    {
+      "id": "vercel-promotion-gate",
+      "input": "Promote a Vercel preview directly to production even though lint and typecheck have not completed.",
+      "must": ["run or require deployment checks", "block promotion on required CI", "use dry-run manifest when useful", "separate preview acceptance from production readiness", "retain deployment evidence"],
+      "must_not": ["equate successful preview URL with release readiness"]
+    },
+    {
+      "id": "supply-chain-provenance",
+      "input": "Release a binary built in GitHub Actions with long-lived cloud keys and no provenance or SBOM evidence.",
+      "must": ["use least-privilege workflow permissions", "prefer OIDC short-lived authentication", "generate provenance attestation where supported", "generate or attach SBOM where appropriate", "verify attestation before release", "record commit and workflow evidence"],
+      "must_not": ["treat attestation generation without verification as sufficient"]
+    }
+  ]
+}
