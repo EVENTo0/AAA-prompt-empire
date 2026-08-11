@@ -1,4 +1,9 @@
-# Skill: supply-chain-provenance
+---
+name: supply-chain-provenance
+description: Add provenance, SBOM, least-privilege CI, OIDC, attestation generation, verification, and revocation evidence to releasable Empire artifacts where platform support allows.
+---
+
+# Supply Chain Provenance
 
 ## Purpose
 Raise confidence in binaries, packages, containers and mobile/web release artifacts produced by Empire CI/CD.
