@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { notFound } from 'next/navigation'
+import { preload } from 'react-dom'
 import '../globals.css'
 
 import { company, translator } from '@/lib/content'
 import { LOCALES, direction, isLocale, otherLocale, localeLabel, pick, type Locale } from '@/lib/i18n'
 import { navItems, siteOrigin } from '@/lib/routes'
+import { organizationJsonLd } from '@/lib/structured-data'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import ServiceWorkerRegistrar from '@/components/service-worker'
@@ -22,7 +24,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#05070d',
+  themeColor: '#06090f',
 }
 
 export async function generateMetadata({
@@ -75,9 +77,41 @@ export default async function LocaleLayout({
   const t = translator(locale)
   const alternate = otherLocale(locale)
 
+  /**
+   * Preload this locale's faces, and only this locale's.
+   *
+   * `font-display: swap` does not take the face off the LCP path: the fallback
+   * paints first, then the swap repaints the heading, and that repaint becomes
+   * the LCP candidate. Measured on a throttled phone, Arabic LCP was 3.17s
+   * without this and missed the 2.5s gate.
+   *
+   * React's `preload` is used rather than a literal <link>, because an element
+   * in the tree is both hoisted into <head> and rendered in place, emitting
+   * every preload twice.
+   */
+  const script = locale === 'ar' ? 'arabic' : 'latin'
+
+  // Only the bold face is preloaded. The LCP element is the page heading, which
+  // is weight 700; body text at 400 arrives moments later and swaps without a
+  // measurable layout shift. Preloading both put 86KB of Arabic on the critical
+  // path to save nothing.
+  preload(`/fonts/plex-${script}-700.woff2`, {
+    as: 'font',
+    type: 'font/woff2',
+    crossOrigin: 'anonymous',
+    fetchPriority: 'high',
+  })
+
   return (
     <html lang={locale} dir={direction(locale)}>
       <body>
+        {/* Structured data. Valid in the body per schema.org, and kept out of
+            <head> so React does not emit it twice. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd(locale)) }}
+        />
+
         <a className="skipLink" href="#main">
           {t('nav.skip')}
         </a>
@@ -88,7 +122,8 @@ export default async function LocaleLayout({
           brandSub={locale === 'ar' ? 'لتطوير المشاريع' : 'Project Development'}
           items={navItems(locale).map((item) => ({ href: item.href, label: t(item.key) }))}
           cta={{ href: `/${locale}/contact`, label: t('nav.contact') }}
-          localeSwitch={{ href: `/${alternate}`, label: localeLabel[alternate] }}
+          altLocale={alternate}
+          altLabel={localeLabel[alternate]}
           menuLabel={t('nav.menu')}
         />
 

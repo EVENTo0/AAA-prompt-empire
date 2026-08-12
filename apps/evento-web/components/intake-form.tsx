@@ -86,7 +86,7 @@ export default function IntakeForm({ locale, defaultService, defaultEngagement, 
     return (
       <div className="formCard">
         <div className="notice success">
-          <h2 style={{ marginBlockStart: 0 }}>{t('contact.successTitle')}</h2>
+          <h2 className="tightTop">{t('contact.successTitle')}</h2>
           <p>{t('contact.successBody')}</p>
           <p>
             {t('contact.reference')}: <span className="reference">{outcome.reference}</span>
@@ -192,7 +192,7 @@ export default function IntakeForm({ locale, defaultService, defaultEngagement, 
         {outcome.kind === 'sending' ? t('contact.submitting') : t('contact.submit')}
       </button>
 
-      <p className="hint" style={{ marginBlockStart: '1rem' }}>
+      <p className="hint gapAbove">
         {t('contact.privacy')}
       </p>
     </form>

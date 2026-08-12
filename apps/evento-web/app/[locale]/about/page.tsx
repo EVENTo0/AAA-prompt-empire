@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { company, translator } from '@/lib/content'
+import { localeAlternates } from '@/lib/routes'
 import { pick, resolveLocale } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
 
 export async function generateMetadata({
   params,
@@ -8,7 +10,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const locale = resolveLocale((await params).locale)
-  return { title: translator(locale)('about.title'), description: pick(company.summary, locale) }
+  return { title: translator(locale)('about.title'), description: pick(company.summary, locale), alternates: localeAlternates(locale, '/about') }
 }
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -41,7 +43,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <div className="sectionHead">
             <h2>{t('about.contactTitle')}</h2>
           </div>
-          <dl className="stageMeta" style={{ borderBlockStart: 'none', paddingBlockStart: 0, maxWidth: '46ch' }}>
+          <dl className="stageMeta plain">
             <dt>{t('about.email')}</dt>
             <dd>
               <a href={`mailto:${company.contact.general}`} dir="ltr">
@@ -56,9 +58,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             </dd>
             <dt>{t('about.responseTarget')}</dt>
             <dd>
-              {new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US').format(
-                company.contact.responseTargetHours,
-              )}{' '}
+              <span className="ledger">{formatNumber(company.contact.responseTargetHours, locale)}</span>{' '}
               {t('about.hours')}
             </dd>
           </dl>

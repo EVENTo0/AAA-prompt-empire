@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { engagements, serviceById, services, translator } from '@/lib/content'
+import { localeAlternates } from '@/lib/routes'
 import { resolveLocale } from '@/lib/i18n'
 import { currentSessionUser } from '@/lib/session'
 import { accountsEnabled } from '@/lib/supabase'
@@ -10,8 +11,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const t = translator(resolveLocale((await params).locale))
-  return { title: t('contact.title'), description: t('contact.lead') }
+  const locale = resolveLocale((await params).locale)
+  const t = translator(locale)
+  return { title: t('contact.title'), description: t('contact.lead'), alternates: localeAlternates(locale, '/contact') }
 }
 
 export const dynamic = 'force-dynamic'

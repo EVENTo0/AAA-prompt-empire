@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { engagements, translator } from '@/lib/content'
+import { localeAlternates } from '@/lib/routes'
 import { pick, resolveLocale } from '@/lib/i18n'
 import ServiceGrid from '@/components/service-grid'
 
@@ -9,7 +10,8 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const locale = resolveLocale((await params).locale)
-  return { title: translator(locale)('services.title'), description: translator(locale)('services.lead') }
+  const t = translator(locale)
+  return { title: t('services.title'), description: t('services.lead'), alternates: localeAlternates(locale, '/services') }
 }
 
 export default async function ServicesPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -39,7 +41,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
             {engagements.map((engagement) => (
               <article className="card" key={engagement.id}>
                 <h3>{pick(engagement.name, locale)}</h3>
-                <dl className="stageMeta" style={{ borderBlockStart: 'none', paddingBlockStart: 0 }}>
+                <dl className="stageMeta plain">
                   <dt>{t('services.duration')}</dt>
                   <dd>{pick(engagement.duration, locale)}</dd>
                   <dt>{t('services.outcome')}</dt>

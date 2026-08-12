@@ -11,7 +11,7 @@ export default function NotFound() {
     <section className="section">
       <div className="shell">
         {LOCALES.map((locale) => (
-          <div key={locale} lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} style={{ marginBlockEnd: '2rem' }}>
+          <div key={locale} lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="blockGroup">
             <h1>{t('common.notFound', locale)}</h1>
             <p className="lead">{t('common.notFoundBody', locale)}</p>
             <div className="ctaRow">

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 
 const root = new URL('../', import.meta.url)
 const repoRoot = new URL('../../', root)
@@ -210,4 +210,173 @@ test('the public context routes are crawlable while the rest of the API is not',
   assert.match(robots, /'\/api\/context'/)
   assert.match(robots, /'\/llms\.txt'/)
   assert.match(robots, /disallow: \['\/api\/'/)
+})
+
+test('Arabic text is never letter-spaced', async () => {
+  // Arabic script is cursive and joined; tracking breaks the joins. Any rule
+  // that applies letter-spacing must be scoped to Latin or reset for Arabic.
+  const css = await readFile(new URL('app/globals.css', root), 'utf8')
+
+  const offenders = []
+  // Split into rule blocks and check each one that sets letter-spacing.
+  for (const block of css.split('}')) {
+    if (!/letter-spacing:(?!\s*normal\b)/.test(block)) continue
+    const selector = block.slice(0, block.indexOf('{')).trim()
+    const isLatinScoped = /:lang\(en\)/.test(selector)
+    // The ledger face is Latin-only by unicode-range, so tracking is safe
+    // there; `:lang(ar)` overrides reset it for Arabic.
+    const isLedger = /\.ledger|\.reference|\.tag\b|\.evidence|\.eyebrow|\.fieldLabel|\.stageMeta dt|footerGrid h4|brandText small/.test(
+      selector,
+    )
+    if (!isLatinScoped && !isLedger) offenders.push(selector)
+  }
+  assert.deepEqual(offenders, [], 'these rules track text without scoping away from Arabic')
+
+  // Every ledger-ish selector that tracks must have an Arabic reset.
+  for (const name of ['.eyebrow', '.evidence', '.fieldLabel', '.stageMeta dt', '.footerGrid h4']) {
+    assert.ok(
+      css.includes(`:lang(ar) ${name}`),
+      `${name} applies tracking and needs a :lang(ar) reset`,
+    )
+  }
+})
+
+test('the design tokens stay within their declared limits', async () => {
+  const tokens = await readFile(new URL('app/tokens.css', root), 'utf8')
+  const rootBlock = tokens.slice(tokens.indexOf(':root {'))
+
+  // Palette: six colours. Semantic status colours are functional and counted
+  // separately so status never competes with the accent for meaning.
+  const palette = ['--ink:', '--raised:', '--line:', '--text:', '--muted:', '--accent:']
+  for (const name of palette) assert.ok(rootBlock.includes(name), `${name} must exist`)
+
+  const rawHex = [...rootBlock.matchAll(/^\s*(--[a-z0-9-]+):\s*(#[0-9a-f]{3,8})\s*;/gim)].map((m) => m[1])
+  assert.equal(
+    rawHex.length,
+    palette.length + 2,
+    `expected 6 palette + 2 semantic raw colours, found ${rawHex.length}: ${rawHex.join(', ')}`,
+  )
+
+  // Spacing is a strict 4px grid.
+  for (const [, name, value] of rootBlock.matchAll(/(--space-\d+):\s*(\d+)px/g)) {
+    assert.equal(Number(value) % 4, 0, `${name} = ${value}px breaks the 4px grid`)
+  }
+
+  // The type scale is declared, not improvised at call sites.
+  for (const step of ['--text-2xs', '--text-sm', '--text-base', '--text-lg', '--text-2xl', '--text-3xl']) {
+    assert.ok(rootBlock.includes(`${step}:`), `${step} must be declared`)
+  }
+
+  assert.match(rootBlock, /--leading-body:\s*1\.7[0-9]?/, 'Arabic body text needs line-height >= 1.7')
+})
+
+test('components consume tokens, never raw values', async () => {
+  const css = await readFile(new URL('app/globals.css', root), 'utf8')
+  const body = css.slice(css.indexOf('box-sizing: border-box'))
+
+  // Colours must all come from tokens.
+  const rawColours = [...body.matchAll(/(?:color|background|border-color|fill):\s*(#[0-9a-f]{3,8}|rgba?\()/gi)]
+  assert.deepEqual(
+    rawColours.map((m) => m[0]),
+    [],
+    'these declarations use a raw colour instead of a token',
+  )
+
+  // No physical-direction properties: one stylesheet must serve both scripts.
+  for (const physical of ['margin-left:', 'margin-right:', 'padding-left:', 'padding-right:', 'border-left:', 'border-right:']) {
+    assert.ok(!body.includes(physical), `${physical} breaks RTL; use the logical property`)
+  }
+})
+
+test('the fonts the stylesheet declares are actually shipped', async () => {
+  const tokens = await readFile(new URL('app/tokens.css', root), 'utf8')
+  const referenced = [...tokens.matchAll(/url\('\/fonts\/([^']+)'\)/g)].map((m) => m[1])
+  assert.ok(referenced.length >= 5, 'both scripts and the ledger face must be declared')
+
+  const shipped = await readdir(new URL('public/fonts/', root))
+  for (const file of referenced) {
+    assert.ok(shipped.includes(file), `${file} is referenced by @font-face but not shipped`)
+  }
+
+  // Each face must be range-limited, or an Arabic reader downloads Latin too.
+  const faces = tokens.split('@font-face').slice(1)
+  for (const face of faces) {
+    assert.match(face, /unicode-range:/, 'every @font-face needs a unicode-range')
+  }
+  assert.match(tokens, /font-display:\s*swap/, 'text must paint before the face arrives')
+})
+
+test('static assets are never rewritten by locale middleware', async () => {
+  const middleware = await readFile(new URL('middleware.ts', root), 'utf8')
+  const matcher = middleware.slice(middleware.indexOf('matcher:'))
+  // A redirected @font-face URL fails silently and the page falls back to a
+  // system face, so this exclusion is load-bearing.
+  for (const path of ['fonts', '_next/static', 'api', 'sw\\\\.js', 'llms\\\\.txt', 'opengraph-image']) {
+    assert.ok(matcher.includes(path), `middleware must not rewrite /${path.replace(/\\\\/g, '')}`)
+  }
+})
+
+test('one numeral system is enforced through a single formatter', async () => {
+  const format = await readFile(new URL('lib/format.ts', root), 'utf8')
+  assert.match(format, /nu-latn/, 'the digit decision must be explicit')
+
+  // No component may reach for its own locale-specific numeral system.
+  for (const dir of ['app', 'components']) {
+    for (const entry of await readdir(new URL(`${dir}/`, root), { recursive: true, withFileTypes: true })) {
+      if (!entry.isFile() || !/\.tsx?$/.test(entry.name)) continue
+      const path = `${entry.parentPath ?? entry.path}/${entry.name}`
+      const body = await readFile(path, 'utf8')
+      assert.ok(
+        !/new Intl\.(NumberFormat|DateTimeFormat)/.test(body),
+        `${path} formats numbers locally; use lib/format.ts so digits stay consistent`,
+      )
+    }
+  }
+})
+
+test('the language switcher preserves the current page', async () => {
+  const header = await readFile(new URL('components/site-header.tsx', root), 'utf8')
+  // Resetting to the homepage on language change is the most common
+  // bilingual-site defect; the switcher must rebuild the current path.
+  assert.match(header, /pathname\.split\('\/'\)/)
+  assert.match(header, /segments\[1\] = altLocale/)
+  assert.match(header, /hrefLang=\{altLocale\}/)
+})
+
+test('every page declares its own canonical and hreflang', async () => {
+  for (const [file, route] of [
+    ['app/[locale]/services/page.tsx', '/services'],
+    ['app/[locale]/method/page.tsx', '/method'],
+    ['app/[locale]/projects/page.tsx', '/projects'],
+    ['app/[locale]/about/page.tsx', '/about'],
+    ['app/[locale]/contact/page.tsx', '/contact'],
+  ]) {
+    const body = await readFile(new URL(file, root), 'utf8')
+    assert.ok(
+      body.includes(`localeAlternates(locale, '${route}')`),
+      `${file} must declare alternates for ${route}, or it inherits the homepage's`,
+    )
+  }
+})
+
+test('social cards and structured data are generated from site data', async () => {
+  const og = await readFile(new URL('app/[locale]/opengraph-image.tsx', root), 'utf8')
+  assert.match(og, /size = \{ width: 1200, height: 630 \}/)
+  // The image renderer rejects woff2, so it must read the woff copies.
+  assert.match(og, /og-fonts/)
+  assert.ok(!/fonts', file\)/.test(og) || og.includes('og-fonts'), 'OG fonts come from assets/og-fonts')
+
+  const ld = await readFile(new URL('lib/structured-data.ts', root), 'utf8')
+  assert.match(ld, /'@type': 'Organization'/)
+  assert.match(ld, /from '@\/lib\/content'/, 'structured data must derive from the site data')
+
+  // Strip comments first: the file explains which fields are banned, and that
+  // prose must not trip the check.
+  const ldCode = ld.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+  for (const field of ['aggregateRating', 'numberOfEmployees', 'revenue', 'award']) {
+    assert.ok(
+      !ldCode.includes(field),
+      `structured data must not claim ${field} — the site does not publish it`,
+    )
+  }
 })

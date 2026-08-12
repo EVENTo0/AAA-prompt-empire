@@ -14,9 +14,7 @@ export default function ProjectGrid({ locale, limit }: { locale: Locale; limit?:
           <article className="card" key={project.id}>
             <div className="cardHead">
               <div>
-                <p className="eyebrow" style={{ marginBottom: '0.2rem' }}>
-                  {pick(project.kind, locale)}
-                </p>
+                <p className="eyebrow">{pick(project.kind, locale)}</p>
                 <h3>{pick(project.name, locale)}</h3>
               </div>
               <EvidenceBadge state={project.evidence} locale={locale} />
@@ -24,7 +22,7 @@ export default function ProjectGrid({ locale, limit }: { locale: Locale; limit?:
 
             <p>{pick(project.summary, locale)}</p>
 
-            <dl className="stageMeta" style={{ borderBlockStart: 'none', paddingBlockStart: 0 }}>
+            <dl className="stageMeta plain">
               <dt>{t('projects.stage')}</dt>
               <dd>{stage ? pick(stage.name, locale) : project.stage}</dd>
               <dt>{t('method.evidence')}</dt>

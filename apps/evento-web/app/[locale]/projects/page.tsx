@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { translator } from '@/lib/content'
+import { localeAlternates } from '@/lib/routes'
 import { resolveLocale } from '@/lib/i18n'
 import ProjectGrid from '@/components/project-grid'
 
@@ -8,8 +9,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const t = translator(resolveLocale((await params).locale))
-  return { title: t('projects.title'), description: t('projects.lead') }
+  const locale = resolveLocale((await params).locale)
+  const t = translator(locale)
+  return { title: t('projects.title'), description: t('projects.lead'), alternates: localeAlternates(locale, '/projects') }
 }
 
 export default async function ProjectsPage({ params }: { params: Promise<{ locale: string }> }) {

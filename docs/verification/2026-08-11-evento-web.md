@@ -305,3 +305,127 @@ matches. Anyone re-verifying this must use app mode, not media emulation.
 - `beforeinstallprompt` firing in a real Chrome install flow — the offer is
   event-driven and was not triggered in a headless capture.
 - iOS guidance path on a real iPhone.
+
+---
+
+# Addendum 3 — rebuilt to the modern-web-engineering standard
+
+Date: 2026-08-12
+Trigger: owner supplied the `modern-web-engineering` skill and rejected the
+previous design.
+
+## Audit against the standard
+
+Ten violations were found. The first was the reason the design looked plain.
+
+| # | Violation | Standard |
+| --- | --- | --- |
+| 1 | **No Arabic webfont loaded at all** — the family was only a system fallback | "Arabic type: Noto Sans Arabic / IBM Plex Sans Arabic" |
+| 2 | `letter-spacing` applied to every heading, Arabic included | "never letter-space Arabic" |
+| 3 | Language switcher reset to the homepage | "switcher preserves current page, not homepage reset" |
+| 4 | No OpenGraph images | "OG image (1200×630) per page type" |
+| 5 | No JSON-LD | "JSON-LD (Organization…)" |
+| 6 | `hreflang` on every page pointed at the homepage | "locale routing with hreflang tags" |
+| 7 | 12+ colours, no type scale, no spacing grid, inline styles | "tokens (colors ≤6, type scale, spacing 4px grid…) in one file" |
+| 8 | No committed distinctive decision | "Template look → one committed distinctive decision" |
+| 9 | No performance measurement | "Core Web Vitals pass on throttled mobile (numbers recorded)" |
+| 10 | No dependency audit in CI | "dependency audit in CI" |
+
+## What changed
+
+**Typography.** IBM Plex Sans Arabic and IBM Plex Mono, self-hosted and
+subsetted, 137 KB total across five files. Each `@font-face` carries an explicit
+`unicode-range`, so an Arabic reader never downloads the Latin files. All
+tracking is now scoped to `:lang(en)` or to the Latin-only ledger face, with
+`:lang(ar)` resets; a contract test parses the stylesheet and fails on any rule
+that tracks text without scoping away from Arabic.
+
+**The committed design decision — the evidence ledger.** The company's argument
+is "evidence before claims", so the type system separates the two: prose and
+argument in the sans, and every *record* — stage index, reference code, evidence
+state, platform, date, response target — in the mono face with tabular figures.
+A reader can tell a claim from a record without reading a word. Corner radii
+were tightened from 14px to 4/10px so panels read as ruled paper rather than
+pillowy cards. Numbering is used only on the delivery pipeline, which is a
+genuine ordered sequence.
+
+**Tokens.** `app/tokens.css` holds six palette colours plus two functional
+status colours, a 1.25-ratio type scale, a strict 4px spacing grid, two radii
+and two elevations. All inline styles were removed; contract tests assert the
+palette count, that every `--space-*` is a multiple of 4, that no component
+declares a raw colour, and that no physical-direction property appears.
+
+**Digits.** One decision, enforced in `lib/format.ts`: Western digits in both
+languages, with Arabic month names preserved via `-u-nu-latn`. A contract test
+fails any component that constructs its own `Intl` formatter. Arabic-Indic
+digits would have fallen out of the Latin-only ledger face and broken the
+tabular alignment.
+
+**SEO.** Per-locale OG images at 1200×630 rendered with the real faces;
+Organization JSON-LD generated from the same data the pages render, with a test
+banning any claim the site does not publish; correct per-page canonical and
+`hreflang`.
+
+## Defects found while doing this work
+
+1. **The middleware was rewriting `/fonts/*` to `/ar/fonts/*`** — HTTP 307. Every
+   `@font-face` URL failed silently and the entire typography effort would have
+   been invisible in production. Found by requesting the font files directly
+   rather than trusting the page to look right. A contract test now pins the
+   matcher exclusions.
+2. **The OG route crashed** with `Unsupported OpenType signature wOF2` — the
+   image renderer rejects WOFF2. It now reads WOFF copies from `assets/og-fonts/`,
+   outside `public/` so visitors never download a second copy of every face.
+3. **Preload links were emitted four times.** A literal `<link>` in the tree is
+   both hoisted into `<head>` by React and rendered in place. Replaced with
+   React's `preload()` API, which dedupes.
+4. **Removing the preload regressed LCP.** `font-display: swap` does not take a
+   face off the LCP path: the fallback paints, then the swap repaints the
+   heading and that repaint becomes the LCP candidate.
+5. Two of my own new contract tests were wrong and were fixed: a `\s*` before a
+   negative lookahead backtracked to zero width and let `letter-spacing: normal`
+   match as a violation, and a check matched the forbidden field names inside
+   its own explanatory comment.
+
+## Measured — Lighthouse, mobile emulation, median of three runs
+
+| Page | Perf | LCP | CLS | TBT |
+| --- | --- | --- | --- | --- |
+| `/ar` | 95 | 2.88s | 0.037 | 44ms |
+| `/en` | 96 | 2.61s | 0.021 | 46ms |
+
+Single-category runs across `/ar`, `/ar/method`, `/ar/services`, `/en` also
+recorded accessibility 96–100, best practices 100, SEO 100.
+
+**Against the standard's release gate (LCP < 2.5s, INP < 200ms, CLS < 0.1):**
+
+- CLS — **PASS** with margin (0.021–0.037, and 0.000 on several pages).
+- TBT as the INP proxy — **PASS** with margin (44–97ms).
+- LCP — **NOT MET.** 2.61s and 2.88s median against a 2.5s gate.
+
+State: **PARTIALLY VERIFIED.**
+
+What the LCP number is and is not: server response is 20ms, total page weight
+332 KiB, and Lighthouse reports no render-blocking resources — the only
+remaining opportunity is 380ms of unused framework JavaScript. The measurement
+is `next start` on a shared container over Lighthouse's simulated slow 4G, with
+no CDN, no edge cache and contended CPU. Run-to-run spread on `/ar` was
+2.35–2.90s for identical builds. The controllable levers have been taken
+(subsetting, unicode-range, preloading only the weight the LCP element uses).
+**LCP cannot be honestly judged against the gate until the site is deployed
+behind a CDN and measured there.** It stays an open item, not a pass.
+
+## Verification
+
+`npm run check` — 50/50 contract tests, typecheck clean, production build clean.
+`npm audit --audit-level=high` — 0 vulnerabilities, now enforced in CI.
+All 14 routes return 200; API origin and degradation contracts unchanged
+(403 without an Origin, 503 `not-configured` for a valid submission with no
+store). Layout sweep: 0px horizontal overflow, no console errors, across 16
+captures including installed-app mode.
+
+## Not verified
+
+Unchanged from the main record. Additionally: the OG images have not been
+validated by a real social crawler, and the JSON-LD has not been through
+Google's Rich Results Test — both need a public URL.

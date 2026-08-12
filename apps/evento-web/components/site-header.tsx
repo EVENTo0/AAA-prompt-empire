@@ -12,12 +12,34 @@ type Props = {
   brandSub: string
   items: NavItem[]
   cta: NavItem
-  localeSwitch: NavItem
+  /** Target locale for the switcher; the path is preserved, not reset. */
+  altLocale: string
+  altLabel: string
   menuLabel: string
 }
 
-export default function SiteHeader({ homeHref, brandName, brandSub, items, cta, localeSwitch, menuLabel }: Props) {
+export default function SiteHeader({
+  homeHref,
+  brandName,
+  brandSub,
+  items,
+  cta,
+  altLocale,
+  altLabel,
+  menuLabel,
+}: Props) {
   const pathname = usePathname()
+
+  /**
+   * Swapping only the locale segment keeps the reader on the page they are
+   * reading. Sending them to the homepage instead is the single most common
+   * bilingual-site defect.
+   */
+  const alternateHref = (() => {
+    const segments = pathname.split('/')
+    if (segments.length > 1) segments[1] = altLocale
+    return segments.join('/') || `/${altLocale}`
+  })()
   const [open, setOpen] = useState(false)
   const panelId = useId()
 
@@ -52,8 +74,8 @@ export default function SiteHeader({ homeHref, brandName, brandSub, items, cta, 
           {cta.label}
         </Link>
 
-        <Link href={localeSwitch.href} className="localeSwitch" lang={localeSwitch.href.split('/')[1]}>
-          {localeSwitch.label}
+        <Link href={alternateHref} className="localeSwitch" lang={altLocale} hrefLang={altLocale}>
+          {altLabel}
         </Link>
 
         <button

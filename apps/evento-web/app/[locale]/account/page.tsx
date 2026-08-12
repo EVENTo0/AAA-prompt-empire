@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { engagementById, serviceById, stageById, translator } from '@/lib/content'
 import { pick, resolveLocale, type Locale } from '@/lib/i18n'
+import { formatDate } from '@/lib/format'
 import { activeAccessToken, currentSessionUser } from '@/lib/session'
 import { accountsEnabled, listOwnProjectRequests, type ProjectRequestRow } from '@/lib/supabase'
 import AuthForm from '@/components/auth-form'
@@ -29,7 +30,7 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
           <div className="sectionHead">
             <h1>{t('account.title')}</h1>
           </div>
-          <div className="notice info" style={{ maxWidth: '640px' }}>
+          <div className="notice info measured">
             <strong>{t('account.disabledTitle')}</strong>
             <p>{t('account.disabledBody')}</p>
           </div>
@@ -60,13 +61,13 @@ export default async function AccountPage({ params }: { params: Promise<{ locale
       <div className="shell">
         <div className="sectionHead">
           <p className="eyebrow">{t('account.title')}</p>
-          <h1 dir="ltr" style={{ overflowWrap: 'anywhere' }}>
+          <h1 dir="ltr" className="breakAnywhere">
             {user.email}
           </h1>
           <p className="lead">{t('account.lead')}</p>
         </div>
 
-        <div className="ctaRow" style={{ marginBlockStart: 0, marginBlockEnd: '1.5rem' }}>
+        <div className="ctaRow tightTop gapBelow">
           <Link href={`/${locale}/contact`} className="button primary">
             {t('nav.contact')}
           </Link>
@@ -103,10 +104,7 @@ function RequestCard({ request, locale }: { request: ProjectRequestRow; locale: 
   const stage = stageById(request.stage)
   const service = serviceById(request.service_id)
   const engagement = engagementById(request.engagement_id)
-  const submitted = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-GB', {
-    dateStyle: 'medium',
-    timeZone: 'UTC',
-  }).format(new Date(request.created_at))
+  const submitted = formatDate(request.created_at, locale)
 
   return (
     <article className="requestRow">

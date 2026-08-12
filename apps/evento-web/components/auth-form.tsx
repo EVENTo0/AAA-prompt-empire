@@ -52,7 +52,7 @@ export default function AuthForm({ locale }: { locale: Locale }) {
   return (
     <form className="formCard" onSubmit={submit} noValidate>
       <h1>{mode === 'signin' ? t('account.signIn') : t('account.signUp')}</h1>
-      <p className="lead" style={{ marginBlockEnd: '1.25rem' }}>
+      <p className="lead gapBelow">
         {t('account.lead')}
       </p>
 
@@ -90,7 +90,7 @@ export default function AuthForm({ locale }: { locale: Locale }) {
         {busy ? t('contact.submitting') : mode === 'signin' ? t('account.signIn') : t('account.signUp')}
       </button>
 
-      <p style={{ marginBlockStart: '1rem', marginBlockEnd: 0 }}>
+      <p className="gapAbove">
         <button
           type="button"
           className="button secondary"

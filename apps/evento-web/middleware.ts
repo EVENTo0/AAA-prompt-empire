@@ -38,8 +38,16 @@ function preferredLocale(request: NextRequest) {
  * rewritten under a locale, or clients fetching it by its well-known path get
  * a redirect instead of the file.
  */
+/**
+ * Only pages are localised. Everything served from a fixed path — static
+ * assets, self-hosted fonts, the service worker, the manifest, well-known
+ * files — must pass through untouched.
+ *
+ * Missing `fonts` here is not cosmetic: a redirected `@font-face` URL fails
+ * silently and the whole page falls back to a system face.
+ */
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|sw\\.js|llms\\.txt|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml|icon.*\\.svg|favicon\\.ico).*)',
+    '/((?!api|_next/static|_next/image|fonts|sw\\.js|llms\\.txt|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml|icon.*\\.svg|favicon\\.ico|opengraph-image).*)',
   ],
 }

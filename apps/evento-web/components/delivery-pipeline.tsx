@@ -1,17 +1,17 @@
 import { stages, translator } from '@/lib/content'
 import { pick, type Locale } from '@/lib/i18n'
+import { formatIndex } from '@/lib/format'
 
 export default function DeliveryPipeline({ locale, detailed = true }: { locale: Locale; detailed?: boolean }) {
   const t = translator(locale)
-  const digits = new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-US')
 
   return (
-    <ol className="stageList" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+    <ol className="stageList">
       {stages.map((stage) => (
         <li key={stage.id} className="stage">
           <div className="stageTop">
             <span className="stageNumber" aria-hidden="true">
-              {digits.format(stage.order)}
+              {formatIndex(stage.order)}
             </span>
             <h3>{pick(stage.name, locale)}</h3>
           </div>

@@ -36,6 +36,12 @@ jobs:
         run: npm run typecheck
       - name: Production build
         run: npm run build
+      - name: Dependency audit
+        # Fails the build on a known high-severity advisory in the dependency
+        # tree. Kept at 'high' so a low-severity transitive advisory does not
+        # block delivery, while a real one does.
+        run: npm audit --audit-level=high
+
       - name: Assert no secret material is committed
         run: |
           python - <<'PY'

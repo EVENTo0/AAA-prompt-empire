@@ -17,9 +17,7 @@ export default function ServiceGrid({ locale, detailed = false }: { locale: Loca
 
           {detailed ? (
             <>
-              <p className="muted" style={{ fontSize: '0.78rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                {t('services.deliverables')}
-              </p>
+              <p className="fieldLabel">{t('services.deliverables')}</p>
               <ul className="deliverables">
                 {pickList(service.deliverables, locale).map((item) => (
                   <li key={item}>{item}</li>
@@ -32,11 +30,7 @@ export default function ServiceGrid({ locale, detailed = false }: { locale: Loca
                   </span>
                 ))}
               </div>
-              <Link
-                href={`/${locale}/contact?service=${service.id}`}
-                className="button secondary"
-                style={{ marginBlockStart: 'auto' }}
-              >
+              <Link href={`/${locale}/contact?service=${service.id}`} className="button secondary autoTop">
                 {t('services.requestThis')}
               </Link>
             </>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { translator } from '@/lib/content'
+import { localeAlternates } from '@/lib/routes'
 import { resolveLocale } from '@/lib/i18n'
 import DeliveryPipeline from '@/components/delivery-pipeline'
 
@@ -8,8 +9,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const t = translator(resolveLocale((await params).locale))
-  return { title: t('method.title'), description: t('method.lead') }
+  const locale = resolveLocale((await params).locale)
+  const t = translator(locale)
+  return { title: t('method.title'), description: t('method.lead'), alternates: localeAlternates(locale, '/method') }
 }
 
 export default async function MethodPage({ params }: { params: Promise<{ locale: string }> }) {
