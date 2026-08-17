@@ -1,6 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "experimental",
+  "checked_at": "2026-08-17",
   "capabilities": {
     "model-lifecycle": {
       "provider_neutral": true,
@@ -14,15 +15,38 @@
       "network_default": "deny",
       "secrets_default": "deny",
       "filesystem_default": "ephemeral_minimal",
+      "sandbox_unavailable_behavior": "FAIL_CLOSED",
       "destructive_write": "approval_required",
-      "required_evidence": ["command", "exit_code", "artifacts", "logs", "teardown"]
+      "cross_repository_write": "owner_approval_required",
+      "version_gated_vendor_controls": true,
+      "required_evidence": ["command", "exit_code", "artifacts", "logs", "policy_decisions", "teardown"],
+      "optional_reference_backends": [
+        {
+          "id": "vercel-sandbox",
+          "status": "ga_reference",
+          "auth_preference": "oidc",
+          "default_runtime_observed": "node24",
+          "production_dependency_required": false
+        }
+      ],
+      "preview_persistence_policy": "no_production_data_without_explicit_stable_approval"
     },
     "agent-harness-adapter": {
       "provider_neutral": true,
       "core_fields": ["plan", "tools", "permissions", "sandbox", "skills", "subagents", "evidence", "result"],
       "providers": ["codex", "claude-code", "other"],
       "provider_specific_extensions_allowed": true,
-      "cross_repository_mutation_default": "deny"
+      "cross_repository_mutation_default": "deny",
+      "optional_reference_implementations": [
+        {
+          "id": "vercel-ai-sdk-7-harness",
+          "status": "experimental_reference",
+          "node_minimum": 22,
+          "module_system": "esm",
+          "supported_harness_examples": ["codex", "claude-code"],
+          "mandatory_for_empire": false
+        }
+      ]
     },
     "capability-broker": {
       "separate_discovery_install_invocation": true,
