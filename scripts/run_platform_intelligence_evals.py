@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
@@ -34,14 +35,25 @@ CASE_CONTROLS: dict[str, set[str]] = {
     "harness-parity-codex-claude": {"agent-harness"},
     "mcp-capability-broker-write": {"capability-broker"},
     "runtime-evidence-expiry": {"evidence-freshness"},
+    "supabase-logs-all-removal-2026": {"supabase-upgrade"},
+    "supabase-extension-version-pinning-2026": {"supabase-upgrade"},
+    "supabase-node20-client-sunset": {"supabase-upgrade"},
+    "github-actions-privileged-trigger-policy": {"supply-chain"},
+    "github-self-hosted-runner-freshness": {"supply-chain"},
+    "github-agentic-token-least-privilege": {"supply-chain", "capability-broker"},
+    "claude-safe-mode-strict-allowlist": {"platform-upgrade", "secure-agent-execution"},
+    "n8n-security-current-advisory-gate": {"platform-upgrade"},
+    "vercel-ai-sdk7-harness-reference": {"agent-harness", "secure-agent-execution"},
+    "vercel-sandbox-production-data-boundary": {"secure-agent-execution"},
 }
 
 CONTROL_IMPLEMENTATIONS = {
     "platform-upgrade": ("skill", "automation-platform-upgrade-audit"),
+    "supabase-upgrade": ("skill", "supabase-upgrade-audit"),
     "evidence-freshness": ("skill", "evidence-freshness-gate"),
     "supply-chain": ("skill", "supply-chain-provenance"),
     "model-lifecycle": ("runtime", "model-lifecycle"),
-    "secure-agent-execution": ("runtime", "secure-agent-execution"),
+    "secure-agent-execution": ("skill", "secure-agent-execution"),
     "agent-harness": ("runtime", "agent-harness-adapter"),
     "capability-broker": ("runtime", "capability-broker"),
 }
@@ -128,6 +140,8 @@ def validate_control_implementations(failures: list[str]) -> None:
 
 def validate_runtime_contracts(failures: list[str]) -> None:
     data = load("registry/runtime-capabilities.json")
+    if data.get("schema_version", 0) < 2:
+        failures.append("runtime-capabilities: schema_version 2+ required for current sandbox/harness contracts")
     caps = data.get("capabilities", {})
 
     model = caps.get("model-lifecycle", {})
@@ -141,11 +155,17 @@ def validate_runtime_contracts(failures: list[str]) -> None:
     sandbox = caps.get("secure-agent-execution", {})
     if sandbox.get("network_default") != "deny" or sandbox.get("secrets_default") != "deny":
         failures.append("secure-agent-execution: network and secrets must default deny")
+    if sandbox.get("sandbox_unavailable_behavior") != "FAIL_CLOSED":
+        failures.append("secure-agent-execution: unavailable sandbox must fail closed")
     if sandbox.get("destructive_write") != "approval_required":
         failures.append("secure-agent-execution: destructive writes require approval")
-    required_evidence = {"command", "exit_code", "artifacts", "logs", "teardown"}
+    if sandbox.get("cross_repository_write") != "owner_approval_required":
+        failures.append("secure-agent-execution: cross-repository writes require owner approval")
+    required_evidence = {"command", "exit_code", "artifacts", "logs", "policy_decisions", "teardown"}
     if not required_evidence <= set(sandbox.get("required_evidence", [])):
         failures.append("secure-agent-execution: incomplete evidence contract")
+    if sandbox.get("version_gated_vendor_controls") is not True:
+        failures.append("secure-agent-execution: vendor-specific controls must be version gated")
 
     harness = caps.get("agent-harness-adapter", {})
     required_fields = {"plan", "tools", "permissions", "sandbox", "skills", "subagents", "evidence", "result"}
@@ -153,6 +173,15 @@ def validate_runtime_contracts(failures: list[str]) -> None:
         failures.append("agent-harness-adapter: normalized core field contract drifted")
     if harness.get("cross_repository_mutation_default") != "deny":
         failures.append("agent-harness-adapter: cross-repository mutation must default deny")
+    refs = {x.get("id"): x for x in harness.get("optional_reference_implementations", [])}
+    ai7 = refs.get("vercel-ai-sdk-7-harness")
+    if not ai7:
+        failures.append("agent-harness-adapter: AI SDK 7 optional harness reference missing")
+    else:
+        if ai7.get("mandatory_for_empire") is not False:
+            failures.append("agent-harness-adapter: AI SDK 7 must remain optional")
+        if int(ai7.get("node_minimum", 0)) < 22 or ai7.get("module_system") != "esm":
+            failures.append("agent-harness-adapter: AI SDK 7 reference must record Node 22+ and ESM requirements")
 
     broker = caps.get("capability-broker", {})
     if broker.get("separate_discovery_install_invocation") is not True:
@@ -163,6 +192,26 @@ def validate_runtime_contracts(failures: list[str]) -> None:
         failures.append("capability-broker: destructive actions require owner approval")
     if broker.get("arbitrary_auto_install") != "deny":
         failures.append("capability-broker: arbitrary auto-install must be denied")
+
+
+def validate_github_workflow_security(failures: list[str]) -> None:
+    workflow_dir = ROOT / ".github" / "workflows"
+    for path in sorted(workflow_dir.glob("*.y*ml")):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        rel = path.relative_to(ROOT)
+        if "permissions:" not in text:
+            failures.append(f"{rel}: explicit workflow permissions required")
+        if re.search(r"(?m)^\s*pull_request_target\s*:", text):
+            failures.append(f"{rel}: pull_request_target is denied by default; requires separate reviewed exception")
+        if "actions/checkout@" in text and "persist-credentials: false" not in text:
+            failures.append(f"{rel}: checkout credentials must not persist by default")
+        for action in ("checkout", "setup-node", "setup-python"):
+            for match in re.finditer(rf"actions/{action}@v(\d+)", text):
+                major = int(match.group(1))
+                if major < 7:
+                    failures.append(f"{rel}: actions/{action}@v{major} is below Empire verified major v7 baseline")
+        if re.search(r"runs-on\s*:\s*self-hosted", text):
+            failures.append(f"{rel}: self-hosted runner requires explicit current-version/freshness evidence before use")
 
 
 def validate_model_lifecycle(failures: list[str]) -> int:
@@ -218,6 +267,7 @@ def main() -> int:
     cases = validate_suites(failures)
     validate_control_implementations(failures)
     validate_runtime_contracts(failures)
+    validate_github_workflow_security(failures)
     model_count = validate_model_lifecycle(failures)
 
     if failures:
