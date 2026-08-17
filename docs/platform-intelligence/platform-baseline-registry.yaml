@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 policy:
   primary_sources_required: true
   stale_state: VERIFY_REQUIRED
@@ -6,6 +6,7 @@ policy:
   rc_policy: compatibility_ci_or_explicit_adr
   beta_policy: isolated_evaluation
   canary_nightly_preview_policy: isolated_scouting
+  historical_release_rule: historical_changes_must_not_be_reported_as_current_week_updates
   core_promotion: proven_general_low_cost_stable_documented_rollback_safe_owner_reviewed
 fields:
   - platform
@@ -41,20 +42,74 @@ tracked_platforms:
   - ci_cd_testing_security
 records:
   anthropic_claude_code:
-    checked_at: 2026-08-11
-    current_stable: "channel-aware; changelog latest observed 2.1.226 on 2026-08-08"
-    preview_channels: [computer_use_preview, managed_agents_evaluation]
-    breaking_changes: ["older installs may lack critical permission/sandbox fixes"]
-    deprecations: ["legacy Workbench and experimental prompt tools end 2026-08-17", "Claude Opus 4.1 retired 2026-08-05"]
-    security: "workspace trust, sandbox, scoped permissions, update preflight required"
-    action: urgent-upgrade-correction
-    urgency: high
-    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    checked_at: 2026-08-17
+    current_stable: "VERIFY_INSTALLED_VERSION_AGAINST_OFFICIAL_CHANGELOG"
+    preview_channels: []
+    breaking_changes: []
+    deprecations: []
+    security: "version-gated safe-mode and sandbox controls; fail closed; scoped permissions/MCP"
+    action: skill-upgrade
+    urgency: high_for_unattended_automation
+    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
+    next_review: 2026-08-24
     official_sources:
-      - https://code.claude.com/docs/en/changelog
-      - https://code.claude.com/docs/en/overview
-      - https://platform.claude.com/docs/en/release-notes/overview
+      - https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
+      - https://docs.anthropic.com/en/docs/claude-code/cli-usage
+  github_actions:
+    checked_at: 2026-08-17
+    current_stable: "first-party actions majors verified: checkout v7, setup-python v7, setup-node v7"
+    preview_channels: [workflow_execution_protections, agentic_workflows]
+    breaking_changes: ["self-hosted runner minimum/freshness enforcement for GitHub Enterprise Cloud begins 2026-09-25"]
+    deprecations: []
+    security: "deny pull_request_target by default; minimum permissions; GITHUB_TOKEN/OIDC before PAT; runner freshness"
+    action: workflow-security-upgrade
+    urgency: high
+    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
+    next_review: 2026-08-24
+    official_sources:
+      - https://github.blog/changelog/2026-06-18-control-who-and-what-triggers-github-actions-workflows/
+      - https://github.blog/changelog/2026-06-18-safer-pull_request_target-defaults-for-github-actions-checkout/
+      - https://github.blog/changelog/2026-06-12-github-actions-minimum-version-enforcement-timeline-for-self-hosted-runners/
+      - https://github.blog/changelog/2026-06-11-agentic-workflows-no-longer-need-a-personal-access-token/
+  vercel:
+    checked_at: 2026-08-17
+    current_stable: "AI SDK 7 available; Vercel Sandbox GA"
+    preview_channels: [ai_sdk_harness_experimental, sandbox_drives_private_beta]
+    breaking_changes: ["AI SDK 7 requires Node.js 22+ and ESM"]
+    deprecations: []
+    security: "HarnessAgent remains optional reference; sandbox OIDC preferred; preview persistence not Production data store"
+    action: optional-reference-integration
+    urgency: normal
+    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
+    next_review: 2026-08-24
+    official_sources:
+      - https://vercel.com/blog/ai-sdk-7
+      - https://vercel.com/docs/sandbox
+      - https://vercel.com/changelog/vercel-sandbox-can-now-run-for-up-to-24-hours
+      - https://vercel.com/changelog/drives-for-vercel-sandbox-in-private-beta
+  supabase:
+    checked_at: 2026-08-17
+    current_stable: "hosted/self-hosted channel-sensitive; verify project/runtime before mutation"
+    preview_channels: []
+    breaking_changes:
+      - "Management API logs.all removed 2026-09-23; migrate direct callers to logs/ClickHouse SQL"
+      - "hosted extension version clauses ignored from 2026-08-05"
+      - "self-hosted Envoy default gateway migration requires Kong customization preflight"
+    deprecations:
+      - "Node.js 20 support for Supabase JavaScript libraries ended 2026-06-30"
+    security: "advisor/RLS/auth checks after DDL; staged migration and rollback required"
+    action: new-skill-upgrade
+    urgency: high
+    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
+    next_review: 2026-08-24
+    official_sources:
+      - https://supabase.com/changelog/48235-migration-of-supabase-management-api-logs-all-analytics-endpoint-to-logs-endpoint
+      - https://supabase.com/changelog/extension-version-pinning-ignored
+      - https://supabase.com/changelog/45715-deprecation-notice-dropping-support-for-node-js-20
+      - https://supabase.com/changelog?types=breaking-change
+    historical_baseline_not_current_week:
+      - "2025-08-12 realtime-js Node<22 WebSocket transport change"
+      - "2025-08-15 Deno 2.1 Edge Functions all-regions rollout"
   hostinger:
     checked_at: 2026-08-11
     current_stable: managed_service
@@ -65,25 +120,25 @@ records:
     action: workflow-change
     urgency: normal
     evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    next_review: 2026-08-24
     official_sources:
       - https://www.hostinger.com/blog/product-updates-2026/
       - https://www.hostinger.com/tutorials/how-to-deploy-a-codex-built-app
   n8n:
-    checked_at: 2026-08-11
+    checked_at: 2026-08-17
     current_stable: VERIFY_REQUIRED
     preview_channels: []
-    breaking_changes: ["v2.6.4+ S3 region validation", "main/worker/runner alignment required during upgrades"]
+    breaking_changes: ["self-hosted upgrades require current advisory and runtime/component compatibility evidence"]
     deprecations: []
-    security: "run n8n audit; harden webhooks, nodes, task runners and SSRF controls"
-    action: upgrade-audit
+    security: "run n8n audit and latest advisory check; historical patched floors are not evergreen proof"
+    action: security-upgrade-audit
     urgency: high_if_self_hosted
-    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
+    next_review: 2026-08-24
     official_sources:
-      - https://docs.n8n.io/hosting/scaling/external-storage/
       - https://docs.n8n.io/hosting/securing/security-audit/
-      - https://docs.n8n.io/source-control-environments/create-environments/
+      - https://blog.n8n.io/how-n8n-handles-vulnerability-disclosure-and-why-we-do-it-this-way/
+      - https://community.n8n.io/c/security-advisories/40
   zapier:
     checked_at: 2026-08-11
     current_stable: "v19 major family verified; exact latest patch VERIFY_REQUIRED"
@@ -94,7 +149,7 @@ records:
     action: urgent-correction
     urgency: high_if_platform_cli_used
     evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    next_review: 2026-08-24
     official_sources:
       - https://docs.zapier.com/integrations/news/2026/v19.0.0
       - https://docs.zapier.com/integrations/news/2026/migrations-same-major-version
@@ -102,7 +157,7 @@ records:
       - https://docs.zapier.com/sdk
   stripe:
     checked_at: 2026-08-11
-    current_stable: "2026-06-24.dahlia per installed official Stripe upgrade skill"
+    current_stable: "version-pinned integration; verify current Stripe changelog before upgrade"
     preview_channels: []
     breaking_changes: ["major API family upgrades can require code changes"]
     deprecations: []
@@ -110,7 +165,7 @@ records:
     action: upgrade-discipline
     urgency: normal
     evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    next_review: 2026-08-24
     official_sources:
       - https://docs.stripe.com/changelog
   tap_payments:
@@ -123,36 +178,37 @@ records:
     action: security-contract-eval
     urgency: high_for_payment_flows
     evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    next_review: 2026-08-24
     official_sources:
       - https://developers.tap.company/reference/api-endpoint
       - https://developers.tap.company/docs/recommendations-best-practices
       - https://developers.tap.company/docs/webhook
   preview_build_deployment:
-    checked_at: 2026-08-11
+    checked_at: 2026-08-17
     current_stable: platform_specific
     preview_channels: []
     breaking_changes: []
     deprecations: []
-    security: "required checks must gate promotion; inspect deployment manifest where supported"
+    security: "required checks gate promotion; preview acceptance remains separate from Production release"
     action: workflow-change
     urgency: high
-    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
+    next_review: 2026-08-24
     official_sources:
-      - https://vercel.com/changelog/native-deployment-checks
-      - https://vercel.com/changelog/dry-run-deployments-with-vercel-cli
+      - https://vercel.com/docs/sandbox
+      - https://docs.github.com/en/actions/how-tos/secure-your-work
   ci_cd_testing_security:
-    checked_at: 2026-08-11
+    checked_at: 2026-08-17
     current_stable: platform_specific
-    preview_channels: []
+    preview_channels: [github_workflow_execution_protections]
     breaking_changes: []
     deprecations: []
-    security: "least privilege, OIDC, provenance/SBOM attestations and verification"
-    action: new-skill-workflow-change
+    security: "least privilege, OIDC, trigger governance, runner freshness, provenance/SBOM attestations and verification"
+    action: skill-workflow-upgrade
     urgency: high
-    evidence: docs/platform-intelligence/baseline-audit-2026-08-11-wave-2.md
-    next_review: 2026-08-17
+    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
+    next_review: 2026-08-24
     official_sources:
       - https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations
       - https://docs.github.com/en/actions/how-tos/secure-your-work
+      - https://github.blog/changelog/2026-06-18-control-who-and-what-triggers-github-actions-workflows/
