@@ -40,7 +40,7 @@ jobs:
       - name: Run disposable live proof
         run: python scripts/run_live_proof_gate.py
       - name: Upload sanitized proof evidence
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: empire-live-proof-evidence
           path: artifacts/live-proof/live-proof-evidence.json
@@ -83,7 +83,7 @@ jobs:
       - name: Run normalized provider harness parity
         run: python scripts/run_provider_harness_parity.py
       - name: Upload sanitized provider evidence
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: empire-provider-parity-evidence
           path: artifacts/live-proof/provider-parity-evidence.json
