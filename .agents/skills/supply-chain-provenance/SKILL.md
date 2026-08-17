@@ -19,6 +19,15 @@ For releasable artifacts, where platform/plan support allows:
 7. Record artifact digest, workflow/run, commit SHA, environment, signer/trust root and verification result.
 8. Define revocation/deletion behavior when an artifact should no longer be trusted.
 
+## GitHub Actions execution security
+- Treat `pull_request_target` as privileged and deny it by default in Empire workflows. Any exception requires explicit security review/ADR and must not execute untrusted PR code with elevated token/secrets.
+- Review `workflow_dispatch` and other manual/privileged triggers against repository or organization Workflow Execution Protections where available; use evaluate/shadow mode before enforcement if needed.
+- Prefer built-in `GITHUB_TOKEN` with minimum permissions for GitHub-native agentic workflows instead of long-lived PATs when supported.
+- Keep checkout credentials non-persistent unless a reviewed write workflow explicitly requires them.
+- For self-hosted runners, verify the current GitHub minimum/runtime version and freshness before relying on them. Unknown runner freshness is `VERIFY_REQUIRED`, not PASS.
+- Do not bypass GitHub's held-workflow approval protections for potentially malicious public-repository workflows merely to make CI run faster.
+- Track supported major versions of first-party setup/checkout Actions and upgrade through CI evidence rather than leaving deprecated Node runtimes implicit.
+
 ## Capability detection
 Artifact attestation availability can vary by repository visibility and plan. If unsupported, emit VERIFY_REQUIRED or use an approved alternative signing/provenance mechanism rather than claiming equivalent protection.
 
