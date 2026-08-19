@@ -14,10 +14,22 @@ def now(): return datetime.now(timezone.utc).isoformat()
 def schema():
     return {"type":"object","properties":{k:{"type":"string"} for k in REQUIRED},"required":REQUIRED,"additionalProperties":False}
 
+def claude_auth_mode():
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return "api_key"
+    if os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
+        return "oauth_token"
+    return None
+
 def clean_env(provider):
     env = {"PATH":os.environ.get("PATH",""),"HOME":os.environ.get("HOME",""),"LANG":os.environ.get("LANG","C.UTF-8"),"TERM":os.environ.get("TERM","xterm")}
-    if provider == "codex": env["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY","")
-    else: env["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY","")
+    if provider == "codex":
+        env["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY","")
+    else:
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            env["ANTHROPIC_API_KEY"] = os.environ["ANTHROPIC_API_KEY"]
+        elif os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
+            env["CLAUDE_CODE_OAUTH_TOKEN"] = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]
     return env
 
 def validate(payload, provider):
@@ -38,18 +50,22 @@ def run_codex(work,prompt,schema_path):
 
 def run_claude(work,prompt,schema_obj):
     if shutil.which("claude") is None: raise RuntimeError("claude CLI not installed")
-    cmd=["claude","-p","--bare","--no-session-persistence","--permission-mode","plan","--allowedTools","Read","--disallowedTools","Edit","Write","Bash","--max-turns","3","--max-budget-usd","1.00","--output-format","json","--json-schema",json.dumps(schema_obj,separators=(",",":")),prompt]
+    mode=claude_auth_mode()
+    if mode is None: raise RuntimeError("Claude credential missing")
+    cmd=["claude","-p","--safe-mode","--no-session-persistence","--permission-mode","plan","--allowedTools","Read","--disallowedTools","Edit","Write","Bash","--max-turns","3","--max-budget-usd","1.00","--output-format","json","--json-schema",json.dumps(schema_obj,separators=(",",":")),prompt]
     r=run_cmd(cmd,work,clean_env("claude-code"))
     if r.returncode: raise RuntimeError(f"claude failed rc={r.returncode}: {r.stderr[-1200:]}")
     wrapper=json.loads(r.stdout); payload=wrapper.get("structured_output")
     if not isinstance(payload,dict): raise RuntimeError("claude response missing structured_output")
-    out=validate(payload,"claude-code"); out["usage"]=wrapper.get("usage"); return out
+    out=validate(payload,"claude-code"); out["usage"]=wrapper.get("usage"); out["auth_mode"]=mode; return out
 
 def main():
-    if not os.environ.get("OPENAI_API_KEY") or not os.environ.get("ANTHROPIC_API_KEY"):
-        print("provider parity requires both OPENAI_API_KEY and ANTHROPIC_API_KEY",file=sys.stderr); return 2
+    if not os.environ.get("OPENAI_API_KEY"):
+        print("provider parity requires OPENAI_API_KEY",file=sys.stderr); return 2
+    if not claude_auth_mode():
+        print("provider parity requires ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN",file=sys.stderr); return 2
     OUT.mkdir(parents=True,exist_ok=True)
-    evidence={"schema_version":1,"suite":"provider-harness-parity","checked_at":now(),"status":"FAIL"}
+    evidence={"schema_version":1,"suite":"provider-harness-parity","checked_at":now(),"status":"FAIL","claude_auth_mode":claude_auth_mode()}
     try:
         with tempfile.TemporaryDirectory(prefix="empire-provider-parity-") as td:
             work=Path(td); (work/"fixture.txt").write_text("EMPIRE_FIXTURE_MARKER=ALPHA-17\nfunction add(a,b){ return a+b; }\n",encoding="utf-8")
