@@ -45,6 +45,16 @@ CASE_CONTROLS: dict[str, set[str]] = {
     "n8n-security-current-advisory-gate": {"platform-upgrade"},
     "vercel-ai-sdk7-harness-reference": {"agent-harness", "secure-agent-execution"},
     "vercel-sandbox-production-data-boundary": {"secure-agent-execution"},
+    "codex-mcp-server-to-app-server": {"platform-upgrade", "agent-harness"},
+    "github-copilot-sep1-model-retirements": {"model-lifecycle"},
+    "github-spark-retirement-new-adoption": {"platform-upgrade"},
+    "supabase-logs-all-deadline-fail": {"supabase-upgrade"},
+    "github-sha1-tls-sep15": {"supply-chain", "platform-upgrade"},
+    "android-quail3-agp-age-window": {"platform-upgrade"},
+    "hostinger-reach-optional-adapter": {"capability-broker", "platform-upgrade"},
+    "marketplace-autoupdate-allowlist": {"supply-chain", "capability-broker"},
+    "wordpress-7-1-v2-iframe-compat": {"platform-upgrade"},
+    "core-promotion-provider-live-parity": {"agent-harness", "evidence-freshness"},
 }
 
 CONTROL_IMPLEMENTATIONS = {
@@ -151,6 +161,10 @@ def validate_runtime_contracts(failures: list[str]) -> None:
         failures.append("model-lifecycle: deprecated pins must fail")
     if model.get("unknown_sunset_behavior") != "VERIFY_REQUIRED":
         failures.append("model-lifecycle: unknown sunset must require verification")
+    if model.get("scheduled_retirement_new_pin_behavior") != "FAIL":
+        failures.append("model-lifecycle: scheduled retirements must reject new pins")
+    if model.get("retired_use_behavior") != "FAIL":
+        failures.append("model-lifecycle: retired use must fail")
 
     sandbox = caps.get("secure-agent-execution", {})
     if sandbox.get("network_default") != "deny" or sandbox.get("secrets_default") != "deny":
@@ -173,6 +187,15 @@ def validate_runtime_contracts(failures: list[str]) -> None:
         failures.append("agent-harness-adapter: normalized core field contract drifted")
     if harness.get("cross_repository_mutation_default") != "deny":
         failures.append("agent-harness-adapter: cross-repository mutation must default deny")
+    codex_transport = harness.get("codex_transport", {})
+    if codex_transport.get("preferred") != "app-server":
+        failures.append("agent-harness-adapter: Codex preferred transport must be app-server")
+    if "codex mcp-server" not in set(codex_transport.get("deprecated", [])):
+        failures.append("agent-harness-adapter: deprecated codex mcp-server surface must be recorded")
+    if codex_transport.get("new_adoption_of_deprecated") != "FAIL":
+        failures.append("agent-harness-adapter: new adoption of deprecated Codex transport must fail")
+    if harness.get("core_promotion_gate") != "PROVIDER_LIVE_PARITY_PASS_AND_OWNER_APPROVAL":
+        failures.append("agent-harness-adapter: Core promotion must remain behind Provider Live Parity and owner approval")
     refs = {x.get("id"): x for x in harness.get("optional_reference_implementations", [])}
     ai7 = refs.get("vercel-ai-sdk-7-harness")
     if not ai7:
@@ -192,6 +215,17 @@ def validate_runtime_contracts(failures: list[str]) -> None:
         failures.append("capability-broker: destructive actions require owner approval")
     if broker.get("arbitrary_auto_install") != "deny":
         failures.append("capability-broker: arbitrary auto-install must be denied")
+    if broker.get("marketplace_auto_update") != "allowlisted_trusted_sources_only":
+        failures.append("capability-broker: marketplace auto-update must be allowlisted trusted sources only")
+    adapters = {x.get("id"): x for x in broker.get("optional_adapters", [])}
+    reach = adapters.get("hostinger-reach")
+    if not reach:
+        failures.append("capability-broker: Hostinger Reach optional adapter missing")
+    else:
+        if reach.get("type") != "adapter" or reach.get("agent") is not False:
+            failures.append("capability-broker: Hostinger Reach must remain an adapter, not an Agent")
+        if reach.get("default_access") != "read_only" or reach.get("mandatory_for_empire") is not False:
+            failures.append("capability-broker: Hostinger Reach adapter must be optional and read-only by default")
 
 
 def validate_github_workflow_security(failures: list[str]) -> None:
@@ -219,10 +253,22 @@ def validate_model_lifecycle(failures: list[str]) -> int:
     if set(data.get("routing_dimensions", [])) != {"quality", "latency", "cost", "availability"}:
         failures.append("model lifecycle registry routing dimensions drifted")
 
+    official_hosts = {
+        "developers.openai.com",
+        "platform.openai.com",
+        "help.openai.com",
+        "openai.com",
+        "docs.github.com",
+        "github.blog",
+    }
     for source in data.get("official_sources", []):
         host = urlparse(source).hostname or ""
-        if host not in {"developers.openai.com", "platform.openai.com", "help.openai.com", "openai.com"}:
-            failures.append(f"model lifecycle registry has non-official OpenAI source: {source}")
+        if host not in official_hosts:
+            failures.append(f"model lifecycle registry has non-approved official source host: {source}")
+
+    policy = data.get("lifecycle_policy", {})
+    if policy.get("scheduled_retirement_new_pin") != "FAIL" or policy.get("retired_use") != "FAIL":
+        failures.append("model lifecycle registry must fail scheduled-retirement new pins and retired use")
 
     models = data.get("models", [])
     by_id = {m.get("model"): m for m in models if m.get("model")}
@@ -258,7 +304,7 @@ def validate_model_lifecycle(failures: list[str]) -> int:
         text = path.read_text(encoding="utf-8", errors="ignore")
         for mid in deprecated:
             if mid and mid in text:
-                failures.append(f"{path.relative_to(ROOT)}: deprecated Codex model pin/reference detected: {mid}")
+                failures.append(f"{path.relative_to(ROOT)}: deprecated Codex/model pin/reference detected: {mid}")
     return len(models)
 
 
