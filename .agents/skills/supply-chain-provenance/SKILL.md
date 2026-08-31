@@ -1,6 +1,6 @@
 ---
 name: supply-chain-provenance
-description: Add provenance, SBOM, least-privilege CI, OIDC, attestation generation, verification, and revocation evidence to releasable Empire artifacts where platform support allows.
+description: Add provenance, SBOM, least-privilege CI, OIDC, attestation generation, verification, trusted-source update policy, and revocation evidence to releasable Empire artifacts where platform support allows.
 ---
 
 # Supply Chain Provenance
@@ -27,6 +27,16 @@ For releasable artifacts, where platform/plan support allows:
 - For self-hosted runners, verify the current GitHub minimum/runtime version and freshness before relying on them. Unknown runner freshness is `VERIFY_REQUIRED`, not PASS.
 - Do not bypass GitHub's held-workflow approval protections for potentially malicious public-repository workflows merely to make CI run faster.
 - Track supported major versions of first-party setup/checkout Actions and upgrade through CI evidence rather than leaving deprecated Node runtimes implicit.
+
+## GitHub transport compatibility gate
+- GitHub disables SHA-1 use in HTTPS/TLS for github.com and partner CDNs on 2026-09-15.
+- Before that date, verify Git clients, API libraries, OS trust/TLS stacks, proxies and automation runners can negotiate modern HTTPS algorithms. Use a current Git/runtime stack; stale compatibility is `FAIL` for release-critical paths once the deadline is reached.
+- Do not confuse Git object hash migration concerns with this HTTPS/TLS certificate/signature compatibility gate.
+
+## Marketplace/plugin update policy
+- Automated plugin/community-node/marketplace updates are permitted only for explicitly allowlisted trusted sources with a recorded owner, origin, version and provenance/checksum evidence where available.
+- Unknown publishers, arbitrary marketplace search results, renamed packages, source changes or missing provenance must return `VERIFY_REQUIRED` and block unattended update/install.
+- Security-critical updates from allowlisted sources may use an expedited path, but they still require post-update compatibility and rollback evidence.
 
 ## Capability detection
 Artifact attestation availability can vary by repository visibility and plan. If unsupported, emit VERIFY_REQUIRED or use an approved alternative signing/provenance mechanism rather than claiming equivalent protection.
