@@ -1,15 +1,25 @@
 {
-  "schema_version": 1,
-  "checked_at": "2026-08-12",
-  "scope": "OpenAI API model catalog and Codex-compatible agentic coding models; Codex product-surface defaults must still be verified separately when consequential.",
+  "schema_version": 2,
+  "checked_at": "2026-08-31",
+  "scope": "Provider- and surface-aware lifecycle registry for OpenAI API/Codex-compatible models plus GitHub Copilot models that affect Empire engineering workflows. Product-surface defaults must still be verified separately when consequential.",
   "official_sources": [
+    "https://openai.com/products/release-notes/",
     "https://developers.openai.com/api/docs/models/all",
     "https://developers.openai.com/api/docs/models/gpt-5.3-codex",
-    "https://developers.openai.com/api/docs/guides/latest-model"
+    "https://developers.openai.com/api/docs/guides/latest-model",
+    "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+    "https://github.blog/changelog/2026-07-31-upcoming-august-2026-model-deprecations-in-github-copilot/"
   ],
   "routing_dimensions": ["quality", "latency", "cost", "availability"],
   "current_agentic_coding_model": "gpt-5.3-codex",
   "general_frontier_model_family": "gpt-5.6",
+  "lifecycle_policy": {
+    "scheduled_retirement_new_pin": "FAIL",
+    "retired_use": "FAIL",
+    "unknown_sunset": "VERIFY_REQUIRED",
+    "fallback_must_be_available": true,
+    "surface_specific_exceptions_require_verification": true
+  },
   "models": [
     {
       "provider": "openai",
@@ -97,6 +107,107 @@
       "fallback": "gpt-5.3-codex",
       "allow_new_pin": false,
       "sunset_state": "VERIFY_REQUIRED"
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Claude Opus 5",
+      "status": "available",
+      "sunset_date": null,
+      "fallback": null,
+      "allow_new_pin": true
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Claude Sonnet 5",
+      "status": "available",
+      "sunset_date": null,
+      "fallback": null,
+      "allow_new_pin": true
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Gemini 3.6 Flash",
+      "status": "available",
+      "sunset_date": null,
+      "fallback": null,
+      "allow_new_pin": true
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "MAI-Code-1.1-Flash",
+      "status": "available",
+      "sunset_date": null,
+      "fallback": null,
+      "allow_new_pin": true
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Claude Opus 4.5",
+      "status": "deprecated",
+      "sunset_date": "2026-09-01",
+      "fallback": "Claude Opus 5",
+      "allow_new_pin": false
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Claude Opus 4.6",
+      "status": "deprecated",
+      "sunset_date": "2026-09-01",
+      "fallback": "Claude Opus 5",
+      "allow_new_pin": false
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Claude Sonnet 4.5",
+      "status": "deprecated",
+      "sunset_date": "2026-09-01",
+      "fallback": "Claude Sonnet 5",
+      "allow_new_pin": false
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Claude Sonnet 4.6",
+      "status": "deprecated",
+      "sunset_date": "2026-09-01",
+      "fallback": "Claude Sonnet 5",
+      "allow_new_pin": false,
+      "exception_note": "GitHub documents an exception for some individual annual Copilot subscribers; reverify account applicability before use."
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Gemini 3.1 Pro",
+      "status": "deprecated",
+      "sunset_date": "2026-09-01",
+      "fallback": "Gemini 3.6 Flash",
+      "allow_new_pin": false
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "Raptor mini",
+      "status": "deprecated",
+      "sunset_date": "2026-09-01",
+      "fallback": "MAI-Code-1.1-Flash",
+      "allow_new_pin": false,
+      "migration_note": "GitHub's immediate suggestion was MAI-Code-1-Flash, which is itself scheduled for retirement on 2026-09-10; prefer the durable successor after surface verification."
+    },
+    {
+      "provider": "github-copilot",
+      "surface": "copilot",
+      "model": "MAI-Code-1-Flash",
+      "status": "deprecated",
+      "sunset_date": "2026-09-10",
+      "fallback": "MAI-Code-1.1-Flash",
+      "allow_new_pin": false
     }
   ]
 }
