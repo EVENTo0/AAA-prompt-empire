@@ -1,14 +1,17 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "status": "experimental",
-  "checked_at": "2026-08-17",
+  "checked_at": "2026-08-31",
   "capabilities": {
     "model-lifecycle": {
       "provider_neutral": true,
       "routing_dimensions": ["quality", "latency", "cost", "availability"],
       "required_fields": ["provider", "surface", "model", "status", "checked_at", "official_sources", "sunset_date", "fallback"],
       "unknown_sunset_behavior": "VERIFY_REQUIRED",
-      "deprecated_pin_behavior": "FAIL"
+      "deprecated_pin_behavior": "FAIL",
+      "scheduled_retirement_new_pin_behavior": "FAIL",
+      "retired_use_behavior": "FAIL",
+      "surface_specific_exceptions": "VERIFY_REQUIRED"
     },
     "secure-agent-execution": {
       "sandbox_for": ["untrusted_code", "generated_code"],
@@ -30,7 +33,9 @@
       "providers": ["codex", "claude-code", "other"],
       "provider_specific_extensions_allowed": true,
       "cross_repository_mutation_default": "deny",
+      "codex_transport": {"preferred":"app-server","deprecated":["codex mcp-server"],"new_adoption_of_deprecated":"FAIL"},
       "live_proof": {"status":"NOT_RUN_CREDENTIAL_GATED","workflow":"Empire Live Proof Gate / codex-claude-live-parity","required_secrets":["OPENAI_API_KEY","ANTHROPIC_API_KEY"],"ordinary_pr_ci_runs_provider_calls":false},
+      "core_promotion_gate": "PROVIDER_LIVE_PARITY_PASS_AND_OWNER_APPROVAL",
       "optional_reference_implementations": [{"id":"vercel-ai-sdk-7-harness","status":"experimental_reference","node_minimum":22,"module_system":"esm","supported_harness_examples":["codex","claude-code"],"mandatory_for_empire":false}]
     },
     "capability-broker": {
@@ -40,6 +45,19 @@
       "destructive_actions": "owner_approval_required",
       "audit_evidence_required": true,
       "arbitrary_auto_install": "deny",
+      "marketplace_auto_update": "allowlisted_trusted_sources_only",
+      "optional_adapters": [
+        {
+          "id": "hostinger-reach",
+          "type": "adapter",
+          "status": "optional",
+          "agent": false,
+          "preferred_surfaces": ["reach-public-api", "hostinger-api-n8n-community-node", "hostinger-connector"],
+          "default_access": "read_only",
+          "mutation_policy": "owner_approval_required_for_destructive_or_send_actions",
+          "mandatory_for_empire": false
+        }
+      ],
       "live_proof": {"status":"PASS","workflow_run":32042518332,"head_sha":"f7f3a914d7cda2aaecf576ebc9e739b7df046b0a","controls":["read_tool_discovered","read_invocation_no_mutation","destructive_without_approval_blocked","approved_path_simulation_only","audit_evidence_present"]}
     }
   }
