@@ -1,0 +1,97 @@
+name: Empire Live Proof Gate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/live_proof_broker_fixture.py'
+      - 'scripts/run_live_proof_gate.py'
+      - 'scripts/run_provider_harness_parity.py'
+      - '.github/workflows/live-proof-gate.yml'
+      - 'registry/runtime-capabilities.json'
+  workflow_dispatch:
+    inputs:
+      run_provider_parity:
+        description: 'Run live Codex + Claude Code provider parity (requires repository secrets)'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: empire-live-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sandbox-and-broker:
+    name: disposable-sandbox-and-approval-broker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Run disposable live proof
+        run: python scripts/run_live_proof_gate.py
+      - name: Upload sanitized proof evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: empire-live-proof-evidence
+          path: artifacts/live-proof/live-proof-evidence.json
+          retention-days: 14
+          if-no-files-found: error
+
+  provider-parity:
+    name: codex-claude-live-parity
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_provider_parity }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Require explicitly configured provider credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${OPENAI_API_KEY:-}" || { echo 'OPENAI_API_KEY secret is not configured'; exit 2; }
+          if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
+            echo 'Configure ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN'; exit 2
+          fi
+          if [ -n "${ANTHROPIC_API_KEY:-}" ] && [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
+            echo 'Both Claude credentials exist; ANTHROPIC_API_KEY will take precedence.'
+          fi
+      - name: Install current provider CLIs
+        run: npm install -g @openai/codex @anthropic-ai/claude-code
+      - name: Record CLI versions
+        run: |
+          codex --version
+          claude --version
+      - name: Run normalized provider harness parity
+        run: python scripts/run_provider_harness_parity.py
+      - name: Upload sanitized provider evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: empire-provider-parity-evidence
+          path: artifacts/live-proof/provider-parity-evidence.json
+          retention-days: 14
+          if-no-files-found: error
