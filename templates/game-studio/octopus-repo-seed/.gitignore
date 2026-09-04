@@ -1,0 +1,31 @@
+# Unreal generated directories
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+
+# IDE / generated project files
+*.sln
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+.vscode/
+.idea/
+
+# Build/package outputs
+Build/Receipts/
+StagedBuilds/
+
+# Local environment / credentials
+.env
+.env.*
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+
+# OS files
+.DS_Store
+Thumbs.db
