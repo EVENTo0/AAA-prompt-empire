@@ -1,0 +1,7 @@
+{
+  "cases": [
+    {"id":"current-baseline","today":"2026-09-09","expect":"pass"},
+    {"id":"deadline-expired","today":"2027-01-01","expect":"block"},
+    {"id":"core-promotion","mutation":{"policy.corePromotion":"allowed"},"expect":"block"}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "asOf": "2026-09-09",
+  "policy": {
+    "unknownReviewState": "block",
+    "expiredComponent": "block",
+    "previewOrMajorUpgrade": "owner-review",
+    "corePromotion": "prohibited-by-this-change"
+  },
+  "components": [
+    {"id":"github-hosted-ubuntu","category":"runner","selection":"ubuntu-latest","reviewBy":"2026-10-09","owner":"release_ops","evidence":"GitHub Actions successful latest-head run"},
+    {"id":"node-control-plane","category":"toolchain","selection":"Node >=22","reviewBy":"2026-10-09","owner":"web_builder","evidence":"typecheck, contracts, production build"},
+    {"id":"python-empire-guard","category":"toolchain","selection":"Python 3.11+","reviewBy":"2026-12-09","owner":"qa_release","evidence":"Empire Guard and eval suite"},
+    {"id":"agent-model-policy","category":"model","selection":"inherit supported parent/default unless eval-justified","reviewBy":"2026-10-09","owner":"ai_engineer","evidence":"task-specific evals, latency/cost/safety record"}
+  ]
+}

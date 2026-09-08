@@ -3,6 +3,7 @@ import registry from '@/data/project-registry.json'
 export type ProjectRegistryItem = {
   id: string
   name: string
+  hierarchy: 'company-core' | 'internal-engineering-lab' | 'evento-ventures' | 'ambiguous-owner-decision'
   kind: string
   status: string
   saleStatus: string
@@ -17,6 +18,8 @@ export type ProjectRegistryItem = {
 
 export type ProjectRegistry = {
   version: number
+  asOf: string
+  owner: string
   projects: ProjectRegistryItem[]
 }
 
@@ -34,5 +37,9 @@ export function summarizeRegistry() {
     linkedRepos: data.projects.filter((p) => Boolean(p.repository)).length,
     linkedVercel: data.projects.filter((p) => Boolean(p.vercelProject)).length,
     linkedSupabase: data.projects.filter((p) => Boolean(p.supabaseProjectRef)).length,
+    hierarchy: Object.fromEntries(
+      ['company-core', 'internal-engineering-lab', 'evento-ventures', 'ambiguous-owner-decision']
+        .map((name) => [name, data.projects.filter((p) => p.hierarchy === name).length]),
+    ),
   }
 }
