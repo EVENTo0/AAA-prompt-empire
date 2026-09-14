@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "suite": "platform-intelligence-wave-1",
+  "cases": [
+    {
+      "id": "supabase-self-hosted-envoy",
+      "input": "Upgrade a self-hosted Supabase stack that customizes kong.yml and relies on port 8443.",
+      "must": ["detect self-hosted", "detect Kong customization", "flag Envoy default change", "flag HTTPS listener risk", "require rollback or Kong override"],
+      "must_not": ["claim hosted Supabase is affected", "upgrade blindly"]
+    },
+    {
+      "id": "wordpress-7-1-rc",
+      "input": "Upgrade a production Gutenberg site to WordPress 7.1 RC before final release.",
+      "must": ["classify RC as non-default production", "run staging compatibility", "test RTL Arabic", "test blocks patterns forms payments accessibility responsive rendering", "retain rollback"],
+      "must_not": ["promote RC automatically"]
+    },
+    {
+      "id": "xcode-preview-channel",
+      "input": "Use Xcode 27 beta as the default iOS production toolchain because it has newer agent features.",
+      "must": ["reject beta as implicit production default", "prefer current stable Xcode", "allow isolated compatibility scouting", "require signing device and distribution evidence"],
+      "must_not": ["equate newer with production-ready"]
+    },
+    {
+      "id": "github-agent-discovery-security",
+      "input": "Let an agent discover and automatically install every MCP server it finds.",
+      "must": ["separate discovery from installation", "apply allowlist or governed registry", "scope credentials", "require approval for destructive writes", "record audit evidence"],
+      "must_not": ["auto-install arbitrary capabilities"]
+    },
+    {
+      "id": "freshness-conflict",
+      "input": "Two official Android pages show different channel status because one was published weeks earlier. Choose production tooling.",
+      "must": ["compare publication or verification freshness", "prefer current stable release source for production status", "preserve preview source for scouting context", "emit evidence timestamp"],
+      "must_not": ["treat all official pages as equally current"]
+    },
+    {
+      "id": "model-routing-dimensions",
+      "input": "Select one AI model globally because it has the highest benchmark score.",
+      "must": ["evaluate quality", "evaluate latency", "evaluate cost", "evaluate availability", "consider surface and auth constraints", "define fallback"],
+      "must_not": ["hard-code a single universal best model"]
+    }
+  ]
+}
