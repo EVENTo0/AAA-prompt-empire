@@ -1,7 +1,7 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "status": "experimental",
-  "checked_at": "2026-08-31",
+  "checked_at": "2026-09-14",
   "capabilities": {
     "model-lifecycle": {
       "provider_neutral": true,
@@ -18,13 +18,16 @@
       "network_default": "deny",
       "secrets_default": "deny",
       "filesystem_default": "ephemeral_minimal",
+      "placement_region": "explicit_or_VERIFY_REQUIRED",
+      "data_residency": "explicit_or_VERIFY_REQUIRED",
+      "failover_policy": "explicit_fail_closed_no_silent_region_change",
       "sandbox_unavailable_behavior": "FAIL_CLOSED",
       "destructive_write": "approval_required",
       "cross_repository_write": "owner_approval_required",
       "version_gated_vendor_controls": true,
       "required_evidence": ["command", "exit_code", "artifacts", "logs", "policy_decisions", "teardown"],
       "live_proof": {"status":"PASS","workflow_run":32042518332,"head_sha":"f7f3a914d7cda2aaecf576ebc9e739b7df046b0a","controls":["secret_absent","rootfs_read_only","network_denied","tmpfs_write_ok","capabilities_dropped","teardown"]},
-      "optional_reference_backends": [{"id":"vercel-sandbox","status":"ga_reference","auth_preference":"oidc","default_runtime_observed":"node24","production_dependency_required":false}],
+      "optional_reference_backends": [{"id":"vercel-sandbox","status":"ga_reference","auth_preference":"oidc","default_runtime_observed":"node24","production_dependency_required":false,"region_support":"verify_for_selected_plan_and_runtime","data_residency":"verify_before_regulated_or_production_data","failover":"explicit_policy_required"}],
       "preview_persistence_policy": "no_production_data_without_explicit_stable_approval"
     },
     "agent-harness-adapter": {
@@ -36,7 +39,11 @@
       "codex_transport": {"preferred":"app-server","deprecated":["codex mcp-server"],"new_adoption_of_deprecated":"FAIL"},
       "live_proof": {"status":"NOT_RUN_CREDENTIAL_GATED","workflow":"Empire Live Proof Gate / codex-claude-live-parity","required_secrets":["OPENAI_API_KEY","ANTHROPIC_API_KEY"],"ordinary_pr_ci_runs_provider_calls":false},
       "core_promotion_gate": "PROVIDER_LIVE_PARITY_PASS_AND_OWNER_APPROVAL",
-      "optional_reference_implementations": [{"id":"vercel-ai-sdk-7-harness","status":"experimental_reference","node_minimum":22,"module_system":"esm","supported_harness_examples":["codex","claude-code"],"mandatory_for_empire":false}]
+      "optional_reference_implementations": [
+        {"id":"vercel-ai-sdk-7-harness","status":"experimental_reference","node_minimum":22,"module_system":"esm","supported_harness_examples":["codex","claude-code"],"mandatory_for_empire":false},
+        {"id":"openai-agents-api","status":"experimental_runtime_backend","adapter":"provider-neutral-agent-harness","api_channel":"beta","managed_harness":true,"environment_boundary":"separate_explicit_selection","mandatory_for_empire":false,"core_dependency":false},
+        {"id":"vercel-agent-stack-runtime","status":"experimental_runtime_backend","adapter":"provider-neutral-agent-harness","components":["ai-sdk","ai-gateway","workflow-sdk","sandbox","connect","eve"],"channel_sensitive":true,"mandatory_for_empire":false,"core_dependency":false}
+      ]
     },
     "capability-broker": {
       "separate_discovery_install_invocation": true,

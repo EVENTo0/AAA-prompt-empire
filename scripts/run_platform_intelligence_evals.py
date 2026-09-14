@@ -55,6 +55,16 @@ CASE_CONTROLS: dict[str, set[str]] = {
     "marketplace-autoupdate-allowlist": {"supply-chain", "capability-broker"},
     "wordpress-7-1-v2-iframe-compat": {"platform-upgrade"},
     "core-promotion-provider-live-parity": {"agent-harness", "evidence-freshness"},
+    "github-cache-mode-least-privilege": {"supply-chain"},
+    "github-secret-alert-merge-rule": {"supply-chain"},
+    "codeql-2-27-dynamic-lifecycle": {"supply-chain", "evidence-freshness"},
+    "claude-plugin-preflight": {"platform-upgrade", "supply-chain", "secure-agent-execution"},
+    "xcode-27-stable-correction": {"platform-upgrade", "evidence-freshness"},
+    "android-quail4-stable-correction": {"platform-upgrade", "evidence-freshness"},
+    "supabase-sep23-release-deadline": {"supabase-upgrade"},
+    "openai-agents-api-experimental-backend": {"agent-harness", "secure-agent-execution"},
+    "vercel-agent-stack-experimental-backend": {"agent-harness", "secure-agent-execution"},
+    "sandbox-residency-failover": {"secure-agent-execution"},
 }
 
 CONTROL_IMPLEMENTATIONS = {
@@ -180,6 +190,12 @@ def validate_runtime_contracts(failures: list[str]) -> None:
         failures.append("secure-agent-execution: incomplete evidence contract")
     if sandbox.get("version_gated_vendor_controls") is not True:
         failures.append("secure-agent-execution: vendor-specific controls must be version gated")
+    if sandbox.get("placement_region") != "explicit_or_VERIFY_REQUIRED":
+        failures.append("secure-agent-execution: region must be explicit or VERIFY_REQUIRED")
+    if sandbox.get("data_residency") != "explicit_or_VERIFY_REQUIRED":
+        failures.append("secure-agent-execution: data residency must be explicit or VERIFY_REQUIRED")
+    if sandbox.get("failover_policy") != "explicit_fail_closed_no_silent_region_change":
+        failures.append("secure-agent-execution: failover must be explicit and must not silently change region")
 
     harness = caps.get("agent-harness-adapter", {})
     required_fields = {"plan", "tools", "permissions", "sandbox", "skills", "subagents", "evidence", "result"}
@@ -205,6 +221,15 @@ def validate_runtime_contracts(failures: list[str]) -> None:
             failures.append("agent-harness-adapter: AI SDK 7 must remain optional")
         if int(ai7.get("node_minimum", 0)) < 22 or ai7.get("module_system") != "esm":
             failures.append("agent-harness-adapter: AI SDK 7 reference must record Node 22+ and ESM requirements")
+    for ref_id in ("openai-agents-api", "vercel-agent-stack-runtime"):
+        backend = refs.get(ref_id)
+        if not backend:
+            failures.append(f"agent-harness-adapter: missing experimental backend {ref_id}")
+            continue
+        if backend.get("status") != "experimental_runtime_backend":
+            failures.append(f"agent-harness-adapter: {ref_id} must remain experimental")
+        if backend.get("mandatory_for_empire") is not False or backend.get("core_dependency") is not False:
+            failures.append(f"agent-harness-adapter: {ref_id} must not become an Empire/Core dependency")
 
     broker = caps.get("capability-broker", {})
     if broker.get("separate_discovery_install_invocation") is not True:
@@ -246,6 +271,23 @@ def validate_github_workflow_security(failures: list[str]) -> None:
                     failures.append(f"{rel}: actions/{action}@v{major} is below Empire verified major v7 baseline")
         if re.search(r"runs-on\s*:\s*self-hosted", text):
             failures.append(f"{rel}: self-hosted runner requires explicit current-version/freshness evidence before use")
+
+
+def validate_wave6_contracts(failures: list[str]) -> None:
+    supply_chain = (ROOT / ".agents/skills/supply-chain-provenance/SKILL.md").read_text(encoding="utf-8")
+    for token in ("cache-mode", "require_secret_scanning_alert_resolution", "CodeQL 2.27.0"):
+        if token not in supply_chain:
+            failures.append(f"Wave 6 supply-chain contract missing {token!r}")
+
+    automation = (ROOT / ".agents/skills/automation-platform-upgrade-audit/SKILL.md").read_text(encoding="utf-8")
+    for token in ("plugins before enablement", "hooks/MCP/tools/network/secrets/filesystem", "safe-mode reproduction"):
+        if token not in automation:
+            failures.append(f"Wave 6 Claude plugin contract missing {token!r}")
+
+    compatibility = (ROOT / "docs/platform-intelligence/compatibility-gates.md").read_text(encoding="utf-8")
+    for token in ("Xcode 27 (27A266a)", "Android Studio Quail 4 (2026.1.4)"):
+        if token not in compatibility:
+            failures.append(f"Wave 6 lifecycle correction missing {token!r}")
 
 
 def validate_model_lifecycle(failures: list[str]) -> int:
@@ -314,6 +356,7 @@ def main() -> int:
     validate_control_implementations(failures)
     validate_runtime_contracts(failures)
     validate_github_workflow_security(failures)
+    validate_wave6_contracts(failures)
     model_count = validate_model_lifecycle(failures)
 
     if failures:

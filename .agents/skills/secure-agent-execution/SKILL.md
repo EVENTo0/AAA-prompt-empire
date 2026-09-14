@@ -16,6 +16,7 @@ Provide a provider-neutral execution gate for code or tools that should not run 
 5. Destructive writes, production mutation and cross-repository writes require owner/human approval.
 6. Capture command/tool, exit status, artifacts, logs, policy decisions and teardown evidence.
 7. Fail closed when the requested sandbox cannot be established; never silently fall back to unsandboxed execution.
+8. Declare execution region, data-residency requirement and failover behavior before handling regulated, private or Production data. Unknown placement is `VERIFY_REQUIRED`; failover must not silently cross an approved boundary.
 
 ## Claude Code adapter rules
 - Verify installed Claude Code version/changelog before assuming a sandbox control exists.
@@ -25,7 +26,7 @@ Provide a provider-neutral execution gate for code or tools that should not run 
 - If a feature is not verified on the installed version, return `VERIFY_REQUIRED` and use the provider-neutral deny-by-default contract instead of inventing configuration.
 
 ## Optional reference backends
-Vercel Sandbox is an allowed reference implementation, not a mandatory Empire dependency. When selected, prefer OIDC where available, keep Production secrets outside the sandbox, and treat preview/private-beta persistence features as non-production unless explicitly approved. AI SDK 7 `HarnessAgent` may be used as an experimental harness reference only after its Node.js 22+ and ESM requirements are satisfied.
+Vercel Sandbox is an allowed reference implementation, not a mandatory Empire dependency. When selected, prefer OIDC where available, keep Production secrets outside the sandbox, verify selected region/data-residency support, define failover explicitly, and treat preview/private-beta persistence features as non-production unless explicitly approved. AI SDK 7 `HarnessAgent`, OpenAI Agents API and the Vercel Agent Stack runtime may be evaluated through the provider-neutral harness as experimental references only; none is a Core or Empire dependency. OpenAI Agents API environment selection and Vercel runtime component channels must remain explicit and evidence-gated.
 
 ## Output
-Emit backend/harness, version/channel, network policy, secret policy, filesystem policy, approvals, commands/tools, evidence locations, teardown result, PASS/FAIL/VERIFY_REQUIRED and rollback/cleanup notes.
+Emit backend/harness, version/channel, execution region, data-residency requirement, failover policy, network policy, secret policy, filesystem policy, approvals, commands/tools, evidence locations, teardown result, PASS/FAIL/VERIFY_REQUIRED and rollback/cleanup notes.

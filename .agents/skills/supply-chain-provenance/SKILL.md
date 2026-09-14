@@ -27,6 +27,9 @@ For releasable artifacts, where platform/plan support allows:
 - For self-hosted runners, verify the current GitHub minimum/runtime version and freshness before relying on them. Unknown runner freshness is `VERIFY_REQUIRED`, not PASS.
 - Do not bypass GitHub's held-workflow approval protections for potentially malicious public-repository workflows merely to make CI run faster.
 - Track supported major versions of first-party setup/checkout Actions and upgrade through CI evidence rather than leaving deprecated Node runtimes implicit.
+- Declare GitHub Actions `cache-mode` at the narrowest useful workflow/job scope: `read` for restore-only jobs, `write` only for trusted jobs that must restore/save, `write-only` for save-without-restore, and `none` when cache is unnecessary. Never grant cache write access to untrusted code paths merely to improve speed.
+- Where GitHub Secret Protection or GitHub Advanced Security supports it, require the repository ruleset rule `require_secret_scanning_alert_resolution` before merge. Treat this as an external repository-control check; do not claim it is enabled from workflow text alone.
+- Track CodeQL through its current lifecycle rather than permanently pinning a CLI bundle. CodeQL 2.27.0 is the dated 2026-09-09 verification point, not a permanent pin. GitHub.com default setup receives deployed CodeQL updates; GHES/manual CLI users must verify and upgrade deliberately. Record current verified version, channel, platform support and next review.
 
 ## GitHub transport compatibility gate
 - GitHub disables SHA-1 use in HTTPS/TLS for github.com and partner CDNs on 2026-09-15.

@@ -29,6 +29,7 @@ Safely evaluate upgrades, deprecations and configuration changes for agentic/aut
 - Where supported, prefer `sandbox.network.strictAllowlist` for high-trust automation that needs explicit sandbox egress control.
 - Never normalize `--dangerously-skip-permissions` as an unattended automation default.
 - If a required control is unavailable or version evidence is stale, return `VERIFY_REQUIRED` rather than silently weakening the execution boundary.
+- Evaluate plugins before enablement or update: record source/publisher, exact version or immutable archive checksum, requested hooks/MCP/tools/network/secrets/filesystem access, trust scope, compatibility, rollback and safe-mode reproduction. Unknown source, changed origin, excessive permission or missing rollback blocks unattended installation/update.
 
 ## n8n self-hosted security gate
 - Check the latest official n8n security advisories for the installed release branch before Production use. Historical patched-version floors are not proof that an instance is currently safe.

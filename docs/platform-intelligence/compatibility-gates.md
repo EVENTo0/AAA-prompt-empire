@@ -6,11 +6,15 @@ Before choosing runtime/config/storage/AI execution, verify current official gui
 ## Apple/Xcode/iOS/Swift gate
 Maintain a stable-production vs RC/beta scouting matrix. Agentic IDE/MCP/harness capabilities are evaluated through the neutral agent-harness adapter. Beta Xcode/iOS/Swift must not become an implicit production dependency. Require build, signing, simulator/device and App Store compatibility evidence before promotion.
 
+### Xcode 27 state correction
+- Xcode 27 (27A266a) entered the stable release channel on 2026-09-14. Earlier RC/beta classification is historical and must not be reported as current.
+- Stable availability permits project-specific compatibility evaluation; it does not prove build, signing, device, plugin or App Store readiness for an existing project.
+
 ## Android/Flutter gate
 Production uses supported stable Android Studio/SDK/Gradle/Kotlin and Flutter/Dart combinations. RC/beta/canary channels run only compatibility/scouting jobs unless explicitly approved. Require device/emulator build evidence and phone acceptance separately from distribution readiness.
 
-### Android Studio Quail 3 guard
-- Android Studio Quail 3 (2026.1.3) supports AGP 7.1 through 9.3 according to the current Android Studio compatibility table.
+### Android Studio Quail 4 correction
+- Android Studio Quail 4 (2026.1.4) is the current stable channel. Quail 3 is a prior stable line and must not be reported as current.
 - Newer Android Studio releases apply a time-based AGP compatibility policy: AGP versions older than roughly three years are no longer supported. Treat the version table and the age window as two independent checks.
 - A project outside the supported AGP window is `MIGRATION_REQUIRED`; do not silently upgrade production without build/test/rollback evidence.
 
@@ -26,6 +30,14 @@ Before a WordPress/Gutenberg major/minor upgrade, run staging compatibility for 
 - GitHub Spark on github.com is retired for new adoption: it stopped accepting new users/new apps on 2026-08-04 and existing-user editing access ended 2026-08-31. Do not select Spark for a new project, prototype platform or template.
 - Existing deployed Spark apps may continue to run, but continued maintenance requires exported code and replacement of retired `llm()`/GitHub Models dependencies where applicable.
 - GitHub removes SHA-1 from HTTPS/TLS on 2026-09-15. Release-critical Git/API/CI clients must prove modern TLS compatibility before the deadline.
+- Use `cache-mode` with least privilege at workflow/job scope. Do not grant cache writes to low-trust code paths.
+- Where plan support exists, require secret-scanning alerts introduced by a PR to be resolved before merge through a repository ruleset. Workflow text alone cannot prove this external setting.
+- Treat CodeQL 2.27.0 as the currently verified 2026-09-09 lifecycle point, not a permanent pin. Reverify github.com automatic rollout versus GHES/manual CLI upgrade state at each review.
+
+## Experimental agent runtime backends
+- OpenAI Agents API and the Vercel Agent Stack runtime are experimental backends behind the provider-neutral agent-harness adapter.
+- They are not Core dependencies, do not authorize a new Agent or Skill, and do not bypass Provider Live Parity.
+- Record channel, auth, environment/sandbox, tools, approvals, region/data residency, failover, cost and teardown evidence before any production proposal.
 
 ## Hostinger Reach adapter gate
 - Treat Hostinger Reach as an optional capability-broker adapter, not a standalone Empire Agent.

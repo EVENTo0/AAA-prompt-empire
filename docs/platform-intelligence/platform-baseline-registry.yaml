@@ -41,54 +41,73 @@ tracked_platforms:
   - agents_skills_mcp
   - ci_cd_testing_security
 records:
+  openai_codex:
+    checked_at: 2026-09-14
+    current_stable: "existing Codex/app-server path retained; Agents API available as beta experimental backend"
+    preview_channels: [agents_api_beta]
+    breaking_changes: []
+    deprecations: ["codex mcp-server remains migration-only"]
+    security: "provider-neutral harness; explicit environment, tools, approvals, sandbox and evidence"
+    action: optional-reference-integration
+    urgency: normal
+    evidence: docs/platform-intelligence/2026-09-14-wave-6-platform-delta.md
+    next_review: 2026-09-21
+    official_sources:
+      - https://openai.com/index/introducing-the-agents-api/
+      - https://developers.openai.com/api/reference/typescript/resources/beta/subresources/agents/methods/create
   anthropic_claude_code:
-    checked_at: 2026-08-17
+    checked_at: 2026-09-14
     current_stable: "VERIFY_INSTALLED_VERSION_AGAINST_OFFICIAL_CHANGELOG"
     preview_channels: []
     breaking_changes: []
     deprecations: []
-    security: "version-gated safe-mode and sandbox controls; fail closed; scoped permissions/MCP"
+    security: "version-gated safe-mode and sandbox controls; plugin source/version/hooks/tools/network/secrets/filesystem/rollback preflight; fail closed"
     action: skill-upgrade
     urgency: high_for_unattended_automation
-    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
-    next_review: 2026-08-24
+    evidence: docs/platform-intelligence/2026-09-14-wave-6-platform-delta.md
+    next_review: 2026-09-21
     official_sources:
       - https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
       - https://docs.anthropic.com/en/docs/claude-code/cli-usage
   github_actions:
-    checked_at: 2026-08-17
-    current_stable: "first-party actions majors verified: checkout v7, setup-python v7, setup-node v7"
-    preview_channels: [workflow_execution_protections, agentic_workflows]
-    breaking_changes: ["self-hosted runner minimum/freshness enforcement for GitHub Enterprise Cloud begins 2026-09-25"]
+    checked_at: 2026-09-14
+    current_stable: "cache-mode GA; CodeQL 2.27.0 current dated lifecycle point; first-party actions v7 baseline retained"
+    preview_channels: [workflow_execution_protections, agentic_workflows, secret_alert_merge_ruleset]
+    breaking_changes: ["SHA-1 in GitHub HTTPS/TLS disabled 2026-09-15", "self-hosted runner minimum/freshness enforcement for GitHub Enterprise Cloud begins 2026-09-25"]
     deprecations: []
-    security: "deny pull_request_target by default; minimum permissions; GITHUB_TOKEN/OIDC before PAT; runner freshness"
+    security: "least-privilege cache-mode; resolve introduced secret alerts before merge where supported; dynamic CodeQL lifecycle; deny pull_request_target; GITHUB_TOKEN/OIDC; runner freshness"
     action: workflow-security-upgrade
     urgency: high
-    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
-    next_review: 2026-08-24
+    evidence: docs/platform-intelligence/2026-09-14-wave-6-platform-delta.md
+    next_review: 2026-09-15
     official_sources:
       - https://github.blog/changelog/2026-06-18-control-who-and-what-triggers-github-actions-workflows/
       - https://github.blog/changelog/2026-06-18-safer-pull_request_target-defaults-for-github-actions-checkout/
       - https://github.blog/changelog/2026-06-12-github-actions-minimum-version-enforcement-timeline-for-self-hosted-runners/
       - https://github.blog/changelog/2026-06-11-agentic-workflows-no-longer-need-a-personal-access-token/
+      - https://github.blog/changelog/2026-04-20-sunsetting-sha-1-in-https-on-github/
+      - https://github.blog/changelog/2026-09-10-control-github-actions-cache-access-with-cache-mode/
+      - https://github.blog/changelog/2026-09-09-block-pull-requests-with-exposed-secrets-from-merging/
+      - https://github.blog/changelog/2026-09-09-codeql-2-27-0-adds-support-for-linux-arm64/
   vercel:
-    checked_at: 2026-08-17
-    current_stable: "AI SDK 7 available; Vercel Sandbox GA"
-    preview_channels: [ai_sdk_harness_experimental, sandbox_drives_private_beta]
+    checked_at: 2026-09-14
+    current_stable: "AI SDK 7 and Sandbox GA primitives retained; Agent Stack runtime evaluated only through experimental adapter"
+    preview_channels: [ai_sdk_harness_experimental, sandbox_drives_private_beta, eve_public_beta, agent_stack_runtime_experimental]
     breaking_changes: ["AI SDK 7 requires Node.js 22+ and ESM"]
     deprecations: []
-    security: "HarnessAgent remains optional reference; sandbox OIDC preferred; preview persistence not Production data store"
+    security: "runtime remains optional; sandbox OIDC/scoped short-lived credentials preferred; region/residency/failover explicit; preview persistence not Production data store"
     action: optional-reference-integration
     urgency: normal
-    evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
-    next_review: 2026-08-24
+    evidence: docs/platform-intelligence/2026-09-14-wave-6-platform-delta.md
+    next_review: 2026-09-21
     official_sources:
       - https://vercel.com/blog/ai-sdk-7
       - https://vercel.com/docs/sandbox
       - https://vercel.com/changelog/vercel-sandbox-can-now-run-for-up-to-24-hours
       - https://vercel.com/changelog/drives-for-vercel-sandbox-in-private-beta
+      - https://vercel.com/blog/agent-stack
   supabase:
-    checked_at: 2026-08-17
+    checked_at: 2026-09-14
     current_stable: "hosted/self-hosted channel-sensitive; verify project/runtime before mutation"
     preview_channels: []
     breaking_changes:
@@ -101,7 +120,7 @@ records:
     action: new-skill-upgrade
     urgency: high
     evidence: docs/platform-intelligence/2026-08-17-verified-upgrades.md
-    next_review: 2026-08-24
+    next_review: 2026-09-23
     official_sources:
       - https://supabase.com/changelog/48235-migration-of-supabase-management-api-logs-all-analytics-endpoint-to-logs-endpoint
       - https://supabase.com/changelog/extension-version-pinning-ignored
@@ -110,6 +129,32 @@ records:
     historical_baseline_not_current_week:
       - "2025-08-12 realtime-js Node<22 WebSocket transport change"
       - "2025-08-15 Deno 2.1 Edge Functions all-regions rollout"
+  android:
+    checked_at: 2026-09-14
+    current_stable: "Android Studio Quail 4 | 2026.1.4"
+    preview_channels: []
+    breaking_changes: ["project AGP/JDK/SDK compatibility remains independently gated"]
+    deprecations: ["Quail 3 is no longer the current stable label"]
+    security: "no silent toolchain mutation; retain build/test/device and rollback evidence"
+    action: correction
+    urgency: normal
+    evidence: docs/platform-intelligence/2026-09-14-wave-6-platform-delta.md
+    next_review: 2026-09-21
+    official_sources:
+      - https://developer.android.com/studio/releases
+  apple_xcode_ios_swift:
+    checked_at: 2026-09-14
+    current_stable: "Xcode 27 (27A266a)"
+    preview_channels: []
+    breaking_changes: ["project build/signing/device/plugin compatibility requires separate evidence"]
+    deprecations: ["Xcode 27 RC state was superseded by stable release on 2026-09-14"]
+    security: "stable availability is not release-readiness proof"
+    action: correction
+    urgency: normal
+    evidence: docs/platform-intelligence/2026-09-14-wave-6-platform-delta.md
+    next_review: 2026-09-21
+    official_sources:
+      - https://developer.apple.com/news/releases/
   hostinger:
     checked_at: 2026-08-11
     current_stable: managed_service
