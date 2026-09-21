@@ -20,11 +20,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Validate Empire v2 governance
@@ -40,7 +40,7 @@ jobs:
           for p in pathlib.Path('.github/workflows').glob('*.yml'):
               text=p.read_text(encoding='utf-8')
               if '\t' in text:
-                  raise SystemExit(f'tab character not allowed in {p}')
+                raise SystemExit(f'tab character not allowed in {p}')
           print('workflow text checks passed')
           PY
 
@@ -54,7 +54,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
