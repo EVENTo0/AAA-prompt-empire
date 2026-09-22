@@ -1,9 +1,12 @@
 {
-  "version": 1,
-  "asOf": "2026-09-09",
+  "version": 2,
+  "asOf": "2026-09-21",
   "policy": {
     "unknownReviewState": "block",
     "expiredComponent": "block",
+    "detectedDebtBeforeDeadline": "warn",
+    "detectedDebtOnOrAfterDeadline": "block",
+    "siblingRepositoryUpgrade": "isolated-owner-gated-pr",
     "previewOrMajorUpgrade": "owner-review",
     "corePromotion": "prohibited-by-this-change"
   },
@@ -11,6 +14,49 @@
     {"id":"github-hosted-ubuntu","category":"runner","selection":"ubuntu-latest","reviewBy":"2026-10-09","owner":"release_ops","evidence":"GitHub Actions successful latest-head run"},
     {"id":"node-control-plane","category":"toolchain","selection":"Node >=22","reviewBy":"2026-10-09","owner":"web_builder","evidence":"typecheck, contracts, production build"},
     {"id":"python-empire-guard","category":"toolchain","selection":"Python 3.11+","reviewBy":"2026-12-09","owner":"qa_release","evidence":"Empire Guard and eval suite"},
-    {"id":"agent-model-policy","category":"model","selection":"inherit supported parent/default unless eval-justified","reviewBy":"2026-10-09","owner":"ai_engineer","evidence":"task-specific evals, latency/cost/safety record"}
+    {"id":"agent-model-policy","category":"model","selection":"inherit a supported parent/default unless eval-justified","reviewBy":"2026-10-02","owner":"ai_engineer","evidence":"GitHub Copilot retirement register plus task-specific evals, latency/cost/safety record"}
+  ],
+  "retirements": [
+    {
+      "id": "github-actions-node20-runtime",
+      "category": "action-runtime",
+      "deadline": "2026-09-23",
+      "status": "detected-debt",
+      "owner": "release_ops",
+      "affectedSelections": ["actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5"],
+      "replacementPolicy": "Use the current stable Node24-era action major, verify each repository independently, and require owner review before merge.",
+      "evidence": "PR #26 lifecycle reconciliation comment dated 2026-09-21"
+    },
+    {
+      "id": "github-copilot-models-2026-10-02",
+      "category": "model",
+      "deadline": "2026-10-02",
+      "status": "scheduled",
+      "owner": "ai_engineer",
+      "affectedSelections": ["Claude Opus 4.7", "Gemini 3.5 Flash", "Gemini 3.6 Flash", "Kimi K2.7 Code"],
+      "replacements": {"Claude Opus 4.7":"Claude Opus 5","Gemini 3.5 Flash":"Gemini 3.8 Flash","Gemini 3.6 Flash":"Gemini 3.8 Flash","Kimi K2.7 Code":"Kimi K3"},
+      "evidence": "https://docs.github.com/en/copilot/reference/ai-models/supported-models#model-retirement-history"
+    },
+    {
+      "id": "github-copilot-models-2026-10-19",
+      "category": "model",
+      "deadline": "2026-10-19",
+      "status": "scheduled",
+      "owner": "ai_engineer",
+      "affectedSelections": ["Gemini 3.7 Flash", "GPT-5.5", "GPT-5.4", "GPT-5.4 mini", "GPT-5 mini", "Grok 4.5"],
+      "replacements": {"Gemini 3.7 Flash":"Gemini 3.8 Flash","GPT-5.5":"GPT-5.6 Sol","GPT-5.4":"GPT-5.6 Sol","GPT-5.4 mini":"GPT-5.6 Luna","GPT-5 mini":"GPT-5.6 Luna","Grok 4.5":"Grok 4.6"},
+      "evidence": "https://github.blog/changelog/2026-09-18-upcoming-deprecation-of-selected-github-copilot-models-in-mid-october/"
+    }
+  ],
+  "actionRuntimeDebt": [
+    {"repository":"EVENTo0/AAA-prompt-empire","defaultBranchRef":"7f187177f2ca08029f61ed26af405b1b5456b242","status":"resolved-in-pr-26","ownerGate":"PR #26 owner review","workflows":[".github/workflows/empire-guard.yml",".github/workflows/mobile-control-plane.yml","templates/mobile-development-loop/flutter-android-beta.yml"],"detectedActions":["actions/checkout@v4","actions/setup-python@v5"]},
+    {"repository":"EVENTo0/AAA-prompt","defaultBranchRef":"0fbe52945db9eddbed03aec7708135cd880ab949","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/aaa-guard.yml"],"detectedActions":["actions/checkout@v4","actions/setup-python@v5"]},
+    {"repository":"EVENTo0/evento-mobile","defaultBranchRef":"335081bab80610577aa14cee96bd34468fa1cfc0","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/connector-smoke.yml",".github/workflows/phone-dev-rc3-v2.yml",".github/workflows/rc4-monitor.yml"],"detectedActions":["actions/checkout@v4"]},
+    {"repository":"EVENTo0/OCTA-VOICE","defaultBranchRef":"27a66a1e556eaed83a0d96e8535f212ecf7aca39","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/ci.yml"],"detectedActions":["actions/checkout@v4","actions/setup-node@v4"]},
+    {"repository":"EVENTo0/MiniBella","defaultBranchRef":"c45de6e3b63bb0ed77ba7d38e79788e4978b89b3","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/ci.yml"],"detectedActions":["actions/checkout@v4","actions/setup-node@v4"]},
+    {"repository":"EVENTo0/AEGIS-AI-Security","defaultBranchRef":"62a5ab18fdc9b5cdf25afc2cac8fef824b9fa057","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/security.yml"],"detectedActions":["actions/checkout@v4","actions/setup-python@v5"]},
+    {"repository":"EVENTo0/evex-coach","defaultBranchRef":"e8cd99d04443128433a3ffae8330254d4b6630f2","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/ci-tests.yml",".github/workflows/deploy.yml",".github/workflows/sentry-code-review.yml"],"detectedActions":["actions/checkout@v4"]},
+    {"repository":"EVENTo0/evex-fit","defaultBranchRef":"5e243b47d578118cead5e106d2729073f4a04e18","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/ci-tests.yml",".github/workflows/deploy.yml",".github/workflows/sentry-code-review.yml"],"detectedActions":["actions/checkout@v4"]},
+    {"repository":"EVENTo0/evx-health-coach","defaultBranchRef":"b073489ed5c7cb8bb4e4a64c842a6d3ec364a407","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/android-build.yml","evx/.github/workflows/android-build.yml"],"detectedActions":["actions/checkout@v4","actions/setup-node@v4"]}
   ]
 }
