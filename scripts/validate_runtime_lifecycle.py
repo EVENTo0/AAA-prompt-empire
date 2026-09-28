@@ -102,8 +102,8 @@ def audit(data: dict, today: dt.date) -> tuple[list[str], list[str]]:
             else:
                 warnings.append(message)
 
-    if len(debt_repositories) != 9:
-        errors.append(f"expected exact evidence for 9 affected repositories, found {len(debt_repositories)}")
+    if len(debt_repositories) != 10:
+        errors.append(f"expected exact evidence for 10 affected repositories, found {len(debt_repositories)}")
 
     for root in (ROOT / ".github" / "workflows", ROOT / "templates"):
         if not root.exists():

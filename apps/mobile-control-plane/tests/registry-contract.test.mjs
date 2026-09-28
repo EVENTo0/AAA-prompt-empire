@@ -33,7 +33,8 @@ test('EVENTO acquisition, operations, mobile, and Empire have bounded authority'
   assert.equal(eventoOne.repository, 'EVENTo0/Evento-One')
   assert.equal(eventoOne.canonicalRepo, eventoOne.repository)
   assert.equal(eventoOne.authority, 'canonical')
-  assert.match(eventoOne.notes, /GitHub CI.*unverified/i)
+  assert.equal(eventoOne.status, 'mvp-ci-verified')
+  assert.match(eventoOne.notes, /hosted tenant journeys, production, and commercial readiness remain unverified/i)
 
   assert.equal(eventoMobile.repository, 'EVENTo0/evento-mobile')
   assert.equal(eventoMobile.supabaseProjectRef, 'jaxhaiaftpegcodkzaus')
@@ -47,10 +48,10 @@ test('EVENTO acquisition, operations, mobile, and Empire have bounded authority'
   assert.notEqual(eventoMobile.repository, empire.repository)
 })
 
-test('registry v2 mirrors the complete EVENTo0 hierarchy as of 2026-09-21', async () => {
+test('registry v2 matches the source-linked owned inventory as of 2026-09-28', async () => {
   const registry = JSON.parse(await readFile(registryPath, 'utf8'))
   assert.equal(registry.version, 2)
-  assert.equal(registry.asOf, '2026-09-21')
+  assert.equal(registry.asOf, '2026-09-28')
   assert.equal(registry.owner, 'EVENTo0')
   assert.equal(registry.mirrorContracts.length, 1)
   assert.equal(registry.mirrorContracts[0].mode, 'derived-mirror-only')
@@ -60,6 +61,44 @@ test('registry v2 mirrors the complete EVENTo0 hierarchy as of 2026-09-21', asyn
   const counts = Object.fromEntries(['company-core', 'internal-engineering-lab', 'evento-ventures', 'ambiguous-owner-decision']
     .map((hierarchy) => [hierarchy, registry.projects.filter((project) => project.hierarchy === hierarchy).length]))
   assert.deepEqual(counts, {'company-core': 5, 'internal-engineering-lab': 8, 'evento-ventures': 19, 'ambiguous-owner-decision': 1})
+  const inventory = JSON.parse(await readFile(new URL(`../../../${registry.inventoryEvidence}`, import.meta.url), 'utf8'))
+  assert.equal(inventory.asOf, registry.asOf)
+  assert.equal(inventory.repositoryCount, registry.projects.length)
+  assert.deepEqual(registry.projects.map((project) => project.repository).sort(),
+    inventory.repositories.map((project) => project.repository).sort())
+  assert.equal(registry.projects.filter((project) => project.hierarchy === 'client-projects').length, 0)
+})
+
+test('OCTA remains internal and legacy EVENTO remains Company Core', async () => {
+  const { projects } = JSON.parse(await readFile(registryPath, 'utf8'))
+  const octa = projects.find((project) => project.repository === 'EVENTo0/Evento-octa-v10')
+  const legacy = projects.find((project) => project.repository === 'EVENTo0/EVENTo0')
+  assert.equal(octa.hierarchy, 'internal-engineering-lab')
+  assert.equal(octa.kind, 'owner-orchestration')
+  assert.equal(legacy.hierarchy, 'company-core')
+  assert.equal(legacy.authority, 'legacy')
+  assert.equal(legacy.kind, 'legacy-company-capabilities')
+  assert.equal(legacy.canonicalRepo, 'EVENTo0/Evento-project-development-v1')
+})
+
+test('business truth belongs to Website and ONE with versioned consumer boundaries', async () => {
+  const { authorityContract, projects } = JSON.parse(await readFile(registryPath, 'utf8'))
+  assert.equal(authorityContract.version, 1)
+  assert.deepEqual(authorityContract.truthOwners, {
+    leads: 'EVENTo0/Evento-project-development-v1',
+    customers: 'EVENTo0/Evento-One',
+    bookings: 'EVENTo0/Evento-One',
+    quotations: 'EVENTo0/Evento-One',
+    invoices: 'EVENTo0/Evento-One',
+    'saas-billing': 'EVENTo0/Evento-One',
+    'portfolio-registry': 'EVENTo0/AAA-prompt-empire',
+  })
+  assert.deepEqual(authorityContract.consumers, [
+    { repository: 'EVENTo0/evento-mobile', mode: 'versioned-interface', mayOwnBusinessTruth: false, mayOwnPortfolioTruth: false },
+    { repository: 'EVENTo0/Evento-octa-v10', mode: 'owner-orchestration-only', mayOwnBusinessTruth: false, mayOwnPortfolioTruth: false },
+  ])
+  const repositories = new Set(projects.map((project) => project.repository))
+  for (const repository of Object.values(authorityContract.truthOwners)) assert.ok(repositories.has(repository))
 })
 
 test('authority contract prevents parallel portfolio truths', async () => {

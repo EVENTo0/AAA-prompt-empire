@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "asOf": "2026-09-21",
+  "asOf": "2026-09-28",
   "owner": "EVENTo0",
   "inventorySource": "owner-filtered GitHub repository inventory",
   "mirrorContracts": [
@@ -12,19 +12,47 @@
       "mutationAuthority": "none"
     }
   ],
+  "inventoryEvidence": "docs/portfolio/2026-09-28/owned-repositories.json",
+  "authorityContract": {
+    "version": 1,
+    "source": "docs/portfolio/2026-09-28/02-gates.md#authority-contract",
+    "truthOwners": {
+      "leads": "EVENTo0/Evento-project-development-v1",
+      "customers": "EVENTo0/Evento-One",
+      "bookings": "EVENTo0/Evento-One",
+      "quotations": "EVENTo0/Evento-One",
+      "invoices": "EVENTo0/Evento-One",
+      "saas-billing": "EVENTo0/Evento-One",
+      "portfolio-registry": "EVENTo0/AAA-prompt-empire"
+    },
+    "consumers": [
+      {
+        "repository": "EVENTo0/evento-mobile",
+        "mode": "versioned-interface",
+        "mayOwnBusinessTruth": false,
+        "mayOwnPortfolioTruth": false
+      },
+      {
+        "repository": "EVENTo0/Evento-octa-v10",
+        "mode": "owner-orchestration-only",
+        "mayOwnBusinessTruth": false,
+        "mayOwnPortfolioTruth": false
+      }
+    ]
+  },
   "projects": [
-    {"id":"evento-core","productKey":"evento-acquisition","name":"EVENTO Project Development","hierarchy":"company-core","authority":"canonical","canonicalRepo":"EVENTo0/Evento-project-development-v1","kind":"company-platform","status":"active","saleStatus":"not-for-sale","priority":"P0","repository":"EVENTo0/Evento-project-development-v1","vercelProject":"evento-empire","supabaseProjectRef":"jaxhaiaftpegcodkzaus","platforms":["web","pwa"],"workflows":["gate1-request-flow.yml"],"notes":"Canonical public acquisition, lead, and revenue-intake surface; first-sale Gate 1 remains review-gated."},
-    {"id":"evento-mobile","productKey":"evento-mobile","name":"EVENTO Mobile","hierarchy":"company-core","authority":"bounded-canonical","canonicalRepo":"EVENTo0/evento-mobile","kind":"company-app","status":"active","saleStatus":"not-for-sale","priority":"P0","repository":"EVENTo0/evento-mobile","vercelProject":null,"supabaseProjectRef":"jaxhaiaftpegcodkzaus","platforms":["android","ios"],"workflows":["phone-dev-rc3-v2.yml"],"notes":"Canonical mobile surface only; Stripe TEST and device evidence do not authorize live payment."},
+    {"id":"evento-core","productKey":"evento-acquisition","name":"EVENTO Project Development","hierarchy":"company-core","authority":"canonical","canonicalRepo":"EVENTo0/Evento-project-development-v1","kind":"company-platform","status":"active","saleStatus":"not-for-sale","priority":"P0","repository":"EVENTo0/Evento-project-development-v1","vercelProject":"evento-empire","supabaseProjectRef":"jaxhaiaftpegcodkzaus","platforms":["web","pwa"],"workflows":["gate1-request-flow.yml"],"notes":"Canonical acquisition and lead truth only. Customer records, bookings, quotations, invoices, and SaaS billing belong to EVENTO ONE; Staff Inbox authenticated positive/negative proof remains a separate gate."},
+    {"id":"evento-mobile","productKey":"evento-mobile","name":"EVENTO Mobile","hierarchy":"company-core","authority":"bounded-canonical","canonicalRepo":"EVENTo0/evento-mobile","kind":"company-app","status":"active","saleStatus":"not-for-sale","priority":"P0","repository":"EVENTo0/evento-mobile","vercelProject":null,"supabaseProjectRef":"jaxhaiaftpegcodkzaus","platforms":["android","ios"],"workflows":["phone-dev-rc3-v2.yml"],"notes":"Mobile/operator/customer interface through versioned Website and EVENTO ONE contracts; no duplicate customer or payment truth. Stripe TEST and device evidence do not authorize live payment."},
     {"id":"evento-project-2","productKey":"evento-acquisition","name":"EVENTO Project 2","hierarchy":"company-core","authority":"legacy","canonicalRepo":"EVENTo0/Evento-project-development-v1","kind":"legacy-company-surface","status":"maintenance","saleStatus":"not-for-sale","priority":"P2","repository":"EVENTo0/Evento-project-2","vercelProject":null,"supabaseProjectRef":null,"platforms":["web"],"workflows":[],"notes":"Legacy/selective-promotion source; it cannot override the canonical acquisition registry or surface."},
-    {"id":"evento-octa-v10","productKey":"octa800-orchestration","name":"EVENTO OCTA v10","hierarchy":"company-core","authority":"bounded-canonical","canonicalRepo":"EVENTo0/Evento-octa-v10","kind":"company-orchestration","status":"active","saleStatus":"internal","priority":"P1","repository":"EVENTo0/Evento-octa-v10","vercelProject":null,"supabaseProjectRef":null,"platforms":["agent"],"workflows":[],"notes":"Canonical orchestration source within its bounded scope; subordinate to first-sale gates."},
-    {"id":"evento-one","productKey":"evento-business-operations","name":"EVENTO ONE","hierarchy":"company-core","authority":"canonical","canonicalRepo":"EVENTo0/Evento-One","kind":"business-operations-saas","status":"mvp-locally-verified","saleStatus":"not-for-sale","priority":"P0","repository":"EVENTo0/Evento-One","vercelProject":null,"supabaseProjectRef":null,"platforms":["web","pwa"],"workflows":[],"notes":"Canonical EVENTO business-operations SaaS. Local/runtime evidence exists; GitHub CI, deployment, production, and commercial readiness remain unverified."},
+    {"id":"evento-octa-v10","productKey":"octa800-orchestration","name":"EVENTO OCTA v10","hierarchy":"internal-engineering-lab","authority":"bounded-canonical","canonicalRepo":"EVENTo0/Evento-octa-v10","kind":"owner-orchestration","status":"active","saleStatus":"internal","priority":"P1","repository":"EVENTo0/Evento-octa-v10","vercelProject":null,"supabaseProjectRef":null,"platforms":["agent"],"workflows":[],"notes":"Bounded owner orchestration only; no customer, payment, or portfolio truth database. UI founder guard plus real authenticated unprivileged RLS denial remain acceptance gates."},
+    {"id":"evento-one","productKey":"evento-business-operations","name":"EVENTO ONE","hierarchy":"company-core","authority":"canonical","canonicalRepo":"EVENTo0/Evento-One","kind":"business-operations-saas","status":"mvp-ci-verified","saleStatus":"not-for-sale","priority":"P0","repository":"EVENTo0/Evento-One","vercelProject":null,"supabaseProjectRef":null,"platforms":["web","pwa"],"workflows":[],"notes":"Canonical customer/business SaaS, bookings, quotations, invoices, and SaaS billing truth. PR #3 application/database CI passed on ac0bb3b886e72dd28eb3c9c226d12ddc25638a8b (run 36281810755); hosted tenant journeys, production, and commercial readiness remain unverified."},
     {"id":"aaa-empire","productKey":"aaa-engineering-control-plane","name":"AAA+ Engineering Empire","hierarchy":"internal-engineering-lab","authority":"canonical","canonicalRepo":"EVENTo0/AAA-prompt-empire","kind":"operating-system","status":"active","saleStatus":"internal","priority":"P1","repository":"EVENTo0/AAA-prompt-empire","vercelProject":null,"supabaseProjectRef":null,"platforms":["web","pwa","android","ios","agent"],"workflows":["mobile-control-plane.yml","empire-guard.yml"],"notes":"Canonical engineering proving ground; no automatic Core promotion."},
     {"id":"aaa-prompt","productKey":"aaa-prompt-core","name":"AAA Prompt","hierarchy":"internal-engineering-lab","authority":"canonical","canonicalRepo":"EVENTo0/AAA-prompt","kind":"prompt-system","status":"active","saleStatus":"internal","priority":"P2","repository":"EVENTo0/AAA-prompt","vercelProject":null,"supabaseProjectRef":null,"platforms":["agent"],"workflows":[],"notes":"Canonical Core prompt repository; promotion requires separate evidence and owner review."},
     {"id":"empire-mobile-control-plane","productKey":"aaa-engineering-control-plane","name":"Empire Mobile Control Plane","hierarchy":"internal-engineering-lab","authority":"legacy","canonicalRepo":"EVENTo0/AAA-prompt-empire","kind":"internal-control-plane","status":"maintenance","saleStatus":"internal","priority":"P2","repository":"EVENTo0/empire-mobile-control-plane","vercelProject":null,"supabaseProjectRef":null,"platforms":["web","pwa"],"workflows":[],"notes":"Historical standalone control-plane surface; AAA-prompt-empire is authoritative."},
     {"id":"smart-os","productKey":"smart-os","name":"SMART OS","hierarchy":"internal-engineering-lab","authority":"canonical","canonicalRepo":"EVENTo0/Smart-OS-Generate-Any-Project-From-Title","kind":"project-generator","status":"evidence-required","saleStatus":"internal","priority":"P2","repository":"EVENTo0/Smart-OS-Generate-Any-Project-From-Title","vercelProject":null,"supabaseProjectRef":null,"platforms":["agent"],"workflows":[],"notes":"Cross-project runtime proof required before expansion."},
     {"id":"omniform","productKey":"omniform","name":"OMNIFORM NEXUS PROFESSOR AI","hierarchy":"internal-engineering-lab","authority":"canonical","canonicalRepo":"EVENTo0/omniform-nexus-professor-ai","kind":"design-capability","status":"evidence-required","saleStatus":"internal","priority":"P2","repository":"EVENTo0/omniform-nexus-professor-ai","vercelProject":null,"supabaseProjectRef":null,"platforms":["agent","web"],"workflows":[],"notes":"Mobile preview evidence only; zero-coupling remains mandatory."},
     {"id":"octa-voice","productKey":"octa-voice","name":"OCTA Voice Lab","hierarchy":"internal-engineering-lab","authority":"canonical","canonicalRepo":"EVENTo0/OCTA-VOICE","kind":"voice-lab","status":"g1-baseline","saleStatus":"internal","priority":"P1","repository":"EVENTo0/OCTA-VOICE","vercelProject":null,"supabaseProjectRef":null,"platforms":["windows","web"],"workflows":["ci.yml"],"notes":"G1 software baseline only; real voice gate rejected and G2 prohibited."},
-    {"id":"evento-profile","productKey":"evento-profile","name":"EVENTo0 Profile","hierarchy":"internal-engineering-lab","authority":"canonical","canonicalRepo":"EVENTo0/EVENTo0","kind":"profile-config","status":"maintenance","saleStatus":"internal","priority":"P3","repository":"EVENTo0/EVENTo0","vercelProject":null,"supabaseProjectRef":null,"platforms":["github"],"workflows":[],"notes":"Account profile/configuration repository."},
+    {"id":"evento-profile","productKey":"evento-acquisition","name":"EVENTO Legacy Capability Source","hierarchy":"company-core","authority":"legacy","canonicalRepo":"EVENTo0/Evento-project-development-v1","kind":"legacy-company-capabilities","status":"maintenance","saleStatus":"not-for-sale","priority":"P3","repository":"EVENTo0/EVENTo0","vercelProject":null,"supabaseProjectRef":null,"platforms":["web"],"workflows":[],"notes":"Legacy company capability source retained under Company Core; freeze and selective evidence-backed promotion only. No production or independent customer/payment authority. Stable registry id retained for existing consumers."},
     {"id":"uae-seed-dataset","productKey":"uae-seed-dataset","name":"UAE Seed Dataset","hierarchy":"internal-engineering-lab","authority":"shared-capability","canonicalRepo":"EVENTo0/UAE-Seed-Dataset","kind":"shared-evidence-data","status":"foundation","saleStatus":"internal","priority":"P2","repository":"EVENTo0/UAE-Seed-Dataset","vercelProject":null,"supabaseProjectRef":null,"platforms":["data"],"workflows":[],"notes":"Read-only shared evidence/data capability consumed by Mawasem; not a standalone customer product."},
     {"id":"minibella","productKey":"minibella","name":"MiniBella","hierarchy":"evento-ventures","authority":"canonical","canonicalRepo":"EVENTo0/MiniBella","kind":"product","status":"active","saleStatus":"portfolio","priority":"P1","repository":"EVENTo0/MiniBella","vercelProject":null,"supabaseProjectRef":null,"platforms":["web","ai"],"workflows":[],"notes":"Current Arabic runtime/API gate only."},
     {"id":"ev-bot","productKey":"ev-bot","name":"Ev-Bot","hierarchy":"evento-ventures","authority":"canonical","canonicalRepo":"EVENTo0/Ev-Bot","kind":"product","status":"bootstrap","saleStatus":"portfolio","priority":"P1","repository":"EVENTo0/Ev-Bot","vercelProject":null,"supabaseProjectRef":null,"platforms":["agent"],"workflows":[],"notes":"Gate follows MiniBella."},

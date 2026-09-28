@@ -1,5 +1,7 @@
 # Portfolio Registry v2 and runtime lifecycle preflight — reconciled 2026-09-22
 
+> Historical evidence only. The current hierarchy, inventory, authority contract, execution gates, and test results are maintained in [the 2026-09-28 audit pack](../portfolio/2026-09-28/README.md). In particular, OCTA is Internal Engineering, legacy EVENTo0 is Company Core, and evex-lab is the tenth affected Actions repository. Earlier CI success does not prove a current-date lifecycle pass.
+
 - Scope: 33 repositories owned by `EVENTo0`, Registry v2, canonical-authority boundaries, and Empire-only runtime lifecycle governance.
 - Branch: `agent/portfolio-registry-v2-20260909`.
 - Safety: no merge, deployment, production mutation, payment activation, or Core promotion.

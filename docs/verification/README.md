@@ -2,6 +2,8 @@
 
 Store current evidence that supports engineering and release claims here.
 
+Current portfolio evidence and execution gates: [2026-09-28 audit pack](../portfolio/2026-09-28/README.md), with live source checks recorded during the 2026-09-29 Dubai session. The pack distinguishes registry acceptance, current-date lifecycle blockers, product runtime evidence, and final owner handoff.
+
 ## Required evidence record
 
 Each verification record should include:

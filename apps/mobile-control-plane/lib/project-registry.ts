@@ -24,6 +24,18 @@ export type ProjectRegistry = {
   asOf: string
   owner: string
   inventorySource: string
+  inventoryEvidence: string
+  authorityContract: {
+    version: number
+    source: string
+    truthOwners: Record<string, string>
+    consumers: Array<{
+      repository: string
+      mode: 'versioned-interface' | 'owner-orchestration-only'
+      mayOwnBusinessTruth: false
+      mayOwnPortfolioTruth: false
+    }>
+  }
   mirrorContracts: Array<{
     consumer: string
     mode: 'derived-mirror-only'

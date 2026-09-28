@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "asOf": "2026-09-21",
+  "asOf": "2026-09-28",
   "policy": {
     "unknownReviewState": "block",
     "expiredComponent": "block",
@@ -57,6 +57,7 @@
     {"repository":"EVENTo0/AEGIS-AI-Security","defaultBranchRef":"62a5ab18fdc9b5cdf25afc2cac8fef824b9fa057","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/security.yml"],"detectedActions":["actions/checkout@v4","actions/setup-python@v5"]},
     {"repository":"EVENTo0/evex-coach","defaultBranchRef":"e8cd99d04443128433a3ffae8330254d4b6630f2","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/ci-tests.yml",".github/workflows/deploy.yml",".github/workflows/sentry-code-review.yml"],"detectedActions":["actions/checkout@v4"]},
     {"repository":"EVENTo0/evex-fit","defaultBranchRef":"5e243b47d578118cead5e106d2729073f4a04e18","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/ci-tests.yml",".github/workflows/deploy.yml",".github/workflows/sentry-code-review.yml"],"detectedActions":["actions/checkout@v4"]},
-    {"repository":"EVENTo0/evx-health-coach","defaultBranchRef":"b073489ed5c7cb8bb4e4a64c842a6d3ec364a407","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/android-build.yml","evx/.github/workflows/android-build.yml"],"detectedActions":["actions/checkout@v4","actions/setup-node@v4"]}
+    {"repository":"EVENTo0/evx-health-coach","defaultBranchRef":"b073489ed5c7cb8bb4e4a64c842a6d3ec364a407","status":"detected","ownerGate":"isolated maintenance PR required","workflows":[".github/workflows/android-build.yml","evx/.github/workflows/android-build.yml"],"detectedActions":["actions/checkout@v4","actions/setup-node@v4"]},
+    {"repository":"EVENTo0/evex-lab","defaultBranchRef":"db828b4b7f6c7533ce4fddf243970883d633c4ce","status":"detected","ownerGate":"isolated maintenance branch maintenance/node24-actions-20260928; main debt remains until verified merge","workflows":[".github/workflows/ci-tests.yml",".github/workflows/deploy.yml",".github/workflows/sentry-code-review.yml"],"detectedActions":["actions/checkout@v4","actions/setup-node@v4","actions/setup-python@v5","actions/upload-artifact@v4"],"evidence":"https://github.com/EVENTo0/evex-lab/tree/db828b4b7f6c7533ce4fddf243970883d633c4ce/.github/workflows"}
   ]
 }
