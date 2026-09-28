@@ -25,6 +25,7 @@ export type ProjectRegistry = {
   owner: string
   inventorySource: string
   inventoryEvidence: string
+  sessionEvidence: string
   authorityContract: {
     version: number
     source: string
@@ -38,8 +39,10 @@ export type ProjectRegistry = {
   }
   mirrorContracts: Array<{
     consumer: string
-    mode: 'derived-mirror-only'
+    mode: 'canonical-pointer-only'
     source: string
+    sourceRevision: string
+    consumerRevision: string
     freshness: string
     mutationAuthority: 'none'
   }>

@@ -54,7 +54,10 @@ test('registry v2 matches the source-linked owned inventory as of 2026-09-28', a
   assert.equal(registry.asOf, '2026-09-28')
   assert.equal(registry.owner, 'EVENTo0')
   assert.equal(registry.mirrorContracts.length, 1)
-  assert.equal(registry.mirrorContracts[0].mode, 'derived-mirror-only')
+  assert.equal(registry.mirrorContracts[0].mode, 'canonical-pointer-only')
+  assert.equal(registry.mirrorContracts[0].consumer, 'EVENTo0/Evento-project-development-v1:config/evento-assets.json#portfolioRegistryReference')
+  assert.match(registry.mirrorContracts[0].sourceRevision, /^[a-f0-9]{40}$/)
+  assert.match(registry.mirrorContracts[0].consumerRevision, /^[a-f0-9]{40}$/)
   assert.equal(registry.mirrorContracts[0].mutationAuthority, 'none')
   assert.equal(registry.projects.length, 33)
   assert.equal(new Set(registry.projects.map((project) => project.repository)).size, 33)
@@ -67,6 +70,21 @@ test('registry v2 matches the source-linked owned inventory as of 2026-09-28', a
   assert.deepEqual(registry.projects.map((project) => project.repository).sort(),
     inventory.repositories.map((project) => project.repository).sort())
   assert.equal(registry.projects.filter((project) => project.hierarchy === 'client-projects').length, 0)
+})
+
+test('session evidence distinguishes unmerged branch CI from portfolio release readiness', async () => {
+  const registry = JSON.parse(await readFile(registryPath, 'utf8'))
+  const ledger = JSON.parse(await readFile(new URL(`../../../${registry.sessionEvidence}`, import.meta.url), 'utf8'))
+  assert.equal(ledger.auditAsOf, registry.asOf)
+  assert.equal(ledger.sessionTimezone, 'Asia/Dubai')
+  const repositories = new Set(registry.projects.map((project) => project.repository))
+  for (const entry of ledger.entries) {
+    assert.ok(repositories.has(entry.repository))
+    assert.equal(entry.merged, false)
+    assert.match(entry.head, /^[a-f0-9]{40}$/)
+    assert.ok(entry.verified && entry.remaining, `${entry.repository} needs scope and remaining gates`)
+    for (const run of entry.runs) assert.ok(run.url.startsWith(`https://github.com/${entry.repository}/actions/runs/`))
+  }
 })
 
 test('OCTA remains internal and legacy EVENTO remains Company Core', async () => {

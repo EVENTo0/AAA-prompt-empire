@@ -32,7 +32,7 @@ class LifecycleContractTests(unittest.TestCase):
         for day in ("2026-09-28", "2026-09-29"):
             with self.subTest(day=day):
                 errors, _ = audit(self.registry, dt.date.fromisoformat(day))
-                self.assertEqual(len(errors), 9, errors)
+                self.assertEqual(len(errors), 5, errors)
                 self.assertTrue(any("EVENTo0/evex-lab" in error for error in errors))
 
     def test_omitted_evex_lab_cannot_make_snapshot_complete(self):

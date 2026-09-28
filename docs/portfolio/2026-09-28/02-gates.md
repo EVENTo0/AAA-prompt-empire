@@ -11,7 +11,7 @@
 | Portfolio Registry | AAA-prompt-empire | الموقع وMobile Control Plane مستهلكان مشتقان؛ لا override محلي صامت |
 | Legacy company capabilities | EVENTo0 وEvento-project-2 | Company Core legacy؛ freeze وإعادة استخدام انتقائية؛ لا سلطة إنتاج مستقلة |
 
-يتحقق عقد Registry آليًا من أصحاب الحقيقة والمستهلكين. هذا اختبار metadata؛ قبول API الحقيقي يتطلب tenant identity وschema version وidempotency ورفض cross-tenant وإرجاع أخطاء قابلة للتعامل. لا يُنقل token إداري أو سر إلى جهاز العميل.
+الموقع يستهلك canonical pointer إلى revision معلوم، وليس نسخة كاملة متزامنة. يتحقق عقد Registry آليًا من أصحاب الحقيقة والمستهلكين. هذا اختبار metadata؛ قبول API الحقيقي يتطلب tenant identity وschema version وidempotency ورفض cross-tenant وإرجاع أخطاء قابلة للتعامل. لا يُنقل token إداري أو سر إلى جهاز العميل.
 
 ## شروط القبول
 
@@ -24,6 +24,7 @@
 | O1 OCTA access | login بحساب اصطناعي authenticated غير مخول؛ founder guard deny؛ SELECT لا يعيد fixture مؤسس معروف؛ INSERT يرفض ولا يترك صفًا | anon denial، جدول فارغ بلا control، SQL metadata، أو service role |
 | O2 OCTA runtime | start/restart/checkpoint/recover على بيئة معزولة، source SHA وredacted logs | نجاح build فقط |
 | E1 ONE isolated | tests/lint/TS/build وpgTAP معزول على head؛ auth/invoice/payment regressions | رابط green على head سابق |
+| E3 Company contract | versioned ONE API؛ qualified lead handoff؛ تبني Mobile؛ contract/auth/idempotency واختبار مسار فعلي | وثيقة authority أو read-only endpoint منفرد |
 | E2 ONE hosted | mapping Supabase واضح؛ founder وtenant ثانٍ؛ isolation وCRUD عبر جلسات حقيقية | إعداد env شكلي أو local pgTAP فقط |
 | M1 Mobile | versioned contracts وAPI target موثق وartifact مربوط بالمصدر | static inspection فقط |
 | M2 Device + TEST | جهاز Android فعلي، install/login/pay TEST/restart ومسار فشل محفوظ | emulator بدل ادعاء physical device |

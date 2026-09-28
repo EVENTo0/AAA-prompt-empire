@@ -20,31 +20,31 @@
 
 ## قائمة المستودعات كاملة
 
-البوابات التالية مشتقة من مراجعة المالك؛ لا تعني أن سلوك المنتج أُعيد اختباره في جولة Registry. يربط منفذ كل مشروع نتيجة الاختبار بفرعه وSHA قبل تغيير الحالة.
+البوابات مشتقة من مراجعة المالك، وحدّثت بنتائج التنفيذ في [نقطة التحقق](05-session-checkpoint.md). نجاح فرع لا يصلح main تلقائيًا؛ كل نتيجة مرتبطة ببيئتها وSHA.
 
 | المستودع | الحزمة التالية | شرط إغلاق الحزمة |
 | --- | --- | --- |
-| Evento-project-development-v1 | إكمال PR #10 | Staff Inbox: موظف مصرح ينجح وحساب غير مخول يُرفض؛ Lead محفوظ؛ مرآة Registry متزامنة |
-| Evento-One | أمان + hosted tenant journey + pilot | التحقق من patch رسمي متاح؛ regression؛ مؤسس وtenant ثانٍ؛ دورة Stripe TEST |
-| evento-mobile | صيانة ثم contract/device | CI على head؛ API target الحالي؛ جهاز Android فعلي؛ Stripe TEST |
+| Evento-project-development-v1 | إكمال PR #10 | دليل Staff Inbox الفعلي ناجح في PR10؛ pointer canonical مثبت؛ qualified lead handoff إلى ONE يحتاج تنفيذ عقد مستقل |
+| Evento-One | أمان + hosted tenant journey + pilot | Next16.3.6 وisolated Auth/DB مثبتان؛ يتبقى hosted مؤسس وtenant ثانٍ وStripe TEST وتبني API versioned |
+| evento-mobile | صيانة ثم contract/device | CI وAPK API36 مثبتان؛ يتبقى تبني ONE versioned API وجهاز Android فعلي وStripe TEST |
 | EVENTo0 | تجميد مصدر قدرات legacy | ترقية انتقائية مثبتة فقط؛ لا حقيقة إنتاج مستقلة |
 | Evento-project-2 | reconciliation/legacy | نقل الحاجة المثبتة دون نسخ مصدر منافس؛ archive يبقى قرارًا نهائيًا |
 | AAA-prompt-empire | Registry #26 | العضوية والتصنيف والعقود والاختبارات؛ توثيق دين lifecycle دون إخفائه |
-| AAA-prompt | صيانة #2 | CI على head؛ لا capability backport |
+| AAA-prompt | صيانة #2 مدمجة خارجيًا | main17481a7 وCI ناجح؛ لا capability backport |
 | empire-mobile-control-plane | maintenance consumer | يتبع Registry؛ لا بيانات حقيقة مكررة |
 | omniform-nexus-professor-ai | Preview + Issue #3 | build مربوط بالمصدر، متصفح وهاتف، five-layer CI حديث |
 | Smart-OS-Generate-Any-Project-From-Title | إثبات ممثل | EVENTO ومنتج ثانٍ؛ لا Core promotion من اختبار واحد |
-| Evento-octa-v10 | إكمال #2 access gate | authenticated non-founder: UI deny وRLS SELECT/INSERT deny |
-| OCTA-VOICE | صيانة #2 فقط | CI؛ G1 محفوظ؛ Voice DNA/G2 لا يصبحان مثبتين بالبرمجيات وحدها |
+| Evento-octa-v10 | إكمال #2 access gate | isolated real Auth + actual guard/RLS مثبت؛ hosted/full-dashboard/runtime/recovery منفصلة |
+| OCTA-VOICE | صيانة #2 مدمجة خارجيًا | main0cf4dd9 وCI ناجح؛ G1 محفوظ وVoice DNA/G2 غير مثبتين |
 | UAE-Seed-Dataset | evidence provenance | مصدر وتاريخ وحقوق استخدام لكل عينة |
 | MiniBella | أمان + persisted pilot | تجربة 20 ضيفًا محفوظة وتكلفة المكونات/التبريد/النقل/الهدر/العمل |
 | Ev-Bot | dedicated backend + Paper E2E | مزود خارجي واختبار paper مع رسوم وانزلاق وdrawdown؛ no live money |
 | evex-mobile | reproducibility/device | stable SDK مثبت؛ API/device/privacy/subscription sandbox |
-| evex-coach | إصلاح collection ثم framework | email-validator/تبعيات صالحة؛ CI ناجح؛ migration أمني معزول |
-| evex-fit | إصلاح package ثم framework | app.models.workout مثبت؛ API tests؛ migration أمني معزول |
-| evex-lab | فرع الصيانة الموجود | workflows مصححة مع CI؛ لا PR فارغ؛ Next debt في حزمة تالية |
-| evx-health-coach | governance/CI | PR-trigger run وصلاحيات/RLS؛ لا ادعاء طبي |
-| AEGIS-AI-Security | صيانة #11 | defensive CI؛ لاحقًا signing/recovery/false-positive pilot |
+| evex-coach | إصلاح collection ثم framework | 39 backend tests وCI ناجحة؛ PR3 Next15.5.26 وDocker CI ناجحان؛ persistence/hosted/product gates باقية |
+| evex-fit | إصلاح package ثم framework | source contracts و46 backend tests وCI ناجحة؛ PR3 Next15.5.26 وDocker CI ناجحان؛ hosted/persistence منفصلة |
+| evex-lab | فرع الصيانة الموجود | PR2 صيانة وإصلاح Auth مع19 backend tests ناجحة؛ PR3 Next15.5.26 وDocker CI ناجحان؛ hosted/persistence باقية |
+| evx-health-coach | governance/CI | PR2 source verification ناجح؛ مراجعة credential history وhosted RLS/privacy/device؛ لا ادعاء طبي |
+| AEGIS-AI-Security | صيانة #11 مدمجة خارجيًا | main317bbda وCI ناجح؛ signing/recovery/false-positive pilot باقية |
 | familyos | persisted family flow | parent approval وprivacy وجهاز فعلي؛ لا store publish |
 | History-Med-1 | clinical/evidence review | مراجعة مؤهلة ومصادر حديثة قبل claims طبية |
 | OCTORIMAL | real-host engine smoke | PlayMode/build وengine freeze بناء على تشغيل حقيقي |
@@ -55,7 +55,7 @@
 | AithenaX | security/CI/paper metrics | تحقق patch، webhook security، رسوم/انزلاق/ترخيص بيانات |
 | octa-xr-webar | security + XR device | patch وNode مدعومان؛ كاميرا/privacy/rate limit وتجربة جهاز |
 | Evx-Mawasem-wheel | أمان ثم January evidence | مصدر رسمي قابل للتتبع، مناطق تغير المحتوى، دقة دون توقعات مختلقة |
-| EVENTO-MODURA | CI/RLS/pilot | تكلفة BOM وأسعار مورد حقيقية وهوامش؛ Earth داخل MODURA |
+| EVENTO-MODURA | CI/RLS/pilot | PR2:26 isolated tests وإصلاح pricing/RLS مثبت؛ migration غير مطبق؛ real Auth/StorageHTTP وatomic save وsupplier margin pilot باقية |
 | Evx | meta decision | umbrella أو archive؛ لا نسخ مصدر ولا مشروع جديد |
 
 ## ترتيب التنفيذ داخل الحزمة
