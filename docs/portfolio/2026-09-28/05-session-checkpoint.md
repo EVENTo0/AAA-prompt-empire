@@ -2,7 +2,7 @@
 
 تاريخ audit: 2026-09-28. جلسة التنفيذ: 2026-09-29 بتوقيت دبي؛ وقت قراءة API محفوظ في [session-evidence.json](session-evidence.json). روابط PR/heads/workflow conclusions أدناه فُحصت مباشرة من منفذ Registry. تفاصيل الاختبار وحدوده مصدرها أدلة المنتج ومنفذه؛ لا يدّعي هذا الملف إعادة تشغيل كل منتج من مجلد Empire.
 
-**18 PR و30 workflow كانت ناجحة على رؤوسها المحددة عند هذه اللقطة.** هذا عدّ للأدلة الفرعية، لا نسبة إنجاز ولا عدد منتجات جاهزة للبيع. تبقى الفروع المدرجة في الجدول غير مدمجة؛ PR26 مستثنى من عدّ النجاح هذا لأن lifecycle guard يرفض دين main كما صُمم.
+**19 PR و31 workflow كانت ناجحة على رؤوسها المحددة عند هذه اللقطة.** هذا عدّ للأدلة الفرعية، لا نسبة إنجاز ولا عدد منتجات جاهزة للبيع. تبقى الفروع المدرجة في الجدول غير مدمجة؛ PR26 مستثنى من عدّ النجاح هذا لأن lifecycle guard يرفض دين main كما صُمم.
 
 | الحزمة | SHA | CI الحالي: SUCCESS | ما أُثبت | ما بقي خارج الإثبات |
 | --- | --- | --- | --- | --- |
@@ -24,6 +24,7 @@
 | [evex-coach security #3](https://github.com/EVENTo0/evex-coach/pull/3) | `d7fd84f` | [36490885560](https://github.com/EVENTo0/evex-coach/actions/runs/36490885560) | Next15.5.26/React19.3؛ audit0؛ frontend+backend composition+Docker ناجحة؛6 static HTTP tests وChromium390/1280 | stacked فوقPR2؛ checkout disabled؛ hosted/persistence/device/clinical gates باقية |
 | [evex-fit security #3](https://github.com/EVENTo0/evex-fit/pull/3) | `e6802f1` | [36490887558](https://github.com/EVENTo0/evex-fit/actions/runs/36490887558) | Next15.5.26/React19.3؛ audit0؛ frontend+backend composition+Docker ناجحة؛6 static HTTP tests وChromium390/1280 | stacked فوقPR2؛ checkout disabled؛ hosted/persistence/device/clinical gates باقية |
 | [evex-lab security #3](https://github.com/EVENTo0/evex-lab/pull/3) | `a25165f` | [36490890655](https://github.com/EVENTo0/evex-lab/actions/runs/36490890655) | Next15.5.26/React19.3؛ audit0؛ frontend+backend composition+Docker ناجحة؛6 static HTTP tests وChromium390/1280 | stacked فوقPR2؛ checkout disabled؛ hosted/persistence/device/clinical gates باقية |
+| [ONE API foundation #4](https://github.com/EVENTo0/Evento-One/pull/4) | `b6e37e1` | [36490898486](https://github.com/EVENTo0/Evento-One/actions/runs/36490898486) | versioned read-only API؛ Auth-verified Bearer وactive tenant/membership/RLS؛ real Auth + production HTTP CI ناجح | Website lead write/replay وMobile identity/client/UI adoption وfull-company E2E لا تزال فجوات كود |
 
 ## معنى المجموعات والأدلة
 
@@ -49,7 +50,7 @@
 ## أعمال لم تُجمّد نتيجتها بعد
 
 - **EVEX framework security:** اكتمل PR3 المستقل لكل Coach/Fit/Lab فوقPR2؛ native frontend/backend/Docker CI ناجح كما في الجدول. لا يثبت ذلك hosted identity أو payment/clinical/device/persistence.
-- **Company authority implementation:** عقد metadata في Registry مثبت، لكن مسار بيع متكامل لا ينتج تلقائيًا منه. أساس API versioned في [ONE PR4](https://github.com/EVENTo0/Evento-One/pull/4) عند`b6e37e165374e7bd20d93059fb331635a6366fc1` قيد CI [36490898486](https://github.com/EVENTo0/Evento-One/actions/runs/36490898486) في هذه النقطة؛ Website qualified-lead write وMobile ONE API adoption ما زالا UNIMPLEMENTED ما لم يقدم تعديل واختبار مستقل. full-company E2E يبقى UNVERIFIED، وليس عائق إعداد حساب فقط.
+- **Company authority implementation:** عقد metadata في Registry مثبت، لكن مسار بيع متكامل لا ينتج تلقائيًا منه. أساس API versioned في [ONE PR4](https://github.com/EVENTo0/Evento-One/pull/4) عند`b6e37e165374e7bd20d93059fb331635a6366fc1` اجتاز CI [36490898486](https://github.com/EVENTo0/Evento-One/actions/runs/36490898486) بما فيه real Auth + production HTTP؛ Website qualified-lead write وMobile ONE API adoption ما زالا UNIMPLEMENTED ما لم يقدم تعديل واختبار مستقل. full-company E2E يبقى UNVERIFIED، وليس عائق إعداد حساب فقط.
 - **Recovery:** لا يثبت وجود GitHub استعادة البيانات. تقاس أي تجربة معزولة لاحقة منفصلة عن hosted backup/restore وVPS؛ لا يفترض اكتمالها هنا.
 
 الإعداد/النشر وقبول المالك النهائي مؤجلان كما طلب؛ لا يؤجل ذلك فجوات كود يمكن إصلاحها، ولا يحول أي اختبار لم يُنفذ إلى PASS.

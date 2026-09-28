@@ -62,3 +62,7 @@ npm run build
 ## تغيير متزامن محفوظ ومتحقق
 
 تحرك PR26 خارج منفذ Registry من9b5335b إلى`ae2d3c4c0193db8232f67e361713fb14b0cb18fe` بتعديلruntime-lifecycle واحد. لم يُستبدل: GitHub أكد merge وmain SHA وpush CI ناجح لكل AAA-prompt#2 وOCTA-VOICE#2 وMiniBella#6 وAEGIS#11. التفاصيل والأوقات في `session-evidence.json.observedConcurrentMerges`. الدين المتبقي5: Mobile وEVEX Coach/Fit/Lab وHealth Coach. عُدّل اختبار العدد ليلائم الأدلة؛ enforcement نفسه لم يُخفف. لا ينسب هذا المسار تلك merges لنفسه ولا يستنتج منها حالة أي deployment.
+
+## CI لتركيب Registry الأمني
+
+عند`8ab45d78fdfb3ddbc5324b315b2b64f6673d9716`: [Mobile Control Plane36491515296](https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/36491515296) SUCCESS. [Empire Guard36491515306](https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/36491515306) FAILURE حصريًا في lifecycle enforcement؛ structural/routing/sensitive-diff ناجحة. فُحص log job109160982908 وتطابق مع المستودعات الخمسة المسجلة. تحديثات الأدلة اللاحقة لا تدعي أن هذا run يعود إلى SHA آخر.

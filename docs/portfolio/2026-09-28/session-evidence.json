@@ -2,7 +2,7 @@
   "auditAsOf": "2026-09-28",
   "sessionDate": "2026-09-29",
   "sessionTimezone": "Asia/Dubai",
-  "observedAt": "2026-09-28T22:16:10.081Z",
+  "observedAt": "2026-09-28T22:20:02.919Z",
   "source": "GitHub get_pr_info and exact-commit workflow runs independently fetched by Registry executor; product-test details from linked repo evidence and executing agents",
   "boundary": "Branch evidence plus separately recorded concurrent maintenance merges; no merge was performed by the Registry executor. No production readiness, commercial completion percentage, or Core promotion.",
   "entries": [
@@ -449,6 +449,26 @@
       ],
       "verified": "Stacked on repaired PR2: Next/eslint15.5.26,React19.3,Sentry10.75.3,PostCSS8.5.28,locked install,audit0,lint/types/build. Native CI verifies composed backend,6 static HTTP checks and actual non-root Node24 Docker build/run;local Chromium390/1280 payment-denial smoke.",
       "remaining": "Hosted identity/provider/device/persistence and qualified health review remain. Checkout deliberately disabled until trusted mapping and external Stripe TEST; no merge or production. Next15.5.27 not released at audit."
+    },
+    {
+      "repository": "EVENTo0/Evento-One",
+      "pr": 4,
+      "head": "b6e37e165374e7bd20d93059fb331635a6366fc1",
+      "url": "https://github.com/EVENTo0/Evento-One/pull/4",
+      "draft": true,
+      "merged": false,
+      "base": "delivery/verified-cloud-pilot",
+      "runs": [
+        {
+          "id": 36490898486,
+          "name": "EVENTO ONE verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Evento-One/actions/runs/36490898486"
+        }
+      ],
+      "verified": "Stacked read-only versioned API foundation:Auth-verified Bearer JWT,active org/membership and caller RLS; context/bookings/quotations/invoices summaries; native application and database CI including real Auth and production Next HTTP acceptance passed.",
+      "remaining": "Website qualified-lead write/replay and Mobile ONE identity/client/UI adoption are code gaps; read-only API success does not prove full-company Lead-to-Payment-to-Delivery E2E or hosted launch."
     }
   ],
   "observedConcurrentMerges": [
@@ -547,17 +567,12 @@
   ],
   "pendingWork": [
     {
-      "repository": "EVENTo0/Evento-One",
-      "pr": 4,
-      "head": "b6e37e165374e7bd20d93059fb331635a6366fc1",
-      "url": "https://github.com/EVENTo0/Evento-One/pull/4",
-      "state": "CI in progress at checkpoint",
-      "run": "https://github.com/EVENTo0/Evento-One/actions/runs/36490898486",
-      "scope": "Read-only versioned Auth-verified API foundation;Website qualified-lead write/replay andMobile identity/client/UI adoption remain code gaps"
-    },
-    {
       "scope": "Budget and recovery",
       "state": "Execution ongoing in separate root workstream; no hosted recovery or billed-total claim"
+    },
+    {
+      "scope": "Company integration",
+      "state": "Read-only ONE API foundation verified; Website lead write/replay and Mobile identity/client/UI adoption and full-company E2E not closed"
     }
   ]
 }
