@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""EVENTO local control daemon foundation.
+"""EVENTO local control daemon.
 
-Read-only v1:
-- binds to localhost only
-- exposes health and connector capability metadata
-- never returns secret values
-- does not execute arbitrary shell commands
+v0.2 foundations:
+- localhost only
+- read-only diagnostics
+- optional, separately authenticated bounded writes
+- allowlisted workspace / Git worktree / Python-script adapters
+- no arbitrary shell and no release authority
 """
 
 from __future__ import annotations
@@ -21,19 +22,70 @@ from typing import Any
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("EVENTO_DAEMON_PORT", "8765"))
 TOKEN = os.environ.get("EVENTO_DAEMON_TOKEN", "")
+WRITE_TOKEN = os.environ.get("EVENTO_DAEMON_WRITE_TOKEN", "")
+WRITE_ENABLED = os.environ.get("EVENTO_ENABLE_WRITES", "").lower() == "true"
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CONNECTOR_REGISTRY = REPO_ROOT / "registry" / "evento-connectors.json"
 LOCAL_ACTIONS = REPO_ROOT / "registry" / "evento-local-actions.json"
+LOCAL_WRITE_ACTIONS = REPO_ROOT / "registry" / "evento-local-write-actions.json"
+
+DEFAULT_WORKSPACE_ROOT = REPO_ROOT / ".evento-workspaces"
+APPROVED_SCRIPT_ROOTS = (
+    REPO_ROOT / "scripts",
+    REPO_ROOT / "tools",
+    REPO_ROOT / "apps" / "evento-desktop" / "scripts",
+)
+
+
+def _csv_paths(value: str) -> tuple[Path, ...]:
+    items = [Path(x.strip()).expanduser().resolve() for x in value.split(",") if x.strip()]
+    return tuple(items)
+
+
+def workspace_roots() -> tuple[Path, ...]:
+    configured = _csv_paths(os.environ.get("EVENTO_WORKSPACE_ROOTS", ""))
+    return configured or (DEFAULT_WORKSPACE_ROOT.resolve(),)
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
 
 
 def load_connectors() -> dict[str, Any]:
-    with CONNECTOR_REGISTRY.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    return load_json(CONNECTOR_REGISTRY)
 
 
 def load_local_actions() -> dict[str, Any]:
-    with LOCAL_ACTIONS.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    return load_json(LOCAL_ACTIONS)
+
+
+def load_local_write_actions() -> dict[str, Any]:
+    return load_json(LOCAL_WRITE_ACTIONS)
+
+
+def _inside(path: Path, roots: tuple[Path, ...]) -> bool:
+    resolved = path.resolve()
+    return any(resolved == root or root in resolved.parents for root in roots)
+
+
+def safe_workspace_path(relative_path: str, root: Path | None = None) -> Path:
+    base = (root or workspace_roots()[0]).resolve()
+    target = (base / relative_path).resolve()
+    if not _inside(target, (base,)):
+        raise PermissionError("workspace_path_escape")
+    return target
+
+
+def approved_script_path(script: str) -> Path:
+    raw = Path(script)
+    candidates = [raw.resolve()] if raw.is_absolute() else [(root / raw).resolve() for root in APPROVED_SCRIPT_ROOTS]
+    approved_roots = tuple(root.resolve() for root in APPROVED_SCRIPT_ROOTS)
+    for candidate in candidates:
+        if candidate.suffix == ".py" and candidate.is_file() and _inside(candidate, approved_roots):
+            return candidate
+    raise PermissionError("script_not_approved")
 
 
 def run_diagnostic(action_id: str) -> dict[str, Any]:
@@ -45,48 +97,104 @@ def run_diagnostic(action_id: str) -> dict[str, Any]:
     executable = shutil.which(command[0])
     if executable is None:
         return {"action": action_id, "available": False, "exit_code": None, "output": ""}
+    completed = subprocess.run([executable, *command[1:]], cwd=REPO_ROOT, capture_output=True, text=True, timeout=8, check=False)
+    output = (completed.stdout or completed.stderr).strip()
+    return {"action": action_id, "available": True, "exit_code": completed.returncode, "output": output[:4000]}
+
+
+def workspace_write_text(relative_path: str, content: str) -> dict[str, Any]:
+    target = safe_workspace_path(relative_path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    encoded = content.encode("utf-8")
+    if len(encoded) > 1_000_000:
+        raise ValueError("content_too_large")
+    target.write_bytes(encoded)
+    return {"action": "workspace-write-text", "path": str(target.relative_to(workspace_roots()[0])), "bytes": len(encoded)}
+
+
+def git_create_worktree(repository: str, branch: str, base_ref: str, destination: str) -> dict[str, Any]:
+    repo = Path(repository).expanduser().resolve()
+    if not repo.is_dir() or not (repo / ".git").exists():
+        raise ValueError("repository_not_git")
+    if not _inside(repo, workspace_roots()) and repo != REPO_ROOT.resolve():
+        raise PermissionError("repository_not_allowlisted")
+    if not branch.startswith("evento/"):
+        raise PermissionError("branch_prefix_required")
+    destination_path = safe_workspace_path(destination)
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
+    if destination_path.exists():
+        raise FileExistsError("destination_exists")
     completed = subprocess.run(
-        [executable, *command[1:]],
+        ["git", "-C", str(repo), "worktree", "add", "-b", branch, str(destination_path), base_ref],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError((completed.stderr or completed.stdout).strip()[:2000])
+    return {"action": "git-create-worktree", "branch": branch, "destination": str(destination_path), "base_ref": base_ref}
+
+
+def python_run_approved(script: str, args: list[str]) -> dict[str, Any]:
+    script_path = approved_script_path(script)
+    safe_args = [str(x) for x in args][:32]
+    completed = subprocess.run(
+        [os.environ.get("PYTHON", "python"), str(script_path), *safe_args],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
-        timeout=8,
+        timeout=60,
         check=False,
     )
-    output = (completed.stdout or completed.stderr).strip()
-    return {
-        "action": action_id,
-        "available": True,
-        "exit_code": completed.returncode,
-        "output": output[:4000],
-    }
+    output = ((completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")).strip()
+    return {"action": "python-run-approved", "script": str(script_path.relative_to(REPO_ROOT)), "exit_code": completed.returncode, "output": output[:12000]}
+
+
+def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    allowed = {item["id"] for item in load_local_write_actions()["actions"]}
+    if action_id not in allowed:
+        raise KeyError(action_id)
+    if action_id == "workspace-write-text":
+        return workspace_write_text(str(payload.get("relative_path", "")), str(payload.get("content", "")))
+    if action_id == "git-create-worktree":
+        return git_create_worktree(
+            str(payload.get("repository", "")),
+            str(payload.get("branch", "")),
+            str(payload.get("base_ref", "HEAD")),
+            str(payload.get("destination", "")),
+        )
+    if action_id == "python-run-approved":
+        args = payload.get("args", [])
+        if not isinstance(args, list):
+            raise ValueError("args_must_be_array")
+        return python_run_approved(str(payload.get("script", "")), args)
+    raise KeyError(action_id)
 
 
 def capabilities() -> dict[str, Any]:
     registry = load_connectors()
     return {
         "daemon": {
-            "version": "0.1.0",
+            "version": "0.2.0",
             "host": HOST,
             "port": PORT,
-            "write_execution": False,
+            "write_execution": WRITE_ENABLED and bool(WRITE_TOKEN),
             "arbitrary_shell": False,
+            "release": False,
+            "workspace_roots": [str(x) for x in workspace_roots()],
         },
         "policy": registry["policy"],
         "connectors": [
-            {
-                "id": item["id"],
-                "category": item["category"],
-                "permissions": item["permissions"],
-                "release": item["release"],
-            }
+            {"id": item["id"], "category": item["category"], "permissions": item["permissions"], "release": item["release"]}
             for item in registry["connectors"]
         ],
+        "write_actions": [item["id"] for item in load_local_write_actions()["actions"]],
     }
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "EVENTO-Local/0.1"
+    server_version = "EVENTO-Local/0.2"
 
     def _json(self, status: int, payload: dict[str, Any]) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -98,58 +206,69 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _authorized(self) -> bool:
-        if not TOKEN:
-            return False
-        supplied = self.headers.get("Authorization", "")
-        return supplied == "Bearer " + TOKEN
+        return bool(TOKEN) and self.headers.get("Authorization", "") == "Bearer " + TOKEN
+
+    def _write_authorized(self) -> bool:
+        return WRITE_ENABLED and bool(WRITE_TOKEN) and self.headers.get("X-EVENTO-Write-Token", "") == WRITE_TOKEN
+
+    def _read_payload(self) -> dict[str, Any]:
+        length = min(int(self.headers.get("Content-Length", "0")), 1_100_000)
+        return json.loads(self.rfile.read(length) or b"{}")
 
     def do_GET(self) -> None:
         if self.path == "/health":
-            self._json(200, {"status": "ok", "service": "evento-local-daemon", "version": "0.1.0"})
+            self._json(200, {"status": "ok", "service": "evento-local-daemon", "version": "0.2.0"})
             return
-
         if not self._authorized():
             self._json(401, {"error": "unauthorized"})
             return
-
         if self.path == "/v1/capabilities":
             self._json(200, capabilities())
             return
-
         if self.path == "/v1/diagnostics":
             actions = load_local_actions()["actions"]
             self._json(200, {"results": [run_diagnostic(item["id"]) for item in actions]})
             return
-
         self._json(404, {"error": "not_found"})
 
     def do_POST(self) -> None:
-        # v1 remains mutation-free. POST only invokes an explicit diagnostic
-        # action from the committed allowlist; arbitrary shell is never accepted.
         if not self._authorized():
             self._json(401, {"error": "unauthorized"})
             return
-        if self.path != "/v1/diagnostics/run":
-            self._json(405, {"error": "write_execution_disabled"})
-            return
         try:
-            length = min(int(self.headers.get("Content-Length", "0")), 4096)
-            payload = json.loads(self.rfile.read(length) or b"{}")
-            action_id = str(payload.get("action", ""))
-            self._json(200, run_diagnostic(action_id))
-        except KeyError:
-            self._json(403, {"error": "action_not_allowlisted"})
+            payload = self._read_payload()
+            if self.path == "/v1/diagnostics/run":
+                self._json(200, run_diagnostic(str(payload.get("action", ""))))
+                return
+            if self.path == "/v1/actions/run":
+                if not self._write_authorized():
+                    self._json(403, {"error": "write_not_authorized"})
+                    return
+                action_id = str(payload.get("action", ""))
+                confirmation = str(payload.get("confirmation", ""))
+                if confirmation != action_id:
+                    self._json(400, {"error": "confirmation_mismatch"})
+                    return
+                self._json(200, run_write_action(action_id, payload))
+                return
+            self._json(405, {"error": "write_execution_disabled"})
+        except (KeyError, PermissionError) as error:
+            self._json(403, {"error": str(error)})
+        except (ValueError, FileExistsError) as error:
+            self._json(400, {"error": str(error)})
         except Exception:
-            self._json(400, {"error": "invalid_request"})
+            self._json(500, {"error": "execution_failed"})
 
     def log_message(self, format: str, *args: object) -> None:
-        # Avoid leaking Authorization headers or request content into logs.
         print("%s - %s" % (self.address_string(), format % args))
 
 
 def main() -> int:
     if not TOKEN:
         raise SystemExit("EVENTO_DAEMON_TOKEN is required")
+    if WRITE_ENABLED and not WRITE_TOKEN:
+        raise SystemExit("EVENTO_DAEMON_WRITE_TOKEN is required when writes are enabled")
+    workspace_roots()[0].mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print("EVENTO local daemon listening on http://%s:%s" % (HOST, PORT))
     server.serve_forever()
