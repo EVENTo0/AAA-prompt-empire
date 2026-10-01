@@ -1,0 +1,15 @@
+{
+  "source": "Supabase list_projects via authorized connection; retained source artifact SHA-256 below",
+  "sourceArtifactSha256": "20722a6b76b9feb8bccbbcaf7558008ecad0878356c26a2c1e49acc17fd6a9d0",
+  "observedAt": "2026-09-28 (UTC session); exact collection time not retained",
+  "recordedAt": "2026-09-28T21:28:44.583432+00:00",
+  "scope": "list_projects visible to current connected organization; other integrations may not be listed",
+  "visibleProjectCount": 11,
+  "notGlobalTotal": true,
+  "additionalProjectSincePriorAudit": {
+    "name": "Evento-One",
+    "createdAt": "2026-09-26T21:38:12.440946Z"
+  },
+  "applicationMappingVerified": false,
+  "costOrReadinessInference": "none"
+}

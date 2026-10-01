@@ -1,0 +1,578 @@
+{
+  "auditAsOf": "2026-09-28",
+  "sessionDate": "2026-09-29",
+  "sessionTimezone": "Asia/Dubai",
+  "observedAt": "2026-09-28T22:20:02.919Z",
+  "source": "GitHub get_pr_info and exact-commit workflow runs independently fetched by Registry executor; product-test details from linked repo evidence and executing agents",
+  "boundary": "Branch evidence plus separately recorded concurrent maintenance merges; no merge was performed by the Registry executor. No production readiness, commercial completion percentage, or Core promotion.",
+  "entries": [
+    {
+      "repository": "EVENTo0/Evento-project-development-v1",
+      "pr": 10,
+      "head": "793f1441da718bf2129931d994df3101f5a250bc",
+      "url": "https://github.com/EVENTo0/Evento-project-development-v1/pull/10",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36489163740,
+          "name": "P0.1 security implementation",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Evento-project-development-v1/actions/runs/36489163740"
+        },
+        {
+          "id": 36489163555,
+          "name": "Gate 1 Request Flow",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Evento-project-development-v1/actions/runs/36489163555"
+        }
+      ],
+      "verified": "Preview password Auth, staff-positive/nonstaff-negative API and RLS, Arabic/English Chromium; fixture cleanup zero. Runtime evidence source 4b104a7c8dde9894104ff811309dff226fc4923f.",
+      "remaining": "Final release integration, commercial TEST sale, owner acceptance; production unchanged."
+    },
+    {
+      "repository": "EVENTo0/Evento-One",
+      "pr": 3,
+      "head": "c869120d1b4e995483251203895eecc493c0ea23",
+      "url": "https://github.com/EVENTo0/Evento-One/pull/3",
+      "draft": false,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36487710528,
+          "name": "EVENTO ONE verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Evento-One/actions/runs/36487710528"
+        }
+      ],
+      "verified": "Next16.3.6; 109 application+3 boundary tests;353 pgTAP/6 suites;4 real password Auth REST suites in isolated Supabase;46-page build.",
+      "remaining": "Hosted browser founder/second-tenant journey and external Stripe TEST Checkout/webhook; no production claim."
+    },
+    {
+      "repository": "EVENTo0/evento-mobile",
+      "pr": 9,
+      "head": "1148c5b9aaa57df98f556c5fa71038fb0edaabf4",
+      "url": "https://github.com/EVENTo0/evento-mobile/pull/9",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488156998,
+          "name": "EVENTO Mobile PR Verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evento-mobile/actions/runs/36488156998"
+        }
+      ],
+      "verified": "Node24 CI;15 Flutter+3 SDK tests;built APK manifest confirms API36. Artifact11000450684 is logs/checksum only; expires2026-10-12.",
+      "remaining": "Physical Android/device flows and external Stripe TEST; log artifact is not downloadable APK or device evidence."
+    },
+    {
+      "repository": "EVENTo0/Evento-octa-v10",
+      "pr": 2,
+      "head": "307b858684c164ff2ad5ffb8b39d75296e4013da",
+      "url": "https://github.com/EVENTo0/Evento-octa-v10/pull/2",
+      "draft": false,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488050458,
+          "name": "OCTA checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Evento-octa-v10/actions/runs/36488050458"
+        }
+      ],
+      "verified": "26 PostgreSQL policy tests+18 real password Auth/PostgREST checks and actual AuthGate component in isolated Chromium;positive founders and nonfounder denial.",
+      "remaining": "Hosted/full-dashboard session and runtime/recovery gates remain distinct; no hosted mutation or production promotion."
+    },
+    {
+      "repository": "EVENTo0/AAA-prompt-empire",
+      "pr": 27,
+      "head": "d84c41c22749b50c9f918d42693b2c00f512ec19",
+      "url": "https://github.com/EVENTo0/AAA-prompt-empire/pull/27",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36487783002,
+          "name": "Empire Guard",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/36487783002"
+        },
+        {
+          "id": 36487783259,
+          "name": "Mobile Control Plane",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/36487783259"
+        }
+      ],
+      "verified": "Separate Next16.3.6 security PR;clean install,7 baseline contracts,typecheck/build,10 production HTTP authentication boundary smokes.",
+      "remaining": "PR27 success does not clear PR26 sibling-main lifecycle debts. Four concurrent verified maintenance merges reduce outstanding detected debt from9 to5; no guard bypass."
+    },
+    {
+      "repository": "EVENTo0/Ev-Bot",
+      "pr": 11,
+      "head": "c67313def7718f613255841cc900638e36388d80",
+      "url": "https://github.com/EVENTo0/Ev-Bot/pull/11",
+      "draft": true,
+      "merged": false,
+      "base": "release/v1.0-rc1",
+      "runs": [
+        {
+          "id": 36487614217,
+          "name": "Ev-Bot Core Build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487614217"
+        },
+        {
+          "id": 36487613441,
+          "name": "Ev-Bot RC Engine Smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487613441"
+        },
+        {
+          "id": 36487613396,
+          "name": "Ev-Bot Gate 11G Supabase Portability",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487613396"
+        },
+        {
+          "id": 36487613486,
+          "name": "Ev-Bot Gate 11F Supabase Audit",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487613486"
+        },
+        {
+          "id": 36487613423,
+          "name": "Ev-Bot Gate 11 RC Integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487613423"
+        },
+        {
+          "id": 36487613380,
+          "name": "Ev-Bot Gate 11C Provider Preflight",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487613380"
+        },
+        {
+          "id": 36487613328,
+          "name": "Ev-Bot RC Preview Check",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487613328"
+        },
+        {
+          "id": 36487613397,
+          "name": "Ev-Bot Gate 11E Mock Paper E2E",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Ev-Bot/actions/runs/36487613397"
+        }
+      ],
+      "verified": "Release-line Node24/lock maintenance;8 workflows success. Current npm verify:rc evidence31 node+5 release checks, not historical173 rerun.",
+      "remaining": "Dedicated backend inactive; external Paper E2E and provider/fees/slippage/drawdown evidence; paper-only, no live money."
+    },
+    {
+      "repository": "EVENTo0/evex-coach",
+      "pr": 2,
+      "head": "a9e87784528052b278eeb1db724d16e2d50d26bf",
+      "url": "https://github.com/EVENTo0/evex-coach/pull/2",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488824877,
+          "name": "CI - API Tests & Reliability",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-coach/actions/runs/36488824877"
+        },
+        {
+          "id": 36488824861,
+          "name": "Sentry Code Review - Find Bugs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-coach/actions/runs/36488824861"
+        }
+      ],
+      "verified": "39 Python tests on exact head in native CI;email/bcrypt startup repair;local JWT/session/habit isolation and synthetic billing identity guards;frontend/Sentry success.",
+      "remaining": "In-memory prototype, real hosted Auth/RLS/persistence, frontend wiring, Next LTS migration, subscription sandbox and qualified health review; permissive roadmap tests do not establish features."
+    },
+    {
+      "repository": "EVENTo0/evex-fit",
+      "pr": 2,
+      "head": "22fdf95c1768fa436ce310b19cccccdc9b80c8b3",
+      "url": "https://github.com/EVENTo0/evex-fit/pull/2",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488827687,
+          "name": "Sentry Code Review - Find Bugs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-fit/actions/runs/36488827687"
+        },
+        {
+          "id": 36488827662,
+          "name": "CI - API Tests & Reliability",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-fit/actions/runs/36488827662"
+        }
+      ],
+      "verified": "46 Python tests on exact head;missing source contracts repaired;deterministic starter workouts,user progress isolation,unconfigured storage denial;frontend/Sentry success.",
+      "remaining": "Persistence,hosted Auth/RLS,frontend wiring,framework migration,subscription sandbox,qualified content review; no clinical readiness."
+    },
+    {
+      "repository": "EVENTo0/evex-lab",
+      "pr": 2,
+      "head": "14a862a8120b261635e7054eb5bf011528870ef8",
+      "url": "https://github.com/EVENTo0/evex-lab/pull/2",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488831400,
+          "name": "Sentry Code Review - Find Bugs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-lab/actions/runs/36488831400"
+        },
+        {
+          "id": 36488831533,
+          "name": "CI - API Tests & Reliability",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-lab/actions/runs/36488831533"
+        }
+      ],
+      "verified": "19 Python tests on exact head;Node24 workflows and authenticated owner-scoped experiment API;synthetic retry/billing guards;frontend/Sentry success.",
+      "remaining": "Notification provider absent503, persistence/hosted identity,real analytics/AI,framework migration,subscription sandbox; retained fixtures explicitly demo."
+    },
+    {
+      "repository": "EVENTo0/evx-health-coach",
+      "pr": 2,
+      "head": "22b781615161ec95f4c180a847e63e57cdc492f2",
+      "url": "https://github.com/EVENTo0/evx-health-coach/pull/2",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36489313337,
+          "name": "PR source verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evx-health-coach/actions/runs/36489313337"
+        }
+      ],
+      "verified": "Node24 PR verification;root/admin locked install,mobile typecheck,admin build and public-secret configuration boundary;5 environment files removed from candidate head.",
+      "remaining": "Historical review of7 credential-named fields without proven validity;hosted Auth/RLS/privacy,clinical/device/store gates,Vite/Recharts lifecycle; history not rewritten."
+    },
+    {
+      "repository": "EVENTo0/MiniBella",
+      "pr": 7,
+      "head": "8f4f0cc6662b8934924619e5ddb33ee0dd365d6e",
+      "url": "https://github.com/EVENTo0/MiniBella/pull/7",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488236252,
+          "name": "MiniBella CI",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/MiniBella/actions/runs/36488236252"
+        }
+      ],
+      "verified": "Next16.3.6;clean lock/typecheck/lint/build;5 production HTTP and3 Chromium mobile-viewport smoke checks;20-guest demo quote explicitly persisted=false.",
+      "remaining": "Persisted pilot and real margins/cold chain/physical-device/hosted auth gates; separate Node24 PR6 was observed merged with successful main CI."
+    },
+    {
+      "repository": "EVENTo0/AithenaX",
+      "pr": 2,
+      "head": "bde985eab0e257e13b1523101f89d054093b4e42",
+      "url": "https://github.com/EVENTo0/AithenaX/pull/2",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488594426,
+          "name": "Security PR Verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/AithenaX/actions/runs/36488594426"
+        }
+      ],
+      "verified": "Next16.3.6+aligned lock;native security PR CI success.",
+      "remaining": "Market-data rights,freshness/fees/slippage,paper evaluation,webhook security and hosted acceptance; decision support only."
+    },
+    {
+      "repository": "EVENTo0/octa-xr-webar",
+      "pr": 1,
+      "head": "3faa6d71050d79cf69b9fa20836639cc5b2d79e6",
+      "url": "https://github.com/EVENTo0/octa-xr-webar/pull/1",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488578953,
+          "name": "Security PR Verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/octa-xr-webar/actions/runs/36488578953"
+        }
+      ],
+      "verified": "Next15.5.26 supported security baseline;native CI including18 E2E success.",
+      "remaining": "Real camera/XR device,privacy/rate limits,and final hosting acceptance; browser automation is not physical XR evidence."
+    },
+    {
+      "repository": "EVENTo0/Evx-Mawasem-wheel",
+      "pr": 2,
+      "head": "7861bf4eb3010431aa174f50fd11a43e8a0df1d7",
+      "url": "https://github.com/EVENTo0/Evx-Mawasem-wheel/pull/2",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36488581356,
+          "name": "Security PR Verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Evx-Mawasem-wheel/actions/runs/36488581356"
+        }
+      ],
+      "verified": "Next16.3.6 security baseline and native PR CI success.",
+      "remaining": "Region-specific January evidence,official live weather provenance and accuracy; no forecast/commercial proof from build."
+    },
+    {
+      "repository": "EVENTo0/EVENTO-MODURA",
+      "pr": 2,
+      "head": "8d1b509e9c9c091021b1c52a766b299320d88bc9",
+      "url": "https://github.com/EVENTo0/EVENTO-MODURA/pull/2",
+      "draft": true,
+      "merged": false,
+      "base": "main",
+      "runs": [
+        {
+          "id": 36489930756,
+          "name": "MODURA verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/EVENTO-MODURA/actions/runs/36489930756"
+        }
+      ],
+      "verified": "26 tests:13 actual inline configurator/BOM/costing+13 PostgreSQL ownership/storage;negative/malformed/overflow pricing fixed;4 cross-owner-parent regressions fixed in unapplied migration;independent scoped review.",
+      "remaining": "PGlite18.3 SQL-role simulation differs from hosted17;real Auth/Storage HTTP and browser/atomic-save gates,dated supplier quotes and margin/engineering pilot; no hosted migration."
+    },
+    {
+      "repository": "EVENTo0/evex-coach",
+      "pr": 3,
+      "head": "d7fd84f83c68615a327d528ff507b06e1de05315",
+      "url": "https://github.com/EVENTo0/evex-coach/pull/3",
+      "draft": true,
+      "merged": false,
+      "base": "maintenance/node24-actions-20260922",
+      "runs": [
+        {
+          "id": 36490885560,
+          "name": "Frontend Security and Container Verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-coach/actions/runs/36490885560"
+        }
+      ],
+      "verified": "Stacked on repaired PR2: Next/eslint15.5.26,React19.3,Sentry10.75.3,PostCSS8.5.28,locked install,audit0,lint/types/build. Native CI verifies composed backend,6 static HTTP checks and actual non-root Node24 Docker build/run;local Chromium390/1280 payment-denial smoke.",
+      "remaining": "Hosted identity/provider/device/persistence and qualified health review remain. Checkout deliberately disabled until trusted mapping and external Stripe TEST; no merge or production. Next15.5.27 not released at audit."
+    },
+    {
+      "repository": "EVENTo0/evex-fit",
+      "pr": 3,
+      "head": "e6802f1712fbb22b118be776b9210f5c22bac52c",
+      "url": "https://github.com/EVENTo0/evex-fit/pull/3",
+      "draft": true,
+      "merged": false,
+      "base": "maintenance/node24-actions-20260922",
+      "runs": [
+        {
+          "id": 36490887558,
+          "name": "Frontend Security and Container Verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-fit/actions/runs/36490887558"
+        }
+      ],
+      "verified": "Stacked on repaired PR2: Next/eslint15.5.26,React19.3,Sentry10.75.3,PostCSS8.5.28,locked install,audit0,lint/types/build. Native CI verifies composed backend,6 static HTTP checks and actual non-root Node24 Docker build/run;local Chromium390/1280 payment-denial smoke.",
+      "remaining": "Hosted identity/provider/device/persistence and qualified health review remain. Checkout deliberately disabled until trusted mapping and external Stripe TEST; no merge or production. Next15.5.27 not released at audit."
+    },
+    {
+      "repository": "EVENTo0/evex-lab",
+      "pr": 3,
+      "head": "a25165ffd1bc73be4301260e3aa5b34b79ebdd53",
+      "url": "https://github.com/EVENTo0/evex-lab/pull/3",
+      "draft": true,
+      "merged": false,
+      "base": "maintenance/node24-actions-20260928",
+      "runs": [
+        {
+          "id": 36490890655,
+          "name": "Frontend Security and Container Verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/evex-lab/actions/runs/36490890655"
+        }
+      ],
+      "verified": "Stacked on repaired PR2: Next/eslint15.5.26,React19.3,Sentry10.75.3,PostCSS8.5.28,locked install,audit0,lint/types/build. Native CI verifies composed backend,6 static HTTP checks and actual non-root Node24 Docker build/run;local Chromium390/1280 payment-denial smoke.",
+      "remaining": "Hosted identity/provider/device/persistence and qualified health review remain. Checkout deliberately disabled until trusted mapping and external Stripe TEST; no merge or production. Next15.5.27 not released at audit."
+    },
+    {
+      "repository": "EVENTo0/Evento-One",
+      "pr": 4,
+      "head": "b6e37e165374e7bd20d93059fb331635a6366fc1",
+      "url": "https://github.com/EVENTo0/Evento-One/pull/4",
+      "draft": true,
+      "merged": false,
+      "base": "delivery/verified-cloud-pilot",
+      "runs": [
+        {
+          "id": 36490898486,
+          "name": "EVENTO ONE verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/EVENTo0/Evento-One/actions/runs/36490898486"
+        }
+      ],
+      "verified": "Stacked read-only versioned API foundation:Auth-verified Bearer JWT,active org/membership and caller RLS; context/bookings/quotations/invoices summaries; native application and database CI including real Auth and production Next HTTP acceptance passed.",
+      "remaining": "Website qualified-lead write/replay and Mobile ONE identity/client/UI adoption are code gaps; read-only API success does not prove full-company Lead-to-Payment-to-Delivery E2E or hosted launch."
+    }
+  ],
+  "observedConcurrentMerges": [
+    {
+      "repository": "EVENTo0/AAA-prompt",
+      "pr": 2,
+      "merged": true,
+      "mergedAt": "2026-09-28T21:53:21Z",
+      "mergeCommit": "17481a7296b153d786ed40209bd625cf1f236155",
+      "head": "58b319e8f99c6b91014c2750dbf8e7a7b790cc0f",
+      "url": "https://github.com/EVENTo0/AAA-prompt/pull/2",
+      "state": "closed",
+      "mainSha": "17481a7296b153d786ed40209bd625cf1f236155",
+      "runs": [
+        {
+          "repo": "AAA-prompt",
+          "id": 36489032902,
+          "headSha": "17481a7296b153d786ed40209bd625cf1f236155",
+          "status": "completed",
+          "conclusion": "success",
+          "event": "push",
+          "url": "https://github.com/EVENTo0/AAA-prompt/actions/runs/36489032902"
+        }
+      ],
+      "provenance": "Observed external concurrent change; not performed by Registry executor"
+    },
+    {
+      "repository": "EVENTo0/OCTA-VOICE",
+      "pr": 2,
+      "merged": true,
+      "mergedAt": "2026-09-28T21:53:25Z",
+      "mergeCommit": "0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+      "head": "9750226d027c368db6cd28882a5cfc77f982fa24",
+      "url": "https://github.com/EVENTo0/OCTA-VOICE/pull/2",
+      "state": "closed",
+      "mainSha": "0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+      "runs": [
+        {
+          "repo": "OCTA-VOICE",
+          "id": 36489040865,
+          "headSha": "0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+          "status": "completed",
+          "conclusion": "success",
+          "event": "push",
+          "url": "https://github.com/EVENTo0/OCTA-VOICE/actions/runs/36489040865"
+        }
+      ],
+      "provenance": "Observed external concurrent change; not performed by Registry executor"
+    },
+    {
+      "repository": "EVENTo0/MiniBella",
+      "pr": 6,
+      "merged": true,
+      "mergedAt": "2026-09-28T21:53:30Z",
+      "mergeCommit": "eeca7c76154992133736db37e80a93ab9b9f3843",
+      "head": "f0f87cbadc4ed5890377f1ea0764e269ec737428",
+      "url": "https://github.com/EVENTo0/MiniBella/pull/6",
+      "state": "closed",
+      "mainSha": "eeca7c76154992133736db37e80a93ab9b9f3843",
+      "runs": [
+        {
+          "repo": "MiniBella",
+          "id": 36489047908,
+          "headSha": "eeca7c76154992133736db37e80a93ab9b9f3843",
+          "status": "completed",
+          "conclusion": "success",
+          "event": "push",
+          "url": "https://github.com/EVENTo0/MiniBella/actions/runs/36489047908"
+        }
+      ],
+      "provenance": "Observed external concurrent change; not performed by Registry executor"
+    },
+    {
+      "repository": "EVENTo0/AEGIS-AI-Security",
+      "pr": 11,
+      "merged": true,
+      "mergedAt": "2026-09-28T21:53:34Z",
+      "mergeCommit": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+      "head": "a8f959b1bc5f6924eb49ad80089cfcb38b3235dd",
+      "url": "https://github.com/EVENTo0/AEGIS-AI-Security/pull/11",
+      "state": "closed",
+      "mainSha": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+      "runs": [
+        {
+          "repo": "AEGIS-AI-Security",
+          "id": 36489061426,
+          "headSha": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+          "status": "completed",
+          "conclusion": "success",
+          "event": "push",
+          "url": "https://github.com/EVENTo0/AEGIS-AI-Security/actions/runs/36489061426"
+        }
+      ],
+      "provenance": "Observed external concurrent change; not performed by Registry executor"
+    }
+  ],
+  "pendingWork": [
+    {
+      "scope": "Budget and recovery",
+      "state": "Execution ongoing in separate root workstream; no hosted recovery or billed-total claim"
+    },
+    {
+      "scope": "Company integration",
+      "state": "Read-only ONE API foundation verified; Website lead write/replay and Mobile identity/client/UI adoption and full-company E2E not closed"
+    }
+  ]
+}

@@ -33,7 +33,8 @@ REQUIRED_FILES = [
     "docs/mobile/MOBILE_FIRST_OPERATING_MODEL.md", "docs/architecture/TECHNOLOGY_RADAR.md",
     "docs/organization/AGENT_CATALOG.md", "registry/skills.json", "registry/agents.json",
     "registry/routing.json", "evals/contract-routing.json", "scripts/run_empire_evals.py",
-    "docs/architecture/EVALUATED_AGENT_SYSTEM.md",
+    "docs/architecture/EVALUATED_AGENT_SYSTEM.md", "registry/runtime-lifecycle.json",
+    "evals/runtime-lifecycle.json", "scripts/validate_runtime_lifecycle.py",
 ]
 
 def read_json(path: Path):

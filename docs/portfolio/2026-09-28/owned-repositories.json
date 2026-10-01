@@ -1,0 +1,142 @@
+{
+  "asOf": "2026-09-28",
+  "verifiedOn": "2026-09-29",
+  "timeZone": "Asia/Dubai",
+  "source": "GitHub owned-repository inventory (affiliation=owner, page_size=100)",
+  "repositoryCount": 33,
+  "readinessClaim": "Inventory membership only; no runtime or release readiness implied.",
+  "repositories": [
+    {
+      "repository": "EVENTo0/AAA-prompt",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/AAA-prompt-empire",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/AEGIS-AI-Security",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/aetheris-studios",
+      "defaultBranch": "Alpha-Public"
+    },
+    {
+      "repository": "EVENTo0/AithenaX",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/empire-mobile-control-plane",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Ev-Bot",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/evento-mobile",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/EVENTO-MODURA",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Evento-octa-v10",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Evento-One",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Evento-project-2",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Evento-project-development-v1",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/EVENTo0",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/evex-coach",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/evex-fit",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/evex-lab",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/evex-mobile",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Evx",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/evx-health-coach",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Evx-Mawasem-wheel",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/familyos",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Game-1-Saeed-octa",
+      "defaultBranch": "claude/saeed-royale-mobile-mvp-tmtzxi"
+    },
+    {
+      "repository": "EVENTo0/History-Med-1",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/MiniBella",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/OCTA-VOICE",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/octa-xr-webar",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/OCTOPUS",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/OCTORIMAL",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/omniform-nexus-professor-ai",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/saeed-game",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/Smart-OS-Generate-Any-Project-From-Title",
+      "defaultBranch": "main"
+    },
+    {
+      "repository": "EVENTo0/UAE-Seed-Dataset",
+      "defaultBranch": "main"
+    }
+  ]
+}
