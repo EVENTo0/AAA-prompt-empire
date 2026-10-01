@@ -31,6 +31,8 @@ jobs:
         run: python scripts/validate_empire.py
       - name: Run routing and permission contract evals
         run: python scripts/run_empire_evals.py
+      - name: Validate EVENTO Memory and Agent Contract Gate 1
+        run: python scripts/validate_evento_control_plane.py
       - name: Check workflow text hygiene
         run: |
           python - <<'PY'
