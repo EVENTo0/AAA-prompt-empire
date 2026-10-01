@@ -1,5 +1,5 @@
-import pilots from '../../../registry/evento-modernization-pilots.json'
-import agents from '../../../registry/evento-agent-capabilities.json'
+import pilots from '@/data/evento-modernization-pilots.json'
+import agents from '@/data/evento-agent-capabilities.json'
 
 export type EventoPilot = {
   project_id: string
