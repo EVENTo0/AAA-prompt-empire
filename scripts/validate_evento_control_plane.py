@@ -21,6 +21,8 @@ REQUIRED = [
     "schemas/evento-evidence-pack.schema.json",
     "registry/evento-agent-capabilities.json",
     "registry/evento-modernization-pilots.json",
+    "apps/mobile-control-plane/data/evento-agent-capabilities.json",
+    "apps/mobile-control-plane/data/evento-modernization-pilots.json",
     "tools/memory/build_context.py",
     "supabase/migrations/20261001190000_evento_memory_v1.sql",
 ]
@@ -97,6 +99,15 @@ def validate_capabilities(errors: list[str]) -> None:
     expected = {"codex","claude-code","antigravity","openhands","cline"}
     if not expected <= ids:
         fail(errors, f"agent registry missing baseline adapters: {sorted(expected-ids)}")
+
+def validate_control_plane_mirrors(errors: list[str]) -> None:
+    pairs = (
+        ("registry/evento-agent-capabilities.json", "apps/mobile-control-plane/data/evento-agent-capabilities.json"),
+        ("registry/evento-modernization-pilots.json", "apps/mobile-control-plane/data/evento-modernization-pilots.json"),
+    )
+    for source, mirror in pairs:
+        if load(source) != load(mirror):
+            fail(errors, f"control-plane mirror drift: {mirror} must match {source}")
 
 def validate_pilots(errors: list[str]) -> None:
     data = load("registry/evento-modernization-pilots.json")
@@ -192,6 +203,7 @@ def main() -> int:
     if not errors:
         validate_schema_contracts(errors)
         validate_capabilities(errors)
+        validate_control_plane_mirrors(errors)
         validate_pilots(errors)
         validate_context_builder(errors)
         validate_sql_guardrails(errors)
