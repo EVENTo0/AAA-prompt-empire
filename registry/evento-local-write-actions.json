@@ -1,0 +1,30 @@
+{
+  "version":"1.0",
+  "policy":{
+    "default":"deny",
+    "requires_write_token":true,
+    "requires_write_enable":true,
+    "arbitrary_shell":false,
+    "release":false
+  },
+  "actions":[
+    {
+      "id":"workspace-write-text",
+      "kind":"workspace",
+      "parameters":["relative_path","content"],
+      "description":"Write UTF-8 text only inside an allowlisted workspace root."
+    },
+    {
+      "id":"git-create-worktree",
+      "kind":"git",
+      "parameters":["repository","branch","base_ref","destination"],
+      "description":"Create an isolated Git worktree under an allowlisted workspace root."
+    },
+    {
+      "id":"python-run-approved",
+      "kind":"python",
+      "parameters":["script","args"],
+      "description":"Run a committed Python script from the approved script roots; no inline code or shell."
+    }
+  ]
+}
