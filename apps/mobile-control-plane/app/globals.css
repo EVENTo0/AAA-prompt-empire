@@ -53,3 +53,24 @@ button { color:inherit; }
 @media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
 
 .offlineButton { display:grid; place-items:center; margin-top:20px; text-decoration:none; }
+
+
+/* EVENTO Command Console */
+.eventoConsole{margin:18px 0;padding:18px;border:1px solid #29404f;border-radius:20px;background:linear-gradient(135deg,rgba(214,171,99,.07),transparent 42%),#08131c}
+.commandComposer{display:grid;grid-template-columns:1.4fr .7fr;gap:10px;align-items:end}
+.commandComposer label{display:grid;gap:7px;color:#b8c5ce;font-size:11px;font-weight:700}
+.commandComposer select,.commandComposer textarea{width:100%;border:1px solid #293d4a;border-radius:13px;background:#050c12;color:var(--text);padding:12px;outline:none}
+.commandComposer select{height:46px}
+.commandComposer textarea{resize:vertical;min-height:96px;line-height:1.5}
+.commandComposer select:focus,.commandComposer textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(79,212,255,.08)}
+.commandPrompt{grid-column:1/-1}
+.eventoRun{grid-column:1/-1;min-height:52px;border:1px solid #d6ab63;border-radius:14px;background:linear-gradient(135deg,#d6ab63,#9e7338);color:#071018;font-weight:950;letter-spacing:.04em;cursor:pointer}
+.eventoRun:disabled{opacity:.5;cursor:not-allowed}
+.commandResult{margin-top:14px;padding:15px;border:1px solid #203644;border-radius:16px;background:#071018}
+.commandSummary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.commandSummary>div{padding:10px;border:1px solid #182b37;border-radius:12px;background:#0a151e}
+.commandSummary span,.commandSummary b{display:block}.commandSummary span{color:var(--muted);font-size:9px;text-transform:uppercase}.commandSummary b{margin-top:5px;font-size:12px}
+.routeLine{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0;padding:10px;border-radius:12px;background:#091923;color:#9ddff2;font-size:10px}
+.commandColumns{display:grid;grid-template-columns:1fr 1fr;gap:16px}.commandColumns h3{margin:8px 0 5px;font-size:12px}.commandColumns p,.commandColumns li{color:#9aabb7;font-size:11px;line-height:1.55}.commandColumns ul{margin:6px 0;padding-left:18px}
+.commandNotes{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.commandNotes span{padding:6px 8px;border:1px solid #263946;border-radius:999px;color:var(--muted);font-size:9px}
+@media(max-width:680px){.commandComposer,.commandColumns{grid-template-columns:1fr}.commandSummary{grid-template-columns:1fr 1fr}}
