@@ -1,0 +1,16 @@
+{
+  "version":"1.0",
+  "policy":{
+    "provider_neutral":true,
+    "self_approval":false,
+    "unknown_route":"fail_closed",
+    "critical_release_requires_human_approval":true
+  },
+  "agents":[
+    {"id":"codex","adapter":"codex","strengths":["coding","tests","refactor","git","repository-analysis"],"modes":["plan","build","verify","learn"],"cost_class":"medium","can_write":true,"can_release":false},
+    {"id":"claude-code","adapter":"claude","strengths":["large-context","architecture","coding","review","documentation"],"modes":["plan","build","verify","learn"],"cost_class":"medium","can_write":true,"can_release":false},
+    {"id":"antigravity","adapter":"generic","strengths":["orchestration","parallel-agents","coding"],"modes":["plan","build","verify"],"cost_class":"variable","can_write":true,"can_release":false},
+    {"id":"openhands","adapter":"generic","strengths":["automation","self-hosted","repeatable-tasks","ci"],"modes":["plan","build","verify","learn"],"cost_class":"low_to_variable","can_write":true,"can_release":false},
+    {"id":"cline","adapter":"generic","strengths":["ide","cli","mcp","automation"],"modes":["plan","build","verify"],"cost_class":"low_to_variable","can_write":true,"can_release":false}
+  ]
+}
