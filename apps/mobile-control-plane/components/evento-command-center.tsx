@@ -1,4 +1,5 @@
 import { getEventoModernizationSnapshot } from '@/lib/evento-modernization'
+import EventoCommandConsole from '@/components/evento-command-console'
 
 export default function EventoCommandCenter() {
   const data = getEventoModernizationSnapshot()
@@ -23,6 +24,8 @@ export default function EventoCommandCenter() {
       <div className="agentChips" aria-label="EVENTO commands">
         {data.commands.map((command) => <span key={command}>{command}</span>)}
       </div>
+
+      <EventoCommandConsole />
 
       <div className="catalogGrid">
         {data.pilots.map((pilot, index) => (
