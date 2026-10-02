@@ -43,8 +43,7 @@ fn python_executable() -> String {
 }
 
 fn development_daemon() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../daemon/evento_daemon.py")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../daemon/evento_daemon.py")
 }
 
 fn bundled_daemon(app: &AppHandle) -> Option<PathBuf> {
@@ -64,15 +63,15 @@ fn daemon_script(app: &AppHandle) -> Result<PathBuf, String> {
         .ok_or_else(|| "EVENTO daemon resource was not found".to_string())
 }
 
-fn health_request(token: Option<&str>) -> Result<serde_json::Value, String> {
-    let url = format!("{}/health", daemon_url());
+fn daemon_get_json(path: &str, token: Option<&str>) -> Result<serde_json::Value, String> {
+    let url = format!("{}{}", daemon_url(), path);
     let mut request = ureq::get(&url);
     if let Some(token) = token {
         request = request.header("Authorization", &format!("Bearer {token}"));
     }
     let mut response = request
         .config()
-        .timeout_global(Some(Duration::from_secs(2)))
+        .timeout_global(Some(Duration::from_secs(3)))
         .build()
         .call()
         .map_err(|error| error.to_string())?;
@@ -82,10 +81,12 @@ fn health_request(token: Option<&str>) -> Result<serde_json::Value, String> {
         .map_err(|error| error.to_string())
 }
 
-#[tauri::command]
-fn daemon_status(state: State<'_, DaemonState>) -> DaemonStatus {
-    let token = state.token.lock().ok().and_then(|guard| guard.clone());
-    let health = health_request(token.as_deref()).ok();
+fn health_request() -> Result<serde_json::Value, String> {
+    daemon_get_json("/health", None)
+}
+
+fn status_from_state(state: &DaemonState) -> DaemonStatus {
+    let health = health_request().ok();
     DaemonStatus {
         running: health.is_some(),
         url: daemon_url(),
@@ -98,14 +99,17 @@ fn daemon_status(state: State<'_, DaemonState>) -> DaemonStatus {
     }
 }
 
-#[tauri::command]
-fn start_daemon(app: AppHandle, state: State<'_, DaemonState>) -> Result<DaemonStatus, String> {
-    if health_request(None).is_ok() {
-        return Ok(daemon_status(state));
+fn start_daemon_inner(app: &AppHandle, state: &DaemonState) -> Result<DaemonStatus, String> {
+    if state.token.lock().map_err(|_| "Token state poisoned")?.is_some() {
+        return Ok(status_from_state(state));
+    }
+
+    if health_request().is_ok() {
+        return Err("Port 8765 already has a local service. EVENTO will not adopt an unauthenticated daemon.".to_string());
     }
 
     let token = random_token();
-    let script = daemon_script(&app)?;
+    let script = daemon_script(app)?;
     let mut command = Command::new(python_executable());
     command
         .arg(script)
@@ -122,18 +126,30 @@ fn start_daemon(app: AppHandle, state: State<'_, DaemonState>) -> Result<DaemonS
         command.creation_flags(CREATE_NO_WINDOW);
     }
 
-    let child = command.spawn().map_err(|error| format!("Could not start EVENTO daemon: {error}"))?;
+    let child = command
+        .spawn()
+        .map_err(|error| format!("Could not start EVENTO daemon: {error}"))?;
     *state.child.lock().map_err(|_| "Daemon state poisoned")? = Some(child);
     *state.token.lock().map_err(|_| "Token state poisoned")? = Some(token.clone());
 
-    for _ in 0..20 {
+    for _ in 0..25 {
         std::thread::sleep(Duration::from_millis(150));
-        if health_request(Some(&token)).is_ok() {
-            return Ok(daemon_status(state));
+        if daemon_get_json("/v1/capabilities", Some(&token)).is_ok() {
+            return Ok(status_from_state(state));
         }
     }
 
     Err("EVENTO daemon did not become ready".to_string())
+}
+
+#[tauri::command]
+fn daemon_status(state: State<'_, DaemonState>) -> DaemonStatus {
+    status_from_state(&state)
+}
+
+#[tauri::command]
+fn start_daemon(app: AppHandle, state: State<'_, DaemonState>) -> Result<DaemonStatus, String> {
+    start_daemon_inner(&app, &state)
 }
 
 #[tauri::command]
@@ -146,10 +162,46 @@ fn stop_daemon(state: State<'_, DaemonState>) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn workspace_snapshot(state: State<'_, DaemonState>) -> Result<serde_json::Value, String> {
+    let token = state
+        .token
+        .lock()
+        .map_err(|_| "Token state poisoned")?
+        .clone()
+        .ok_or_else(|| "EVENTO daemon is not owned by this desktop session".to_string())?;
+    daemon_get_json("/v1/workspaces", Some(&token))
+}
+
+#[tauri::command]
+fn diagnostic_snapshot(state: State<'_, DaemonState>) -> Result<serde_json::Value, String> {
+    let token = state
+        .token
+        .lock()
+        .map_err(|_| "Token state poisoned")?
+        .clone()
+        .ok_or_else(|| "EVENTO daemon is not owned by this desktop session".to_string())?;
+    daemon_get_json("/v1/diagnostics", Some(&token))
+}
+
 pub fn run() {
     tauri::Builder::default()
         .manage(DaemonState::default())
-        .invoke_handler(tauri::generate_handler![daemon_status, start_daemon, stop_daemon])
+        .setup(|app| {
+            let handle = app.handle().clone();
+            let state = app.state::<DaemonState>();
+            if let Err(error) = start_daemon_inner(&handle, &state) {
+                eprintln!("EVENTO local engine auto-start skipped: {error}");
+            }
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            daemon_status,
+            start_daemon,
+            stop_daemon,
+            workspace_snapshot,
+            diagnostic_snapshot
+        ])
         .run(tauri::generate_context!())
         .expect("error while running EVENTO desktop");
 }
