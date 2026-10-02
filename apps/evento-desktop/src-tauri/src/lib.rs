@@ -438,3 +438,24 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running EVENTO desktop");
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn branch_suffix_is_bounded_and_normalized() {
+        assert_eq!(clean_branch_suffix("Feature One").unwrap(), "feature-one");
+        assert!(clean_branch_suffix("").is_err());
+        assert!(clean_branch_suffix(&"a".repeat(49)).is_err());
+    }
+
+    #[test]
+    fn credential_names_are_allowlisted() {
+        assert!(validate_credential_name("github").is_ok());
+        assert!(validate_credential_name("supabase").is_ok());
+        assert!(validate_credential_name("shell").is_err());
+        assert!(validate_credential_name("../secret").is_err());
+    }
+}
