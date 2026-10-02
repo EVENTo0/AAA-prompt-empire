@@ -46,3 +46,40 @@ EVENTO must keep working if Claude, Codex, or any single model provider is unava
 8. Android / iOS / desktop build adapters
 9. local-model adapter
 10. signed desktop installers and auto-update
+
+
+## Native shell v0.1
+
+Current implementation:
+- Tauri 2.12 native shell
+- Rust 1.99 toolchain
+- static local frontend; no CDN/runtime web dependency
+- Rust-owned daemon lifecycle
+- ephemeral daemon session token generated in native code
+- daemon starts read-only by default
+- no daemon token exposed to JavaScript
+- Windows MSI/NSIS bundle targets
+- Visual C++ runtime bundling enabled
+
+### Local development
+
+From `apps/evento-desktop`:
+
+```powershell
+npm install
+npm run dev
+```
+
+Python must be available as `python` on Windows or configured with `EVENTO_PYTHON`.
+
+### Build
+
+```powershell
+npm run build
+```
+
+The production shell packages the EVENTO daemon and committed registries as application resources.
+
+### Security rule
+
+Tauri owns the local daemon token. The webview receives only typed Tauri command results. When write execution is introduced into the native shell, it must use separate OS-protected credentials and the existing EVENTO write-action allowlist; do not forward raw tokens into the webview.
