@@ -85,7 +85,7 @@ fn health_request() -> Result<serde_json::Value, String> {
     daemon_get_json("/health", None)
 }
 
-fn status_from_state(state: &DaemonState) -> DaemonStatus {
+fn status_from_state(_state: &DaemonState) -> DaemonStatus {
     let health = health_request().ok();
     DaemonStatus {
         running: health.is_some(),
