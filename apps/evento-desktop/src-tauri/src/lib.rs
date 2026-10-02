@@ -52,10 +52,16 @@ fn development_daemon() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../daemon/evento_daemon.py")
 }
 
-fn bundled_daemon(app: &AppHandle) -> Option<PathBuf> {
+fn bundled_runtime_root(app: &AppHandle) -> Option<PathBuf> {
     app.path()
         .resource_dir()
         .ok()
+        .map(|root| root.join("runtime"))
+        .filter(|path| path.is_dir())
+}
+
+fn bundled_daemon(app: &AppHandle) -> Option<PathBuf> {
+    bundled_runtime_root(app)
         .map(|root| root.join("daemon/evento_daemon.py"))
         .filter(|path| path.is_file())
 }
@@ -123,6 +129,10 @@ fn start_daemon_inner(app: &AppHandle, state: &DaemonState, writes: bool) -> Res
         .env("EVENTO_DAEMON_TOKEN", &token)
         .env("EVENTO_ENABLE_WRITES", if writes { "true" } else { "false" })
         .env("EVENTO_DAEMON_PORT", DAEMON_PORT.to_string());
+
+    if let Some(resource_root) = bundled_runtime_root(app) {
+        command.env("EVENTO_RESOURCE_ROOT", resource_root);
+    }
     if let Some(ref secret) = write_token {
         command.env("EVENTO_DAEMON_WRITE_TOKEN", secret);
     }
