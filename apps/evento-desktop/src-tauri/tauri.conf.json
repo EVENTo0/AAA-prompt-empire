@@ -26,7 +26,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": [
+      "nsis",
+      "msi"
+    ],
     "resources": [
       "../daemon/evento_daemon.py",
       "../../../registry/evento-connectors.json",
@@ -36,6 +39,9 @@
     ],
     "windows": {
       "bundleVCRuntime": true
-    }
+    },
+    "icon": [
+      "icons/icon.ico"
+    ]
   }
 }
