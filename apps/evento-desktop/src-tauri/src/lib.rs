@@ -6,7 +6,12 @@ use std::{
     sync::Mutex,
     time::Duration,
 };
-use tauri::{AppHandle, Manager, State};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
+    AppHandle, Manager, State,
+};
+use tauri_plugin_autostart::ManagerExt;
 
 const DAEMON_PORT: u16 = 8765;
 
@@ -184,10 +189,99 @@ fn diagnostic_snapshot(state: State<'_, DaemonState>) -> Result<serde_json::Valu
     daemon_get_json("/v1/diagnostics", Some(&token))
 }
 
+
+
+const CREDENTIAL_SERVICE: &str = "ae.evento.control";
+
+fn validate_credential_name(name: &str) -> Result<(), String> {
+    const ALLOWED: &[&str] = &[
+        "github",
+        "supabase",
+        "vercel",
+        "openai",
+        "anthropic",
+        "google",
+        "generic-llm",
+    ];
+    if ALLOWED.contains(&name) {
+        Ok(())
+    } else {
+        Err("credential name is not allowlisted".to_string())
+    }
+}
+
+#[tauri::command]
+fn credential_status(name: String) -> Result<bool, String> {
+    validate_credential_name(&name)?;
+    let entry = keyring::v1::Entry::new(CREDENTIAL_SERVICE, &name)
+        .map_err(|error| error.to_string())?;
+    Ok(entry.get_password().is_ok())
+}
+
+#[tauri::command]
+fn credential_set(name: String, secret: String) -> Result<(), String> {
+    validate_credential_name(&name)?;
+    if secret.trim().is_empty() || secret.len() > 16_384 {
+        return Err("credential value is empty or too large".to_string());
+    }
+    let entry = keyring::v1::Entry::new(CREDENTIAL_SERVICE, &name)
+        .map_err(|error| error.to_string())?;
+    entry.set_password(&secret).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn credential_delete(name: String) -> Result<(), String> {
+    validate_credential_name(&name)?;
+    let entry = keyring::v1::Entry::new(CREDENTIAL_SERVICE, &name)
+        .map_err(|error| error.to_string())?;
+    entry.delete_credential().map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn autostart_status(app: AppHandle) -> Result<bool, String> {
+    app.autolaunch().is_enabled().map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn set_autostart(app: AppHandle, enabled: bool) -> Result<bool, String> {
+    if enabled {
+        app.autolaunch().enable().map_err(|error| error.to_string())?;
+    } else {
+        app.autolaunch().disable().map_err(|error| error.to_string())?;
+    }
+    app.autolaunch().is_enabled().map_err(|error| error.to_string())
+}
+
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_autostart::Builder::new()
+                .app_name("EVENTO")
+                .build(),
+        )
         .manage(DaemonState::default())
         .setup(|app| {
+            let show = MenuItem::with_id(app, "show", "Open EVENTO", true, None::<&str>)?;
+            let quit = MenuItem::with_id(app, "quit", "Quit EVENTO", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show, &quit])?;
+
+            TrayIconBuilder::new()
+                .icon(app.default_window_icon().expect("EVENTO icon").clone())
+                .tooltip("EVENTO Control Plane")
+                .menu(&menu)
+                .show_menu_on_left_click(true)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    "quit" => app.exit(0),
+                    _ => {}
+                })
+                .build(app)?;
+
             let handle = app.handle().clone();
             let state = app.state::<DaemonState>();
             if let Err(error) = start_daemon_inner(&handle, &state) {
@@ -200,7 +294,12 @@ pub fn run() {
             start_daemon,
             stop_daemon,
             workspace_snapshot,
-            diagnostic_snapshot
+            diagnostic_snapshot,
+            credential_status,
+            credential_set,
+            credential_delete,
+            autostart_status,
+            set_autostart
         ])
         .run(tauri::generate_context!())
         .expect("error while running EVENTO desktop");
