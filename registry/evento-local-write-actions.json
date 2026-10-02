@@ -1,30 +1,77 @@
 {
-  "version":"1.0",
-  "policy":{
-    "default":"deny",
-    "requires_write_token":true,
-    "requires_write_enable":true,
-    "arbitrary_shell":false,
-    "release":false
+  "version": "1.0",
+  "policy": {
+    "default": "deny",
+    "requires_write_token": true,
+    "requires_write_enable": true,
+    "arbitrary_shell": false,
+    "release": false
   },
-  "actions":[
+  "actions": [
     {
-      "id":"workspace-write-text",
-      "kind":"workspace",
-      "parameters":["relative_path","content"],
-      "description":"Write UTF-8 text only inside an allowlisted workspace root."
+      "id": "workspace-write-text",
+      "kind": "workspace",
+      "parameters": [
+        "relative_path",
+        "content"
+      ],
+      "description": "Write UTF-8 text only inside an allowlisted workspace root."
     },
     {
-      "id":"git-create-worktree",
-      "kind":"git",
-      "parameters":["repository","branch","base_ref","destination"],
-      "description":"Create an isolated Git worktree under an allowlisted workspace root."
+      "id": "git-create-worktree",
+      "kind": "git",
+      "parameters": [
+        "repository",
+        "branch",
+        "base_ref",
+        "destination"
+      ],
+      "description": "Create an isolated Git worktree under an allowlisted workspace root."
     },
     {
-      "id":"python-run-approved",
-      "kind":"python",
-      "parameters":["script","args"],
-      "description":"Run a committed Python script from the approved script roots; no inline code or shell."
+      "id": "python-run-approved",
+      "kind": "python",
+      "parameters": [
+        "script",
+        "args"
+      ],
+      "description": "Run a committed Python script from the approved script roots; no inline code or shell."
+    },
+    {
+      "id": "project-create-worktree",
+      "kind": "git",
+      "parameters": [
+        "project_id",
+        "branch",
+        "base_ref"
+      ],
+      "description": "Create an isolated worktree for a registered project; destination is derived by EVENTO."
+    },
+    {
+      "id": "project-open-folder",
+      "kind": "workspace",
+      "parameters": [
+        "project_id"
+      ],
+      "description": "Open the registered project folder using the host OS."
+    },
+    {
+      "id": "blender-open-project",
+      "kind": "blender",
+      "parameters": [
+        "project_id",
+        "blend_file"
+      ],
+      "description": "Open an allowlisted .blend file inside a registered project."
+    },
+    {
+      "id": "unity-open-project",
+      "kind": "unity",
+      "parameters": [
+        "project_id",
+        "unity_project"
+      ],
+      "description": "Open a verified Unity project folder inside a registered project."
     }
   ]
 }
