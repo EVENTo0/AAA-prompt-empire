@@ -67,6 +67,22 @@ class EventoDaemonTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             MODULE.approved_script_path("../../outside.py")
 
+    def test_workspace_registry_contains_no_machine_paths(self):
+        raw = MODULE.PROJECT_WORKSPACES.read_text(encoding="utf-8")
+        data = json.loads(raw)
+        self.assertTrue(data["policy"]["local_paths_are_device_specific"])
+        for project in data["projects"]:
+            self.assertIn("local_path_env", project)
+            self.assertNotIn("local_path", project)
+
+    def test_workspace_snapshot_is_unconfigured_without_env(self):
+        registry = MODULE.load_project_workspaces()
+        keys = [p["local_path_env"] for p in registry["projects"]]
+        clean = {key: "" for key in keys}
+        with patch.dict("os.environ", clean, clear=False):
+            snap = MODULE.project_workspace_snapshot()
+            self.assertTrue(all(not x["configured"] for x in snap["projects"]))
+
     def test_registry_never_contains_runtime_secret_values(self):
         raw = MODULE.CONNECTOR_REGISTRY.read_text(encoding="utf-8")
         parsed = json.loads(raw)
