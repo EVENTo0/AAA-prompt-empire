@@ -74,3 +74,5 @@ button { color:inherit; }
 .commandColumns{display:grid;grid-template-columns:1fr 1fr;gap:16px}.commandColumns h3{margin:8px 0 5px;font-size:12px}.commandColumns p,.commandColumns li{color:#9aabb7;font-size:11px;line-height:1.55}.commandColumns ul{margin:6px 0;padding-left:18px}
 .commandNotes{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.commandNotes span{padding:6px 8px;border:1px solid #263946;border-radius:999px;color:var(--muted);font-size:9px}
 @media(max-width:680px){.commandComposer,.commandColumns{grid-template-columns:1fr}.commandSummary{grid-template-columns:1fr 1fr}}
+
+.workspaceGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.workspaceCard{padding:16px;border:1px solid #1b2b37;border-radius:17px;background:#0b151e}.workspaceRole{color:var(--muted);font-size:11px;line-height:1.5}.workspaceMeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.workspaceMeta span{padding:8px;border-radius:10px;background:#0e1c27;color:var(--muted);font-size:10px}.workspaceMeta b{display:block;margin-top:4px;color:var(--text);font-size:11px}@media(max-width:680px){.workspaceGrid{grid-template-columns:1fr}}
