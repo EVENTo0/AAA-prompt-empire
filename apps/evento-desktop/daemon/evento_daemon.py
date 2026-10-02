@@ -159,8 +159,31 @@ def project_create_worktree(project_id: str, branch: str, base_ref: str = "HEAD"
     return {"action": "project-create-worktree", "project_id": project_id, "branch": branch, "destination": str(destination), "base_ref": base_ref}
 
 
+def _configured_executable(env_name: str, fallbacks: tuple[str, ...]) -> str | None:
+    configured = os.environ.get(env_name, "").strip()
+    if configured:
+        path = Path(configured).expanduser().resolve()
+        if not path.is_file():
+            raise ValueError(env_name.lower() + "_invalid")
+        return str(path)
+    for name in fallbacks:
+        found = shutil.which(name)
+        if found:
+            return found
+    return None
+
+
 def _launch(command: list[str], cwd: Path) -> dict[str, Any]:
-    subprocess.Popen(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    kwargs: dict[str, Any] = {
+        "cwd": cwd,
+        "stdout": subprocess.DEVNULL,
+        "stderr": subprocess.DEVNULL,
+    }
+    if os.name == "nt":
+        kwargs["creationflags"] = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    else:
+        kwargs["start_new_session"] = True
+    subprocess.Popen(command, **kwargs)
     return {"launched": True, "command": command[0]}
 
 
@@ -182,7 +205,7 @@ def blender_open_project(project_id: str, blend_file: str) -> dict[str, Any]:
     target = safe_project_child(project_id, blend_file)
     if target.suffix.lower() != ".blend" or not target.is_file():
         raise ValueError("blend_file_invalid")
-    executable = shutil.which("blender")
+    executable = _configured_executable("EVENTO_BLENDER_EXECUTABLE", ("blender",))
     if not executable:
         raise RuntimeError("blender_unavailable")
     result = _launch([executable, str(target)], registered_project_path(project_id))
@@ -193,7 +216,7 @@ def unity_open_project(project_id: str, unity_project: str = ".") -> dict[str, A
     target = safe_project_child(project_id, unity_project)
     if not (target / "Assets").is_dir() or not (target / "ProjectSettings").is_dir():
         raise ValueError("unity_project_invalid")
-    executable = shutil.which("Unity") or shutil.which("Unity.exe")
+    executable = _configured_executable("EVENTO_UNITY_EDITOR", ("Unity", "Unity.exe"))
     if not executable:
         raise RuntimeError("unity_unavailable")
     result = _launch([executable, "-projectPath", str(target)], target)
