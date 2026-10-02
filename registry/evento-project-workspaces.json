@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "policy": {
+    "local_paths_are_device_specific": true,
+    "repo_discovery_depth": 3,
+    "allow_unregistered_execution": false
+  },
+  "projects": [
+    {
+      "project_id": "evento-acquisition",
+      "repository": "EVENTo0/Evento-project-development-v1",
+      "local_path_env": "EVENTO_WORKSPACE_EVENTO_ACQUISITION",
+      "role": "acquisition-and-lead-truth"
+    },
+    {
+      "project_id": "evento-one",
+      "repository": "EVENTo0/Evento-One",
+      "local_path_env": "EVENTO_WORKSPACE_EVENTO_ONE",
+      "role": "customer-saas-truth"
+    },
+    {
+      "project_id": "evento-mobile",
+      "repository": "EVENTo0/evento-mobile",
+      "local_path_env": "EVENTO_WORKSPACE_EVENTO_MOBILE",
+      "role": "mobile-operator-customer-interface"
+    },
+    {
+      "project_id": "aaa-empire",
+      "repository": "EVENTo0/AAA-prompt-empire",
+      "local_path_env": "EVENTO_WORKSPACE_AAA_EMPIRE",
+      "role": "shared-control-plane"
+    }
+  ]
+}
