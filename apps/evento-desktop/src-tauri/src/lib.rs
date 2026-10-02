@@ -19,6 +19,7 @@ const DAEMON_PORT: u16 = 8765;
 struct DaemonState {
     child: Mutex<Option<Child>>,
     token: Mutex<Option<String>>,
+    write_token: Mutex<Option<String>>,
 }
 
 #[derive(Serialize)]
@@ -100,11 +101,11 @@ fn status_from_state(_state: &DaemonState) -> DaemonStatus {
             .and_then(|value| value.get("version"))
             .and_then(|value| value.as_str())
             .map(str::to_string),
-        writes_enabled: false,
+        writes_enabled: _state.write_token.lock().map(|guard| guard.is_some()).unwrap_or(false),
     }
 }
 
-fn start_daemon_inner(app: &AppHandle, state: &DaemonState) -> Result<DaemonStatus, String> {
+fn start_daemon_inner(app: &AppHandle, state: &DaemonState, writes: bool) -> Result<DaemonStatus, String> {
     if state.token.lock().map_err(|_| "Token state poisoned")?.is_some() {
         return Ok(status_from_state(state));
     }
@@ -114,13 +115,18 @@ fn start_daemon_inner(app: &AppHandle, state: &DaemonState) -> Result<DaemonStat
     }
 
     let token = random_token();
+    let write_token = writes.then(random_token);
     let script = daemon_script(app)?;
     let mut command = Command::new(python_executable());
     command
         .arg(script)
         .env("EVENTO_DAEMON_TOKEN", &token)
-        .env("EVENTO_ENABLE_WRITES", "false")
-        .env("EVENTO_DAEMON_PORT", DAEMON_PORT.to_string())
+        .env("EVENTO_ENABLE_WRITES", if writes { "true" } else { "false" })
+        .env("EVENTO_DAEMON_PORT", DAEMON_PORT.to_string());
+    if let Some(ref secret) = write_token {
+        command.env("EVENTO_DAEMON_WRITE_TOKEN", secret);
+    }
+    command
         .stdout(Stdio::null())
         .stderr(Stdio::null());
 
@@ -136,6 +142,7 @@ fn start_daemon_inner(app: &AppHandle, state: &DaemonState) -> Result<DaemonStat
         .map_err(|error| format!("Could not start EVENTO daemon: {error}"))?;
     *state.child.lock().map_err(|_| "Daemon state poisoned")? = Some(child);
     *state.token.lock().map_err(|_| "Token state poisoned")? = Some(token.clone());
+    *state.write_token.lock().map_err(|_| "Write token state poisoned")? = write_token;
 
     for _ in 0..25 {
         std::thread::sleep(Duration::from_millis(150));
@@ -154,7 +161,7 @@ fn daemon_status(state: State<'_, DaemonState>) -> DaemonStatus {
 
 #[tauri::command]
 fn start_daemon(app: AppHandle, state: State<'_, DaemonState>) -> Result<DaemonStatus, String> {
-    start_daemon_inner(&app, &state)
+    start_daemon_inner(&app, &state, false)
 }
 
 #[tauri::command]
@@ -164,6 +171,7 @@ fn stop_daemon(state: State<'_, DaemonState>) -> Result<(), String> {
         let _ = child.wait();
     }
     *state.token.lock().map_err(|_| "Token state poisoned")? = None;
+    *state.write_token.lock().map_err(|_| "Write token state poisoned")? = None;
     Ok(())
 }
 
@@ -190,6 +198,130 @@ fn diagnostic_snapshot(state: State<'_, DaemonState>) -> Result<serde_json::Valu
 }
 
 
+
+
+
+fn daemon_post_json(
+    path: &str,
+    token: &str,
+    write_token: &str,
+    payload: serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    let url = format!("{}{}", daemon_url(), path);
+    let mut response = ureq::post(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("X-EVENTO-Write-Token", write_token)
+        .config()
+        .timeout_global(Some(Duration::from_secs(35)))
+        .build()
+        .send_json(payload)
+        .map_err(|error| error.to_string())?;
+    response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())
+}
+
+fn stop_owned_daemon(state: &DaemonState) -> Result<(), String> {
+    if let Some(mut child) = state.child.lock().map_err(|_| "Daemon state poisoned")?.take() {
+        child.kill().map_err(|error| error.to_string())?;
+        let _ = child.wait();
+    }
+    *state.token.lock().map_err(|_| "Token state poisoned")? = None;
+    *state.write_token.lock().map_err(|_| "Write token state poisoned")? = None;
+    Ok(())
+}
+
+#[tauri::command]
+fn set_operator_mode(
+    app: AppHandle,
+    state: State<'_, DaemonState>,
+    enabled: bool,
+) -> Result<DaemonStatus, String> {
+    stop_owned_daemon(&state)?;
+    start_daemon_inner(&app, &state, enabled)
+}
+
+fn clean_branch_suffix(value: &str) -> Result<String, String> {
+    let mut out = String::new();
+    for ch in value.trim().to_ascii_lowercase().chars() {
+        if ch.is_ascii_alphanumeric() || ch == '-' {
+            out.push(ch);
+        } else if !out.ends_with('-') {
+            out.push('-');
+        }
+    }
+    let cleaned = out.trim_matches('-').to_string();
+    if cleaned.is_empty() || cleaned.len() > 48 {
+        return Err("invalid branch suffix".to_string());
+    }
+    Ok(cleaned)
+}
+
+#[tauri::command]
+fn project_action(
+    state: State<'_, DaemonState>,
+    action: String,
+    project_id: String,
+    value: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let token = state
+        .token
+        .lock()
+        .map_err(|_| "Token state poisoned")?
+        .clone()
+        .ok_or_else(|| "EVENTO daemon is offline".to_string())?;
+    let write_token = state
+        .write_token
+        .lock()
+        .map_err(|_| "Write token state poisoned")?
+        .clone()
+        .ok_or_else(|| "Operator mode is disabled".to_string())?;
+
+    let payload = match action.as_str() {
+        "open" => serde_json::json!({
+            "action": "project-open-folder",
+            "confirmation": "project-open-folder",
+            "project_id": project_id,
+        }),
+        "worktree" => {
+            let suffix = clean_branch_suffix(value.as_deref().unwrap_or("next"))?;
+            serde_json::json!({
+                "action": "project-create-worktree",
+                "confirmation": "project-create-worktree",
+                "project_id": project_id,
+                "branch": format!("evento/{}/{}", project_id, suffix),
+                "base_ref": "HEAD",
+            })
+        }
+        "gate" => {
+            if project_id != "aaa-empire" {
+                return Err("No approved native gate is registered for this project".to_string());
+            }
+            serde_json::json!({
+                "action": "python-run-approved",
+                "confirmation": "python-run-approved",
+                "script": "validate_evento_control_plane.py",
+                "args": [],
+            })
+        }
+        "blender" => serde_json::json!({
+            "action": "blender-open-project",
+            "confirmation": "blender-open-project",
+            "project_id": project_id,
+            "blend_file": value.unwrap_or_default(),
+        }),
+        "unity" => serde_json::json!({
+            "action": "unity-open-project",
+            "confirmation": "unity-open-project",
+            "project_id": project_id,
+            "unity_project": value.unwrap_or_else(|| ".".to_string()),
+        }),
+        _ => return Err("Native project action is not allowlisted".to_string()),
+    };
+
+    daemon_post_json("/v1/actions/run", &token, &write_token, payload)
+}
 
 const CREDENTIAL_SERVICE: &str = "ae.evento.control";
 
@@ -284,7 +416,7 @@ pub fn run() {
 
             let handle = app.handle().clone();
             let state = app.state::<DaemonState>();
-            if let Err(error) = start_daemon_inner(&handle, &state) {
+            if let Err(error) = start_daemon_inner(&handle, &state, false) {
                 eprintln!("EVENTO local engine auto-start skipped: {error}");
             }
             Ok(())
@@ -295,6 +427,8 @@ pub fn run() {
             stop_daemon,
             workspace_snapshot,
             diagnostic_snapshot,
+            set_operator_mode,
+            project_action,
             credential_status,
             credential_set,
             credential_delete,
