@@ -77,6 +77,42 @@
       <div id="tools" class="lanes"><span>Checking…</span></div>
     </section>
 
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">SECURITY</p><h3>Local Credential Store</h3></div>
+        <span class="pill quiet">OS PROTECTED</span>
+      </div>
+      <p class="muted">Secrets are stored in the operating-system credential store. EVENTO only reports whether a key exists; stored values are never displayed back to the webview.</p>
+      <div class="credentialGrid" id="credentials"></div>
+      <div class="credentialEditor">
+        <select id="credentialName">
+          <option value="github">GitHub</option>
+          <option value="supabase">Supabase</option>
+          <option value="vercel">Vercel</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="google">Google</option>
+          <option value="generic-llm">Generic LLM</option>
+        </select>
+        <input id="credentialSecret" type="password" autocomplete="off" placeholder="Paste secret — never shown again" />
+        <button id="saveCredential">Save securely</button>
+        <button id="deleteCredential" class="secondary">Delete</button>
+      </div>
+      <pre id="credentialLog">Credential store ready.</pre>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">STARTUP</p><h3>Windows Startup</h3></div>
+        <span id="autostartState" class="pill quiet">CHECKING</span>
+      </div>
+      <p class="muted">Optional. EVENTO does not register itself for startup unless you explicitly enable it.</p>
+      <div class="actions">
+        <button id="enableAutostart">Enable auto-start</button>
+        <button id="disableAutostart" class="secondary">Disable auto-start</button>
+      </div>
+    </section>
+
     <section class="panel roadmap">
       <p class="kicker">NEXT NATIVE LANES</p>
       <div class="lanes">
