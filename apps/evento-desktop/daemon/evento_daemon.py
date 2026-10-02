@@ -29,6 +29,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 CONNECTOR_REGISTRY = REPO_ROOT / "registry" / "evento-connectors.json"
 LOCAL_ACTIONS = REPO_ROOT / "registry" / "evento-local-actions.json"
 LOCAL_WRITE_ACTIONS = REPO_ROOT / "registry" / "evento-local-write-actions.json"
+PROJECT_WORKSPACES = REPO_ROOT / "registry" / "evento-project-workspaces.json"
 
 DEFAULT_WORKSPACE_ROOT = REPO_ROOT / ".evento-workspaces"
 APPROVED_SCRIPT_ROOTS = (
@@ -63,6 +64,60 @@ def load_local_actions() -> dict[str, Any]:
 
 def load_local_write_actions() -> dict[str, Any]:
     return load_json(LOCAL_WRITE_ACTIONS)
+
+
+def load_project_workspaces() -> dict[str, Any]:
+    return load_json(PROJECT_WORKSPACES)
+
+
+def inspect_git_workspace(path: Path) -> dict[str, Any]:
+    root = path.expanduser().resolve()
+    result: dict[str, Any] = {
+        "path": str(root),
+        "exists": root.exists(),
+        "is_git": False,
+        "branch": None,
+        "head": None,
+        "dirty": None,
+        "worktrees": [],
+    }
+    if not root.is_dir():
+        return result
+    git = shutil.which("git")
+    if not git:
+        return result
+    probe = subprocess.run([git, "-C", str(root), "rev-parse", "--show-toplevel"], capture_output=True, text=True, timeout=8, check=False)
+    if probe.returncode != 0:
+        return result
+    result["is_git"] = True
+    branch = subprocess.run([git, "-C", str(root), "branch", "--show-current"], capture_output=True, text=True, timeout=8, check=False)
+    head = subprocess.run([git, "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=8, check=False)
+    status = subprocess.run([git, "-C", str(root), "status", "--porcelain"], capture_output=True, text=True, timeout=8, check=False)
+    worktrees = subprocess.run([git, "-C", str(root), "worktree", "list", "--porcelain"], capture_output=True, text=True, timeout=8, check=False)
+    result["branch"] = branch.stdout.strip() or None
+    result["head"] = head.stdout.strip() or None
+    result["dirty"] = bool(status.stdout.strip())
+    result["worktrees"] = [line.split(" ", 1)[1] for line in worktrees.stdout.splitlines() if line.startswith("worktree ")]
+    return result
+
+
+def project_workspace_snapshot() -> dict[str, Any]:
+    registry = load_project_workspaces()
+    projects: list[dict[str, Any]] = []
+    for item in registry["projects"]:
+        configured = os.environ.get(item["local_path_env"], "").strip()
+        entry = {
+            "project_id": item["project_id"],
+            "repository": item["repository"],
+            "role": item["role"],
+            "local_path_env": item["local_path_env"],
+            "configured": bool(configured),
+            "workspace": None,
+        }
+        if configured:
+            entry["workspace"] = inspect_git_workspace(Path(configured))
+        projects.append(entry)
+    return {"version": registry["version"], "projects": projects}
 
 
 def _inside(path: Path, roots: tuple[Path, ...]) -> bool:
@@ -228,6 +283,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/v1/diagnostics":
             actions = load_local_actions()["actions"]
             self._json(200, {"results": [run_diagnostic(item["id"]) for item in actions]})
+            return
+        if self.path == "/v1/workspaces":
+            self._json(200, project_workspace_snapshot())
             return
         self._json(404, {"error": "not_found"})
 
