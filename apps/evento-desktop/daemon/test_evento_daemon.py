@@ -114,6 +114,11 @@ class EventoDaemonTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     MODULE.unity_open_project("x", ".")
 
+    def test_configured_tool_executable_must_exist(self):
+        with patch.dict("os.environ", {"EVENTO_BLENDER_EXECUTABLE": "/definitely/missing/blender"}, clear=False):
+            with self.assertRaises(ValueError):
+                MODULE._configured_executable("EVENTO_BLENDER_EXECUTABLE", ("blender",))
+
     def test_registry_never_contains_runtime_secret_values(self):
         raw = MODULE.CONNECTOR_REGISTRY.read_text(encoding="utf-8")
         parsed = json.loads(raw)
