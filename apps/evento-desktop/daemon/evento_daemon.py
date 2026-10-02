@@ -26,10 +26,11 @@ WRITE_TOKEN = os.environ.get("EVENTO_DAEMON_WRITE_TOKEN", "")
 WRITE_ENABLED = os.environ.get("EVENTO_ENABLE_WRITES", "").lower() == "true"
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-CONNECTOR_REGISTRY = REPO_ROOT / "registry" / "evento-connectors.json"
-LOCAL_ACTIONS = REPO_ROOT / "registry" / "evento-local-actions.json"
-LOCAL_WRITE_ACTIONS = REPO_ROOT / "registry" / "evento-local-write-actions.json"
-PROJECT_WORKSPACES = REPO_ROOT / "registry" / "evento-project-workspaces.json"
+RESOURCE_ROOT = Path(os.environ.get("EVENTO_RESOURCE_ROOT", str(REPO_ROOT))).expanduser().resolve()
+CONNECTOR_REGISTRY = RESOURCE_ROOT / "registry" / "evento-connectors.json"
+LOCAL_ACTIONS = RESOURCE_ROOT / "registry" / "evento-local-actions.json"
+LOCAL_WRITE_ACTIONS = RESOURCE_ROOT / "registry" / "evento-local-write-actions.json"
+PROJECT_WORKSPACES = RESOURCE_ROOT / "registry" / "evento-project-workspaces.json"
 
 DEFAULT_WORKSPACE_ROOT = REPO_ROOT / ".evento-workspaces"
 APPROVED_SCRIPT_ROOTS = (
