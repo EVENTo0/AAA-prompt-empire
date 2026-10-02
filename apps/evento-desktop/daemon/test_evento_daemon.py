@@ -83,6 +83,37 @@ class EventoDaemonTests(unittest.TestCase):
             snap = MODULE.project_workspace_snapshot()
             self.assertTrue(all(not x["configured"] for x in snap["projects"]))
 
+    def test_registered_project_path_requires_registry_and_env(self):
+        with self.assertRaises(KeyError):
+            MODULE.registered_project_path("not-registered")
+        item = MODULE.load_project_workspaces()["projects"][0]
+        with patch.dict("os.environ", {item["local_path_env"]: ""}, clear=False):
+            with self.assertRaises(ValueError):
+                MODULE.registered_project_path(item["project_id"])
+
+    def test_safe_project_child_blocks_escape(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            with patch.object(MODULE, "registered_project_path", return_value=root):
+                self.assertEqual(MODULE.safe_project_child("x", "Assets"), root / "Assets")
+                with self.assertRaises(PermissionError):
+                    MODULE.safe_project_child("x", "../outside.blend")
+
+    def test_blender_adapter_rejects_non_blend_file_before_launch(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            (root / "not-blend.txt").write_text("x")
+            with patch.object(MODULE, "registered_project_path", return_value=root):
+                with self.assertRaises(ValueError):
+                    MODULE.blender_open_project("x", "not-blend.txt")
+
+    def test_unity_adapter_requires_unity_project_markers(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            with patch.object(MODULE, "registered_project_path", return_value=root):
+                with self.assertRaises(ValueError):
+                    MODULE.unity_open_project("x", ".")
+
     def test_registry_never_contains_runtime_secret_values(self):
         raw = MODULE.CONNECTOR_REGISTRY.read_text(encoding="utf-8")
         parsed = json.loads(raw)
