@@ -86,3 +86,67 @@ async function boot() {
   await Promise.all([refreshProjects(), refreshTools()])
 }
 boot()
+
+
+const credentialNames = ['github','supabase','vercel','openai','anthropic','google','generic-llm']
+const credentialsEl = document.querySelector('#credentials')
+const credentialLog = document.querySelector('#credentialLog')
+const credentialName = document.querySelector('#credentialName')
+const credentialSecret = document.querySelector('#credentialSecret')
+const autostartState = document.querySelector('#autostartState')
+
+async function refreshCredentials() {
+  const statuses = await Promise.all(credentialNames.map(async name => {
+    try { return [name, await invoke('credential_status', { name })] }
+    catch (_) { return [name, false] }
+  }))
+  credentialsEl.innerHTML = statuses.map(([name, exists]) =>
+    '<div class="credentialCard"><span>'+escapeHtml(name)+'</span><b class="'+(exists?'good':'quiet')+'">'+(exists?'stored':'not set')+'</b></div>'
+  ).join('')
+}
+
+document.querySelector('#saveCredential').addEventListener('click', async () => {
+  const name = credentialName.value
+  const secret = credentialSecret.value
+  credentialLog.textContent = 'Saving securely…'
+  try {
+    await invoke('credential_set', { name, secret })
+    credentialSecret.value = ''
+    credentialLog.textContent = name + ' saved to OS credential store.'
+    await refreshCredentials()
+  } catch (error) { credentialLog.textContent = String(error) }
+})
+
+document.querySelector('#deleteCredential').addEventListener('click', async () => {
+  const name = credentialName.value
+  credentialLog.textContent = 'Deleting…'
+  try {
+    await invoke('credential_delete', { name })
+    credentialLog.textContent = name + ' deleted.'
+    await refreshCredentials()
+  } catch (error) { credentialLog.textContent = String(error) }
+})
+
+async function refreshAutostart() {
+  try {
+    const enabled = await invoke('autostart_status')
+    autostartState.textContent = enabled ? 'ENABLED' : 'DISABLED'
+    autostartState.className = 'pill ' + (enabled ? 'good' : 'quiet')
+  } catch (error) {
+    autostartState.textContent = 'UNAVAILABLE'
+    autostartState.className = 'pill bad'
+  }
+}
+
+document.querySelector('#enableAutostart').addEventListener('click', async () => {
+  try { await invoke('set_autostart', { enabled: true }); await refreshAutostart() }
+  catch (error) { log.textContent = String(error) }
+})
+
+document.querySelector('#disableAutostart').addEventListener('click', async () => {
+  try { await invoke('set_autostart', { enabled: false }); await refreshAutostart() }
+  catch (error) { log.textContent = String(error) }
+})
+
+refreshCredentials()
+refreshAutostart()
