@@ -120,6 +120,86 @@ def project_workspace_snapshot() -> dict[str, Any]:
     return {"version": registry["version"], "projects": projects}
 
 
+def registered_project_path(project_id: str) -> Path:
+    item = next((x for x in load_project_workspaces()["projects"] if x["project_id"] == project_id), None)
+    if item is None:
+        raise KeyError("unknown_project")
+    configured = os.environ.get(item["local_path_env"], "").strip()
+    if not configured:
+        raise ValueError("project_unconfigured")
+    path = Path(configured).expanduser().resolve()
+    if not path.is_dir():
+        raise ValueError("project_path_missing")
+    return path
+
+
+def safe_project_child(project_id: str, relative_path: str) -> Path:
+    root = registered_project_path(project_id)
+    target = (root / relative_path).resolve()
+    if not _inside(target, (root,)):
+        raise PermissionError("project_path_escape")
+    return target
+
+
+def project_create_worktree(project_id: str, branch: str, base_ref: str = "HEAD") -> dict[str, Any]:
+    repo = registered_project_path(project_id)
+    if not branch.startswith("evento/"):
+        raise PermissionError("branch_prefix_required")
+    slug = branch.replace("/", "-").replace("\\", "-")
+    destination = safe_workspace_path(project_id + "/worktrees/" + slug)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists():
+        raise FileExistsError("destination_exists")
+    completed = subprocess.run(
+        ["git", "-C", str(repo), "worktree", "add", "-b", branch, str(destination), base_ref],
+        capture_output=True, text=True, timeout=30, check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError((completed.stderr or completed.stdout).strip()[:2000])
+    return {"action": "project-create-worktree", "project_id": project_id, "branch": branch, "destination": str(destination), "base_ref": base_ref}
+
+
+def _launch(command: list[str], cwd: Path) -> dict[str, Any]:
+    subprocess.Popen(command, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    return {"launched": True, "command": command[0]}
+
+
+def project_open_folder(project_id: str) -> dict[str, Any]:
+    path = registered_project_path(project_id)
+    if os.name == "nt":
+        command = ["explorer.exe", str(path)]
+    elif shutil.which("open"):
+        command = ["open", str(path)]
+    elif shutil.which("xdg-open"):
+        command = ["xdg-open", str(path)]
+    else:
+        raise RuntimeError("folder_opener_unavailable")
+    result = _launch(command, path)
+    return {"action": "project-open-folder", "project_id": project_id, "path": str(path), **result}
+
+
+def blender_open_project(project_id: str, blend_file: str) -> dict[str, Any]:
+    target = safe_project_child(project_id, blend_file)
+    if target.suffix.lower() != ".blend" or not target.is_file():
+        raise ValueError("blend_file_invalid")
+    executable = shutil.which("blender")
+    if not executable:
+        raise RuntimeError("blender_unavailable")
+    result = _launch([executable, str(target)], registered_project_path(project_id))
+    return {"action": "blender-open-project", "project_id": project_id, "file": str(target), **result}
+
+
+def unity_open_project(project_id: str, unity_project: str = ".") -> dict[str, Any]:
+    target = safe_project_child(project_id, unity_project)
+    if not (target / "Assets").is_dir() or not (target / "ProjectSettings").is_dir():
+        raise ValueError("unity_project_invalid")
+    executable = shutil.which("Unity") or shutil.which("Unity.exe")
+    if not executable:
+        raise RuntimeError("unity_unavailable")
+    result = _launch([executable, "-projectPath", str(target)], target)
+    return {"action": "unity-open-project", "project_id": project_id, "path": str(target), **result}
+
+
 def _inside(path: Path, roots: tuple[Path, ...]) -> bool:
     resolved = path.resolve()
     return any(resolved == root or root in resolved.parents for root in roots)
@@ -224,6 +304,14 @@ def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(args, list):
             raise ValueError("args_must_be_array")
         return python_run_approved(str(payload.get("script", "")), args)
+    if action_id == "project-create-worktree":
+        return project_create_worktree(str(payload.get("project_id", "")), str(payload.get("branch", "")), str(payload.get("base_ref", "HEAD")))
+    if action_id == "project-open-folder":
+        return project_open_folder(str(payload.get("project_id", "")))
+    if action_id == "blender-open-project":
+        return blender_open_project(str(payload.get("project_id", "")), str(payload.get("blend_file", "")))
+    if action_id == "unity-open-project":
+        return unity_open_project(str(payload.get("project_id", "")), str(payload.get("unity_project", ".")))
     raise KeyError(action_id)
 
 
