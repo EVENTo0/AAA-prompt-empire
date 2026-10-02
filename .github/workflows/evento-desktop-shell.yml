@@ -1,0 +1,36 @@
+name: EVENTO Desktop Shell
+
+on:
+  pull_request:
+    paths:
+      - 'apps/evento-desktop/src-tauri/**'
+      - 'apps/evento-desktop/ui/**'
+      - 'apps/evento-desktop/rust-toolchain.toml'
+      - '.github/workflows/evento-desktop-shell.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust-check:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/evento-desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install Rust 1.99
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal
+          rustup default 1.99.0
+          rustc --version
+          cargo --version
+      - name: Cargo check
+        run: cargo check --locked
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
