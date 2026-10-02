@@ -42,6 +42,11 @@ create index if not exists evento_memory_items_metadata_gin on public.evento_mem
 alter table public.evento_memory_items enable row level security;
 alter table public.evento_memory_evidence enable row level security;
 
+-- Supabase may apply default privileges for API roles in public.
+-- Memory v1 is server-boundary only: remove all direct client privileges explicitly.
+revoke all privileges on table public.evento_memory_items from public, anon, authenticated;
+revoke all privileges on table public.evento_memory_evidence from public, anon, authenticated;
+
 -- Deliberately no broad client policies in v1.
 -- Service-side tooling may access through a secured server boundary.
 -- Read policies should be added only when a publication model is defined.
