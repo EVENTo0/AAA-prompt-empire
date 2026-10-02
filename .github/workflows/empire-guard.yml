@@ -39,7 +39,7 @@ jobs:
           import pathlib
           for p in pathlib.Path('.github/workflows').glob('*.yml'):
               text=p.read_text(encoding='utf-8')
-              if '\\t' in text:
+              if chr(9) in text:
                   raise SystemExit(f'tab character not allowed in {p}')
           print('workflow text checks passed')
           PY
