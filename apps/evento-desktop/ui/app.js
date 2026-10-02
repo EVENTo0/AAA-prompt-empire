@@ -6,6 +6,10 @@ const daemonUrl = document.querySelector('#daemonUrl')
 const log = document.querySelector('#log')
 const projects = document.querySelector('#projects')
 const tools = document.querySelector('#tools')
+const operatorMode = document.querySelector('#operatorMode')
+const branchSuffix = document.querySelector('#branchSuffix')
+const projectToolPath = document.querySelector('#projectToolPath')
+let operatorEnabled = false
 
 function show(result) {
   const running = Boolean(result.running)
@@ -13,6 +17,9 @@ function show(result) {
   statusEl.className = 'pill ' + (running ? 'good' : 'quiet')
   daemonState.textContent = running ? 'ONLINE' : 'OFFLINE'
   daemonUrl.textContent = result.url + (result.version ? ' · v' + result.version : '')
+  operatorEnabled = Boolean(result.writes_enabled)
+  operatorMode.textContent = operatorEnabled ? 'OPERATOR' : 'READ ONLY'
+  operatorMode.className = operatorEnabled ? 'good' : ''
   log.textContent = JSON.stringify(result, null, 2)
 }
 
@@ -35,6 +42,13 @@ function renderProjects(snapshot) {
       '<div class="projectTop"><div><strong>'+escapeHtml(item.project_id)+'</strong><small>'+escapeHtml(item.repository)+'</small></div><span class="pill '+cls+'">'+state+'</span></div>' +
       '<p>'+escapeHtml(item.role)+'</p>' +
       (workspace ? '<div class="projectMeta"><span>branch <b>'+escapeHtml(workspace.branch || 'detached')+'</b></span><span>head <b>'+escapeHtml((workspace.head || '—').slice(0,8))+'</b></span><span>dirty <b>'+(workspace.dirty ? 'yes' : 'no')+'</b></span><span>worktrees <b>'+workspace.worktrees.length+'</b></span></div>' : '<p class="muted">Configure its local path on this device.</p>') +
+      '<div class="nativeActions">' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="open" '+(!item.configured||!operatorEnabled?'disabled':'')+'>Open</button>' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="worktree" '+(!workspace?.is_git||!operatorEnabled?'disabled':'')+'>Worktree</button>' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="gate" '+(item.project_id!=='aaa-empire'||!operatorEnabled?'disabled':'')+'>Gate</button>' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="blender" '+(!item.configured||!operatorEnabled?'disabled':'')+'>Blender</button>' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="unity" '+(!item.configured||!operatorEnabled?'disabled':'')+'>Unity</button>' +
+      '</div>' +
       '</article>'
   }).join('')
 }
@@ -150,3 +164,41 @@ document.querySelector('#disableAutostart').addEventListener('click', async () =
 
 refreshCredentials()
 refreshAutostart()
+
+
+document.querySelector('#enableOperator').addEventListener('click', async () => {
+  log.textContent = 'Enabling bounded Operator Mode…'
+  try {
+    show(await invoke('set_operator_mode', { enabled: true }))
+    await Promise.all([refreshProjects(), refreshTools()])
+  } catch (error) { log.textContent = String(error) }
+})
+
+document.querySelector('#disableOperator').addEventListener('click', async () => {
+  log.textContent = 'Returning to read-only mode…'
+  try {
+    show(await invoke('set_operator_mode', { enabled: false }))
+    await Promise.all([refreshProjects(), refreshTools()])
+  } catch (error) { log.textContent = String(error) }
+})
+
+projects.addEventListener('click', async event => {
+  const button = event.target.closest('button[data-action]')
+  if (!button || button.disabled) return
+  const action = button.dataset.action
+  const projectId = button.dataset.project
+  let value = null
+  if (action === 'worktree') value = branchSuffix.value
+  if (action === 'blender' || action === 'unity') value = projectToolPath.value
+  button.disabled = true
+  log.textContent = projectId + ' · ' + action + '…'
+  try {
+    const result = await invoke('project_action', { action, projectId, value })
+    log.textContent = JSON.stringify(result, null, 2)
+    await refreshProjects()
+  } catch (error) {
+    log.textContent = String(error)
+  } finally {
+    button.disabled = false
+  }
+})
