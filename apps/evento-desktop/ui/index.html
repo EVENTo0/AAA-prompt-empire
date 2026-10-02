@@ -34,8 +34,8 @@
       </article>
       <article>
         <span>Mode</span>
-        <strong>SAFE LOCAL</strong>
-        <small>Writes disabled at shell boot</small>
+        <strong id="operatorMode">READ ONLY</strong>
+        <small>Bounded writes require Operator Mode</small>
       </article>
       <article>
         <span>Provider</span>
@@ -65,6 +65,12 @@
       <div class="sectionRow">
         <div><p class="kicker">PROJECTS</p><h3>Local Workspaces</h3></div>
         <button id="refreshProjects" class="secondary">Refresh projects</button>
+      </div>
+      <div class="operatorBar">
+        <label><span>Worktree suffix</span><input id="branchSuffix" value="next" maxlength="48" /></label>
+        <label><span>Blender / Unity relative path</span><input id="projectToolPath" value="." /></label>
+        <button id="enableOperator">Enable Operator Mode</button>
+        <button id="disableOperator" class="secondary">Disable Operator Mode</button>
       </div>
       <div id="projects" class="projectGrid"><p class="muted">Loading local project registry…</p></div>
     </section>
