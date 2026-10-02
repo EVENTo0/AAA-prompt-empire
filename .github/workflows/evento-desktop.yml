@@ -6,6 +6,8 @@ on:
       - 'apps/evento-desktop/**'
       - 'registry/evento-connectors.json'
       - 'registry/evento-local-actions.json'
+      - 'registry/evento-local-write-actions.json'
+      - 'registry/evento-project-workspaces.json'
       - '.github/workflows/evento-desktop.yml'
   workflow_dispatch:
 
