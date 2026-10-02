@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>EVENTO Control Plane</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">EVENTO · NATIVE CONTROL PLANE</p>
+        <h1>Desktop Operator</h1>
+      </div>
+      <span id="status" class="pill quiet">CHECKING</span>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="kicker">LOCAL-FIRST</p>
+        <h2>Your projects. One command surface.</h2>
+        <p>EVENTO Desktop is the native shell for Memory, Agent Contract, workspaces, Blender, Unity, Android and local/open model execution.</p>
+      </div>
+      <div class="mark">E</div>
+    </section>
+
+    <section class="grid">
+      <article>
+        <span>Daemon</span>
+        <strong id="daemonState">—</strong>
+        <small id="daemonUrl">127.0.0.1 only</small>
+      </article>
+      <article>
+        <span>Mode</span>
+        <strong>SAFE LOCAL</strong>
+        <small>Writes disabled at shell boot</small>
+      </article>
+      <article>
+        <span>Provider</span>
+        <strong>INDEPENDENT</strong>
+        <small>No single AI vendor required</small>
+      </article>
+      <article>
+        <span>Release</span>
+        <strong>PROTECTED</strong>
+        <small>Never implied by build</small>
+      </article>
+    </section>
+
+    <section class="panel">
+      <p class="kicker">RUNTIME</p>
+      <h3>EVENTO Local Daemon</h3>
+      <p class="muted">The native Rust backend starts the Python daemon with an ephemeral session token. The browser UI never receives that token.</p>
+      <div class="actions">
+        <button id="start">Start local engine</button>
+        <button id="stop" class="secondary">Stop engine</button>
+        <button id="refresh" class="secondary">Refresh status</button>
+      </div>
+      <pre id="log">Ready.</pre>
+    </section>
+
+    <section class="panel roadmap">
+      <p class="kicker">NEXT NATIVE LANES</p>
+      <div class="lanes">
+        <span>Git / Worktrees</span>
+        <span>Filesystem</span>
+        <span>Python</span>
+        <span>Blender</span>
+        <span>Unity</span>
+        <span>Android</span>
+        <span>Xcode</span>
+        <span>Local Models</span>
+      </div>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
