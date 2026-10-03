@@ -473,7 +473,9 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][MERGE-HANDOFF-APPROVED]") {
+    if title.starts_with("[EVENTO TASK][MERGED]") {
+        Some("merged")
+    } else if title.starts_with("[EVENTO TASK][MERGE-HANDOFF-APPROVED]") {
         Some("merge-handoff-approved")
     } else if title.starts_with("[EVENTO TASK][REVISION-REQUESTED]") {
         Some("revision-requested")
@@ -1248,6 +1250,142 @@ fn remote_task_merge_readiness(
     Ok(result)
 }
 
+
+
+fn expected_merge_confirmation(issue_number: u64) -> String {
+    format!("MERGE #{issue_number}")
+}
+
+fn mark_task_merged(issue_number: u64, merge_sha: &str, pr_url: &str) -> Result<(), String> {
+    let token = credential_value("github")?;
+    let repo = task_repository();
+    let issue_url = format!("https://api.github.com/repos/{}/issues/{}", repo, issue_number);
+    let issue = github_get_json(&issue_url, &token)?;
+    let title = issue.get("title").and_then(|v| v.as_str()).unwrap_or("");
+    let suffix = title
+        .splitn(3, ']')
+        .skip(2)
+        .collect::<Vec<_>>()
+        .join("]")
+        .trim()
+        .to_string();
+
+    let response = ureq::patch(&issue_url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({
+            "title": format!("[EVENTO TASK][MERGED] {}", suffix)
+        }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("Task merge-state update failed: {}", response.status()));
+    }
+
+    let comment_url = format!(
+        "https://api.github.com/repos/{}/issues/{}/comments",
+        repo, issue_number
+    );
+    let body = format!(
+        "## EVENTO protected merge\n\nStatus: **MERGED**\nPR: {pr_url}\nMerge SHA: {merge_sha}\nMethod: squash\n\nDeploy: **false**\nRelease: **false**\n\nThis merge does not authorize deployment or production release."
+    );
+    let response = ureq::post(&comment_url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({ "body": body }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("Task merge audit comment failed: {}", response.status()));
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn remote_task_protected_merge(
+    issue_number: u64,
+    repository: String,
+    confirmation: String,
+) -> Result<serde_json::Value, String> {
+    if confirmation != expected_merge_confirmation(issue_number) {
+        return Err(format!(
+            "Explicit confirmation required: {}",
+            expected_merge_confirmation(issue_number)
+        ));
+    }
+
+    let readiness = remote_task_merge_readiness(issue_number, repository.clone())?;
+    if readiness.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Err(format!(
+            "Merge readiness blocked: {}",
+            readiness
+                .get("blockers")
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "unknown".to_string())
+        ));
+    }
+
+    let token = credential_value("github")?;
+    let pr_number = readiness
+        .get("pr_number")
+        .and_then(|v| v.as_u64())
+        .ok_or_else(|| "PR number missing from readiness".to_string())?;
+    let head_sha = readiness
+        .get("pr")
+        .and_then(|v| v.get("head_sha"))
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "PR head SHA missing from readiness".to_string())?;
+    let pr_url = readiness
+        .get("pr_url")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+
+    let merge_url = format!(
+        "https://api.github.com/repos/{}/pulls/{}/merge",
+        repository, pr_number
+    );
+    let mut response = ureq::put(&merge_url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({
+            "sha": head_sha,
+            "merge_method": "squash",
+            "commit_title": format!("EVENTO remote task #{}", issue_number)
+        }))
+        .map_err(|error| error.to_string())?;
+
+    let payload = response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())?;
+    if payload.get("merged").and_then(|v| v.as_bool()) != Some(true) {
+        return Err(format!(
+            "GitHub did not merge the PR: {}",
+            payload.get("message").and_then(|v| v.as_str()).unwrap_or("unknown")
+        ));
+    }
+
+    let merge_sha = payload
+        .get("sha")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    mark_task_merged(issue_number, merge_sha, pr_url)?;
+
+    Ok(serde_json::json!({
+        "ok": true,
+        "issue_number": issue_number,
+        "repository": repository,
+        "pr_number": pr_number,
+        "pr_url": pr_url,
+        "merge_sha": merge_sha,
+        "method": "squash",
+        "state": "merged",
+        "deploy": false,
+        "release": false
+    }))
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -1433,6 +1571,7 @@ pub fn run() {
             remote_task_publish_pr,
             remote_task_safe_pipeline,
             remote_task_merge_readiness,
+            remote_task_protected_merge,
             autostart_status,
             set_autostart
         ])
@@ -1463,7 +1602,14 @@ mod tests {
     #[test]
     fn merge_readiness_title_state_requires_handoff() {
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGE-HANDOFF-APPROVED] x"), Some("merge-handoff-approved"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGED] x"), Some("merged"));
         assert_ne!(remote_task_state_from_title("[EVENTO TASK][PR-OPEN] x"), Some("merge-handoff-approved"));
+    }
+
+    #[test]
+    fn protected_merge_requires_exact_confirmation() {
+        assert_eq!(expected_merge_confirmation(42), "MERGE #42");
+        assert_ne!(expected_merge_confirmation(42), "MERGE 42");
     }
 
     #[test]
