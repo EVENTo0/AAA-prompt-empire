@@ -178,11 +178,13 @@ public final class MainActivity extends AppCompatActivity {
                         card.setLayoutParams(params);
                         card.setBackgroundColor(0xFF0B151E);
                         String state = row.optString("state", "approved");
-                        int stateColor = "pr-open".equals(state)
-                                ? 0xFFD6AB63
-                                : "local-built".equals(state)
-                                    ? 0xFF4FD4FF
-                                    : 0xFF68E4A2;
+                        int stateColor = "merged".equals(state)
+                                ? 0xFF68E4A2
+                                : "pr-open".equals(state)
+                                    ? 0xFFD6AB63
+                                    : "local-built".equals(state)
+                                        ? 0xFF4FD4FF
+                                        : 0xFF68E4A2;
                         card.addView(text(
                                 "#" + row.optInt("number", 0) + " · " + task.optString("project_id", ""),
                                 15,
@@ -200,6 +202,11 @@ public final class MainActivity extends AppCompatActivity {
                         String prUrl = row.optString("prUrl", "");
                         if (!prUrl.isEmpty()) {
                             card.addView(text("Draft PR: " + prUrl, 10, 0xFFD6AB63));
+                        }
+
+                        String mergeSummary = row.optString("mergeSummary", "");
+                        if (!mergeSummary.isEmpty()) {
+                            card.addView(text(mergeSummary, 10, 0xFF68E4A2));
                         }
 
                         JSONObject mergeReadiness = row.optJSONObject("mergeReadiness");
