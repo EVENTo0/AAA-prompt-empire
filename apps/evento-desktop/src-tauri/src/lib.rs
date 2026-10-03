@@ -379,6 +379,106 @@ fn credential_delete(name: String) -> Result<(), String> {
     entry.delete_credential().map_err(|error| error.to_string())
 }
 
+
+
+#[derive(Serialize)]
+struct ConnectorProbe {
+    name: String,
+    configured: bool,
+    reachable: bool,
+    summary: String,
+}
+
+fn credential_value(name: &str) -> Result<String, String> {
+    validate_credential_name(name)?;
+    let entry = keyring::v1::Entry::new(CREDENTIAL_SERVICE, name)
+        .map_err(|error| error.to_string())?;
+    entry.get_password().map_err(|_| "credential_not_configured".to_string())
+}
+
+fn probe_json(url: &str, auth_header: (&str, String)) -> Result<serde_json::Value, String> {
+    let mut response = ureq::get(url)
+        .header(auth_header.0, &auth_header.1)
+        .header("Accept", "application/json")
+        .config()
+        .timeout_global(Some(Duration::from_secs(5)))
+        .build()
+        .call()
+        .map_err(|error| error.to_string())?;
+    response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn connector_probe(name: String) -> Result<ConnectorProbe, String> {
+    let secret = match credential_value(&name) {
+        Ok(secret) => secret,
+        Err(_) => {
+            return Ok(ConnectorProbe {
+                name,
+                configured: false,
+                reachable: false,
+                summary: "not configured".to_string(),
+            })
+        }
+    };
+
+    let result = match name.as_str() {
+        "github" => probe_json(
+            "https://api.github.com/user",
+            ("Authorization", format!("Bearer {secret}")),
+        ),
+        "supabase" => probe_json(
+            "https://api.supabase.com/v1/projects",
+            ("Authorization", format!("Bearer {secret}")),
+        ),
+        "vercel" => probe_json(
+            "https://api.vercel.com/v2/user",
+            ("Authorization", format!("Bearer {secret}")),
+        ),
+        _ => {
+            return Ok(ConnectorProbe {
+                name,
+                configured: true,
+                reachable: false,
+                summary: "stored; provider probe not enabled".to_string(),
+            })
+        }
+    };
+
+    match result {
+        Ok(value) => {
+            let summary = match name.as_str() {
+                "github" => value
+                    .get("login")
+                    .and_then(|v| v.as_str())
+                    .map(|login| format!("authenticated as {login}"))
+                    .unwrap_or_else(|| "authenticated".to_string()),
+                "supabase" => value
+                    .as_array()
+                    .map(|items| format!("{} projects visible", items.len()))
+                    .unwrap_or_else(|| "authenticated".to_string()),
+                "vercel" => value
+                    .get("user")
+                    .and_then(|v| v.get("username"))
+                    .and_then(|v| v.as_str())
+                    .map(|username| format!("authenticated as {username}"))
+                    .unwrap_or_else(|| "authenticated".to_string()),
+                _ => "authenticated".to_string(),
+            };
+            Ok(ConnectorProbe { name, configured: true, reachable: true, summary })
+        }
+        Err(error) => Ok(ConnectorProbe {
+            name,
+            configured: true,
+            reachable: false,
+            summary: format!("probe failed: {error}"),
+        }),
+    }
+}
+
 #[tauri::command]
 fn autostart_status(app: AppHandle) -> Result<bool, String> {
     app.autolaunch().is_enabled().map_err(|error| error.to_string())
@@ -442,6 +542,7 @@ pub fn run() {
             credential_status,
             credential_set,
             credential_delete,
+            connector_probe,
             autostart_status,
             set_autostart
         ])
