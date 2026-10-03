@@ -258,7 +258,10 @@ async function refreshRemoteTasks() {
       '<article class="projectCard">' +
         '<div class="projectTop"><div><strong>#'+task.number+' · '+escapeHtml(task.project_id)+'</strong><small>'+escapeHtml(task.mode)+' · '+escapeHtml(task.preferred_agent)+'</small></div><span class="pill good">approved</span></div>' +
         '<p>'+escapeHtml(task.objective)+'</p>' +
-        '<div class="nativeActions"><button data-remote-number="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'">Plan task</button></div>' +
+        '<div class="nativeActions">' +
+          '<button data-remote-plan="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'">Plan task</button>' +
+          '<button data-remote-execute="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.preferred_agent==='claude-code'?'disabled':'')+'>Execute build</button>' +
+        '</div>' +
       '</article>'
     ).join('')
   } catch (error) {
@@ -267,16 +270,21 @@ async function refreshRemoteTasks() {
 }
 
 remoteTasksEl.addEventListener('click', async event => {
-  const button = event.target.closest('button[data-remote-number]')
+  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute]')
   if (!button) return
   button.disabled = true
   const projectId = button.dataset.remoteProject
   const preferredAgent = button.dataset.remoteAgent
   const objective = button.dataset.remoteObjective
-  log.textContent = 'Planning approved task #' + button.dataset.remoteNumber + '…'
+  const execute = Boolean(button.dataset.remoteExecute)
+  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan)
+  log.textContent = (execute ? 'Executing' : 'Planning') + ' approved task #' + issueNumber + '…'
   try {
-    const result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
-    log.textContent = result.output || JSON.stringify(result, null, 2)
+    const result = execute
+      ? await invoke('remote_task_execute', { issueNumber, projectId, objective, preferredAgent })
+      : await invoke('remote_task_plan', { projectId, objective, preferredAgent })
+    log.textContent = result.output || result.agent_summary || JSON.stringify(result, null, 2)
+    if (execute) await refreshRemoteTasks()
   } catch (error) {
     log.textContent = String(error)
   } finally {
