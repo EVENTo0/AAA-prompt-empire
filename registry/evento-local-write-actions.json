@@ -138,6 +138,15 @@
         "issue_number"
       ],
       "description": "Verify review, project gate, diff cleanliness, and non-empty changes before PR handoff."
+    },
+    {
+      "id": "remote-task-publish-branch",
+      "kind": "git",
+      "parameters": [
+        "project_id",
+        "issue_number"
+      ],
+      "description": "Commit and push a reviewed remote-task branch only after independent review and the registered project gate pass. No merge, deploy or release."
     }
   ]
 }
