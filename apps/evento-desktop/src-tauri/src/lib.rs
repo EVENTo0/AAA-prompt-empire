@@ -211,6 +211,58 @@ fn diagnostic_snapshot(state: State<'_, DaemonState>) -> Result<serde_json::Valu
 
 
 
+
+
+fn daemon_post_read_json(
+    path: &str,
+    token: &str,
+    payload: serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    let url = format!("{}{}", daemon_url(), path);
+    let mut response = ureq::post(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .config()
+        .timeout_global(Some(Duration::from_secs(310)))
+        .build()
+        .send_json(payload)
+        .map_err(|error| error.to_string())?;
+    response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn agent_plan(
+    state: State<'_, DaemonState>,
+    provider: String,
+    project_id: String,
+    prompt: String,
+) -> Result<serde_json::Value, String> {
+    if provider != "codex" && provider != "claude-code" {
+        return Err("Agent provider is not allowlisted".to_string());
+    }
+    if prompt.trim().is_empty() || prompt.len() > 8000 {
+        return Err("Agent prompt is empty or too large".to_string());
+    }
+    let token = state
+        .token
+        .lock()
+        .map_err(|_| "Token state poisoned")?
+        .clone()
+        .ok_or_else(|| "EVENTO daemon is offline".to_string())?;
+
+    daemon_post_read_json(
+        "/v1/agent/plan",
+        &token,
+        serde_json::json!({
+            "provider": provider,
+            "project_id": project_id,
+            "prompt": prompt,
+        }),
+    )
+}
+
 fn daemon_post_json(
     path: &str,
     token: &str,
@@ -560,6 +612,7 @@ pub fn run() {
             stop_daemon,
             workspace_snapshot,
             diagnostic_snapshot,
+            agent_plan,
             set_operator_mode,
             project_action,
             credential_status,
