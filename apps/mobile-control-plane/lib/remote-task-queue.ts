@@ -87,3 +87,38 @@ export async function createRemoteTaskIssue(task: RemoteTaskEnvelope) {
     task,
   }
 }
+
+
+export async function listRemoteTaskIssues() {
+  if (!remoteTasksEnabled()) throw new Error('Remote task queue is disabled')
+  const repository = taskRepo()
+  const response = await fetch(`https://api.github.com/repos/${repository}/issues?state=open&per_page=50`, {
+    headers: githubHeaders(),
+    cache: 'no-store',
+  })
+  const issues = await response.json()
+  if (!response.ok) throw new Error(issues?.message || `GitHub issue listing failed: ${response.status}`)
+  if (!Array.isArray(issues)) return []
+
+  return issues.flatMap((issue: any) => {
+    const title = typeof issue.title === 'string' ? issue.title : ''
+    const state = title.startsWith('[EVENTO TASK][LOCAL-BUILT]')
+      ? 'local-built'
+      : title.startsWith('[EVENTO TASK][APPROVED]')
+        ? 'approved'
+        : null
+    if (!state || typeof issue.body !== 'string') return []
+    try {
+      const task = JSON.parse(issue.body) as RemoteTaskEnvelope
+      if (task.evento_task_version !== 1 || task.release !== false) return []
+      return [{
+        number: issue.number as number,
+        url: issue.html_url as string,
+        state,
+        task,
+      }]
+    } catch {
+      return []
+    }
+  })
+}
