@@ -265,6 +265,7 @@ async function refreshRemoteTasks() {
           '<button data-remote-publish="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.state!=='local-built'?'disabled':'')+'>Publish Draft PR</button>' +
           '<button data-remote-pipeline="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.state!=='approved'||task.preferred_agent==='claude-code'?'disabled':'')+'>Run Safe Pipeline</button>' +
           '<button data-remote-readiness="'+task.number+'" data-remote-repository="'+escapeHtml(task.repository)+'" '+(task.state!=='merge-handoff-approved'?'disabled':'')+'>Check Merge Readiness</button>' +
+          '<button data-remote-merge="'+task.number+'" data-remote-repository="'+escapeHtml(task.repository)+'" '+(task.state!=='merge-handoff-approved'?'disabled':'')+'>Protected Merge</button>' +
         '</div>' +
       '</article>'
     ).join('')
@@ -274,7 +275,7 @@ async function refreshRemoteTasks() {
 }
 
 remoteTasksEl.addEventListener('click', async event => {
-  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness]')
+  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness],button[data-remote-merge]')
   if (!button) return
   button.disabled = true
   const projectId = button.dataset.remoteProject
@@ -285,12 +286,22 @@ remoteTasksEl.addEventListener('click', async event => {
   const publish = Boolean(button.dataset.remotePublish)
   const pipeline = Boolean(button.dataset.remotePipeline)
   const readiness = Boolean(button.dataset.remoteReadiness)
-  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness)
-  const actionLabel = readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
+  const protectedMerge = Boolean(button.dataset.remoteMerge)
+  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness || button.dataset.remoteMerge)
+  const actionLabel = protectedMerge ? 'Protected merge for' : readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
   log.textContent = actionLabel + ' approved task #' + issueNumber + '…'
   try {
     let result
-    if (readiness) {
+    if (protectedMerge) {
+      const expected = 'MERGE #' + issueNumber
+      const confirmation = window.prompt('Type ' + expected + ' to merge this PR. This does not deploy or release.')
+      if (confirmation !== expected) throw new Error('Protected merge confirmation did not match.')
+      result = await invoke('remote_task_protected_merge', {
+        issueNumber,
+        repository: button.dataset.remoteRepository,
+        confirmation,
+      })
+    } else if (readiness) {
       result = await invoke('remote_task_merge_readiness', {
         issueNumber,
         repository: button.dataset.remoteRepository,
@@ -318,7 +329,7 @@ remoteTasksEl.addEventListener('click', async event => {
       result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
     }
     log.textContent = result.output || result.agent_summary || JSON.stringify(result, null, 2)
-    if (execute || review || publish || pipeline || readiness) await refreshRemoteTasks()
+    if (execute || review || publish || pipeline || readiness || protectedMerge) await refreshRemoteTasks()
   } catch (error) {
     log.textContent = String(error)
   } finally {
