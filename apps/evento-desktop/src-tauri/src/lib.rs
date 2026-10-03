@@ -1018,6 +1018,236 @@ fn remote_task_safe_pipeline(
     }))
 }
 
+
+
+fn github_get_json(url: &str, token: &str) -> Result<serde_json::Value, String> {
+    let mut response = ureq::get(url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .config()
+        .timeout_global(Some(Duration::from_secs(12)))
+        .build()
+        .call()
+        .map_err(|error| error.to_string())?;
+    response.body_mut().read_json::<serde_json::Value>().map_err(|error| error.to_string())
+}
+
+fn task_pr_url(issue_number: u64, token: &str) -> Result<String, String> {
+    let repo = task_repository();
+    let url = format!(
+        "https://api.github.com/repos/{}/issues/{}/comments?per_page=100",
+        repo, issue_number
+    );
+    let comments = github_get_json(&url, token)?;
+    let Some(items) = comments.as_array() else {
+        return Err("Task comments unavailable".to_string());
+    };
+    for comment in items.iter().rev() {
+        let body = comment.get("body").and_then(|v| v.as_str()).unwrap_or("");
+        if !body.contains("EVENTO PR handoff") {
+            continue;
+        }
+        if let Some(start) = body.find("https://github.com/") {
+            let tail = &body[start..];
+            let end = tail.find(char::is_whitespace).unwrap_or(tail.len());
+            let candidate = tail[..end].trim_end_matches(|c: char| c == ')' || c == ',' || c == '.');
+            if candidate.contains("/pull/") {
+                return Ok(candidate.to_string());
+            }
+        }
+    }
+    Err("Draft PR URL not found in task audit trail".to_string())
+}
+
+fn parse_pr_number(pr_url: &str) -> Result<u64, String> {
+    pr_url
+        .split("/pull/")
+        .nth(1)
+        .and_then(|value| value.split('/').next())
+        .and_then(|value| value.parse::<u64>().ok())
+        .ok_or_else(|| "Invalid PR URL".to_string())
+}
+
+fn github_task_state(issue_number: u64, token: &str) -> Result<String, String> {
+    let repo = task_repository();
+    let url = format!("https://api.github.com/repos/{}/issues/{}", repo, issue_number);
+    let issue = github_get_json(&url, token)?;
+    let title = issue.get("title").and_then(|v| v.as_str()).unwrap_or("");
+    remote_task_state_from_title(title)
+        .map(str::to_string)
+        .ok_or_else(|| "Task state is not recognized".to_string())
+}
+
+fn latest_review_states(reviews: &[serde_json::Value]) -> std::collections::HashMap<String, String> {
+    let mut latest = std::collections::HashMap::new();
+    for review in reviews {
+        let user = review.get("user").and_then(|v| v.get("login")).and_then(|v| v.as_str()).unwrap_or("");
+        let state = review.get("state").and_then(|v| v.as_str()).unwrap_or("");
+        if !user.is_empty() && !state.is_empty() {
+            latest.insert(user.to_string(), state.to_string());
+        }
+    }
+    latest
+}
+
+#[tauri::command]
+fn remote_task_merge_readiness(
+    issue_number: u64,
+    repository: String,
+) -> Result<serde_json::Value, String> {
+    if issue_number == 0 || repository.trim().is_empty() {
+        return Err("Invalid merge readiness request".to_string());
+    }
+
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    let pr_url = task_pr_url(issue_number, &token)?;
+    let pr_number = parse_pr_number(&pr_url)?;
+
+    let pr_api = format!("https://api.github.com/repos/{}/pulls/{}", repository, pr_number);
+    let pr = github_get_json(&pr_api, &token)?;
+
+    let mut blockers: Vec<String> = Vec::new();
+    if task_state != "merge-handoff-approved" {
+        blockers.push("merge_handoff_not_approved".to_string());
+    }
+
+    let pr_state = pr.get("state").and_then(|v| v.as_str()).unwrap_or("");
+    if pr_state != "open" {
+        blockers.push("pr_not_open".to_string());
+    }
+    if pr.get("draft").and_then(|v| v.as_bool()).unwrap_or(true) {
+        blockers.push("pr_is_draft".to_string());
+    }
+    if pr.get("mergeable").and_then(|v| v.as_bool()) != Some(true) {
+        blockers.push("pr_not_mergeable".to_string());
+    }
+
+    let mergeable_state = pr.get("mergeable_state").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    if mergeable_state != "clean" {
+        blockers.push(format!("mergeable_state_{mergeable_state}"));
+    }
+
+    let head_sha = pr.get("head").and_then(|v| v.get("sha")).and_then(|v| v.as_str())
+        .ok_or_else(|| "PR head SHA unavailable".to_string())?.to_string();
+    let head_ref = pr.get("head").and_then(|v| v.get("ref")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let base_ref = pr.get("base").and_then(|v| v.get("ref")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+
+    let compare_url = format!("https://api.github.com/repos/{}/compare/{}...{}", repository, base_ref, head_ref);
+    let compare = github_get_json(&compare_url, &token)?;
+    let behind_by = compare.get("behind_by").and_then(|v| v.as_i64()).unwrap_or(0);
+    if behind_by > 0 {
+        blockers.push(format!("branch_behind_by_{behind_by}"));
+    }
+
+    let checks_url = format!("https://api.github.com/repos/{}/commits/{}/check-runs?per_page=100", repository, head_sha);
+    let checks = github_get_json(&checks_url, &token)?;
+    let check_runs = checks.get("check_runs").and_then(|v| v.as_array()).cloned().unwrap_or_default();
+
+    let status_url = format!("https://api.github.com/repos/{}/commits/{}/status", repository, head_sha);
+    let combined_status = github_get_json(&status_url, &token)?;
+    let status_state = combined_status.get("state").and_then(|v| v.as_str()).unwrap_or("pending").to_string();
+    let status_contexts = combined_status.get("statuses").and_then(|v| v.as_array()).map(|v| v.len()).unwrap_or(0);
+
+    if check_runs.is_empty() && status_contexts == 0 {
+        blockers.push("no_ci_evidence".to_string());
+    }
+
+    let mut checks_pending = 0usize;
+    let mut checks_failed = 0usize;
+    for check in &check_runs {
+        let status = check.get("status").and_then(|v| v.as_str()).unwrap_or("");
+        let conclusion = check.get("conclusion").and_then(|v| v.as_str()).unwrap_or("");
+        if status != "completed" {
+            checks_pending += 1;
+        } else if !matches!(conclusion, "success" | "neutral" | "skipped") {
+            checks_failed += 1;
+        }
+    }
+    if checks_pending > 0 {
+        blockers.push(format!("checks_pending_{checks_pending}"));
+    }
+    if checks_failed > 0 {
+        blockers.push(format!("checks_failed_{checks_failed}"));
+    }
+    if status_contexts > 0 && status_state != "success" {
+        blockers.push(format!("commit_status_{status_state}"));
+    }
+
+    let reviews_url = format!("https://api.github.com/repos/{}/pulls/{}/reviews?per_page=100", repository, pr_number);
+    let reviews_payload = github_get_json(&reviews_url, &token)?;
+    let reviews = reviews_payload.as_array().cloned().unwrap_or_default();
+    let latest_reviews = latest_review_states(&reviews);
+    let changes_requested = latest_reviews.values().filter(|state| state.as_str() == "CHANGES_REQUESTED").count();
+    if changes_requested > 0 {
+        blockers.push(format!("changes_requested_{changes_requested}"));
+    }
+
+    let requested_reviewers = pr.get("requested_reviewers").and_then(|v| v.as_array()).map(|v| v.len()).unwrap_or(0)
+        + pr.get("requested_teams").and_then(|v| v.as_array()).map(|v| v.len()).unwrap_or(0);
+    if requested_reviewers > 0 {
+        blockers.push(format!("requested_reviews_pending_{requested_reviewers}"));
+    }
+
+    let ready = blockers.is_empty();
+    let result = serde_json::json!({
+        "evento_merge_readiness_version": 1,
+        "issue_number": issue_number,
+        "repository": repository,
+        "pr_number": pr_number,
+        "pr_url": pr_url,
+        "task_state": task_state,
+        "ready": ready,
+        "status": if ready { "READY TO MERGE" } else { "BLOCKED" },
+        "blockers": blockers,
+        "pr": {
+            "state": pr_state,
+            "draft": pr.get("draft"),
+            "mergeable": pr.get("mergeable"),
+            "mergeable_state": mergeable_state,
+            "base_ref": base_ref,
+            "head_ref": head_ref,
+            "head_sha": head_sha,
+            "behind_by": behind_by
+        },
+        "ci": {
+            "check_runs": check_runs.len(),
+            "checks_pending": checks_pending,
+            "checks_failed": checks_failed,
+            "status_contexts": status_contexts,
+            "combined_status": status_state
+        },
+        "reviews": {
+            "changes_requested": changes_requested,
+            "requested_reviewers": requested_reviewers
+        },
+        "merge": false,
+        "deploy": false,
+        "release": false
+    });
+
+    let task_repo = task_repository();
+    let comment_url = format!("https://api.github.com/repos/{}/issues/{}/comments", task_repo, issue_number);
+    let result_json = serde_json::to_string(&result).map_err(|error| error.to_string())?;
+    let comment_body = format!(
+        "## EVENTO merge readiness\n\nStatus: **{}**\n\nEVENTO_MERGE_READINESS_JSON={}\n\nMerge: **false**\nDeploy: **false**\nRelease: **false**",
+        if ready { "READY TO MERGE" } else { "BLOCKED" },
+        result_json
+    );
+    let response = ureq::post(&comment_url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({ "body": comment_body }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("Merge readiness audit comment failed: {}", response.status()));
+    }
+
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -1202,6 +1432,7 @@ pub fn run() {
             remote_task_review_gate,
             remote_task_publish_pr,
             remote_task_safe_pipeline,
+            remote_task_merge_readiness,
             autostart_status,
             set_autostart
         ])
@@ -1227,6 +1458,12 @@ mod tests {
         assert!(validate_credential_name("supabase").is_ok());
         assert!(validate_credential_name("shell").is_err());
         assert!(validate_credential_name("../secret").is_err());
+    }
+
+    #[test]
+    fn merge_readiness_title_state_requires_handoff() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGE-HANDOFF-APPROVED] x"), Some("merge-handoff-approved"));
+        assert_ne!(remote_task_state_from_title("[EVENTO TASK][PR-OPEN] x"), Some("merge-handoff-approved"));
     }
 
     #[test]
