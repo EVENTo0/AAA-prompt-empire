@@ -769,6 +769,72 @@ def remote_task_ready_for_handoff(project_id: str, issue_number: int) -> dict[st
         "deploy": False,
     }
 
+
+
+def remote_task_publish_branch(project_id: str, issue_number: int) -> dict[str, Any]:
+    readiness = remote_task_ready_for_handoff(project_id, issue_number)
+    if readiness.get("ready") is not True:
+        raise PermissionError(str(readiness.get("reason", "handoff_not_ready")))
+
+    worktree = remote_task_worktree(project_id, issue_number)
+    branch_result = _git_capture(worktree, ["branch", "--show-current"], timeout=30)
+    branch = branch_result.stdout.strip()
+    if not branch.startswith("evento/remote-task-"):
+        raise PermissionError("unexpected_remote_task_branch")
+
+    add = _git_capture(worktree, ["add", "--all"], timeout=60)
+    if add.returncode != 0:
+        raise RuntimeError((add.stdout + add.stderr)[-8000:] or "git_add_failed")
+
+    commit = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(worktree),
+            "-c",
+            "user.name=EVENTO",
+            "-c",
+            "user.email=evento@local.invalid",
+            "commit",
+            "-m",
+            f"feat(evento): remote task #{issue_number}",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    if commit.returncode != 0:
+        text = ((commit.stdout or "") + ("\n" + commit.stderr if commit.stderr else "")).strip()
+        raise RuntimeError(text[-8000:] or "git_commit_failed")
+
+    head = _git_capture(worktree, ["rev-parse", "HEAD"], timeout=30)
+    if head.returncode != 0:
+        raise RuntimeError("commit_sha_unavailable")
+
+    push = subprocess.run(
+        ["git", "-C", str(worktree), "push", "--set-upstream", "origin", branch],
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    push_output = ((push.stdout or "") + ("\n" + push.stderr if push.stderr else "")).strip()
+    if push.returncode != 0:
+        raise RuntimeError(push_output[-12000:] or "git_push_failed")
+
+    return {
+        "action": "remote-task-publish-branch",
+        "project_id": project_id,
+        "issue_number": issue_number,
+        "branch": branch,
+        "commit_sha": head.stdout.strip(),
+        "push_output": push_output[-4000:],
+        "merge": False,
+        "deploy": False,
+        "release": False,
+    }
+
 def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     allowed = {item["id"] for item in load_local_write_actions()["actions"]}
     if action_id not in allowed:
@@ -821,6 +887,11 @@ def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         )
     if action_id == "remote-task-ready-for-handoff":
         return remote_task_ready_for_handoff(
+            str(payload.get("project_id", "")),
+            int(payload.get("issue_number", 0)),
+        )
+    if action_id == "remote-task-publish-branch":
+        return remote_task_publish_branch(
             str(payload.get("project_id", "")),
             int(payload.get("issue_number", 0)),
         )
