@@ -546,6 +546,93 @@ fn remote_tasks() -> Result<Vec<RemoteTask>, String> {
     Ok(tasks)
 }
 
+
+
+fn github_task_comment(issue_number: u64, result: &serde_json::Value) -> Result<(), String> {
+    let token = credential_value("github")?;
+    let repo = task_repository();
+    let changed = result
+        .get("changed_files")
+        .and_then(|v| v.as_array())
+        .map(|items| {
+            items.iter()
+                .filter_map(|v| v.as_str())
+                .map(|s| format!("- {s}"))
+                .collect::<Vec<_>>()
+                .join("\n")
+        })
+        .unwrap_or_default();
+    let branch = result.get("branch").and_then(|v| v.as_str()).unwrap_or("");
+    let base = result.get("base_sha").and_then(|v| v.as_str()).unwrap_or("");
+    let diff_stat = result.get("diff_stat").and_then(|v| v.as_str()).unwrap_or("");
+    let body = format!(
+        "## EVENTO execution evidence\n\nStatus: implemented in local isolated worktree\n\nProvider: codex\nBranch: {branch}\nBase: {base}\nRelease: false\nPush/Merge/Deploy: false\n\n### Changed files\n{changed}\n\n### Diff stat\n{diff_stat}\n\nThe worktree remains local until a separate reviewed Git handoff is approved."
+    );
+    let url = format!(
+        "https://api.github.com/repos/{}/issues/{}/comments",
+        repo, issue_number
+    );
+    let response = ureq::post(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({ "body": body }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("GitHub evidence comment failed: {}", response.status()));
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn remote_task_execute(
+    state: State<'_, DaemonState>,
+    issue_number: u64,
+    project_id: String,
+    objective: String,
+    preferred_agent: String,
+) -> Result<serde_json::Value, String> {
+    if issue_number == 0 {
+        return Err("Invalid remote task number".to_string());
+    }
+    if objective.trim().is_empty() || objective.len() > 4000 {
+        return Err("Invalid task objective".to_string());
+    }
+    if preferred_agent == "claude-code" {
+        return Err("Claude remote write is not enabled in v1; use Plan Task or Auto/Codex.".to_string());
+    }
+
+    let token = state
+        .token
+        .lock()
+        .map_err(|_| "Token state poisoned")?
+        .clone()
+        .ok_or_else(|| "EVENTO daemon is offline".to_string())?;
+    let write_token = state
+        .write_token
+        .lock()
+        .map_err(|_| "Write token state poisoned")?
+        .clone()
+        .ok_or_else(|| "Operator Mode must be enabled before executing an approved build".to_string())?;
+
+    let result = daemon_post_json(
+        "/v1/actions/run",
+        &token,
+        &write_token,
+        serde_json::json!({
+            "action": "agent-build-worktree",
+            "confirmation": "agent-build-worktree",
+            "project_id": project_id,
+            "issue_number": issue_number,
+            "objective": objective,
+            "provider": "codex",
+        }),
+    )?;
+
+    github_task_comment(issue_number, &result)?;
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -726,6 +813,7 @@ pub fn run() {
             connector_probe,
             remote_tasks,
             remote_task_plan,
+            remote_task_execute,
             autostart_status,
             set_autostart
         ])
