@@ -192,6 +192,23 @@ public final class MainActivity extends AppCompatActivity {
                                 state + " · " + task.optString("preferred_agent", "auto"),
                                 11,
                                 stateColor));
+
+                        String evidence = row.optString("evidenceSummary", "");
+                        if (!evidence.isEmpty()) {
+                            card.addView(text(evidence, 10, 0xFF9FDFF0));
+                        }
+                        String prUrl = row.optString("prUrl", "");
+                        if (!prUrl.isEmpty()) {
+                            card.addView(text("Draft PR: " + prUrl, 10, 0xFFD6AB63));
+                        }
+
+                        int issueNumber = row.optInt("number", 0);
+                        if ("local-built".equals(state) || "pr-open".equals(state) || "merge-handoff-approved".equals(state)) {
+                            card.addView(button("REQUEST REVISION", v -> taskDecision(issueNumber, "request-revision")));
+                        }
+                        if ("pr-open".equals(state)) {
+                            card.addView(button("APPROVE MERGE HANDOFF", v -> taskDecision(issueNumber, "approve-merge-handoff")));
+                        }
                         remoteTasks.addView(card);
                     }
                 });
@@ -200,6 +217,29 @@ public final class MainActivity extends AppCompatActivity {
                     remoteTasks.removeAllViews();
                     remoteTasks.addView(text("Task status unavailable: " + error.getMessage(), 12, 0xFFFF6F7D));
                 });
+            }
+        });
+    }
+
+    private void taskDecision(int issueNumber, String action) {
+        status.setText("Applying " + action + "…");
+        executor.execute(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("issueNumber", issueNumber);
+                body.put("action", action);
+                String result = EventoApi.patch(
+                        endpoint.getText().toString().trim(),
+                        token.getText().toString().trim(),
+                        "/api/evento/mobile-admin/tasks",
+                        body);
+                JSONObject parsed = new JSONObject(result);
+                runOnUiThread(() -> {
+                    status.setText("Task #" + issueNumber + " · " + parsed.optString("state", "updated"));
+                    refreshRemoteTasks();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> status.setText("Decision failed: " + error.getMessage()));
             }
         });
     }
