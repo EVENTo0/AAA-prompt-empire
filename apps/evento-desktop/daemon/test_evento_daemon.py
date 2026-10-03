@@ -144,6 +144,22 @@ class EventoDaemonTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     MODULE.unity_run_editmode_tests("x", ".")
 
+    def test_review_gate_fails_closed_without_registered_project_gate(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            (root / ".git").mkdir()
+            with patch.object(MODULE, "remote_task_worktree", return_value=root):
+                with patch.object(MODULE, "load_project_test_gates", return_value={"projects": {}}):
+                    with self.assertRaises(PermissionError):
+                        MODULE.remote_task_test_gate("unknown", 1)
+
+    def test_handoff_not_ready_without_review_or_gate(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            with patch.object(MODULE, "safe_workspace_path", return_value=root):
+                result = MODULE.remote_task_ready_for_handoff("aaa-empire", 1)
+                self.assertFalse(result["ready"])
+
     def test_remote_build_requires_codex(self):
         with self.assertRaises(PermissionError):
             MODULE.agent_build_worktree("aaa-empire", 1, "inspect", "claude-code")
