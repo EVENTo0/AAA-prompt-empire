@@ -151,6 +151,10 @@ public final class MainActivity extends AppCompatActivity {
         card.addView(text(item.optString("name", item.optString("id", "Project")), 17, Color.WHITE));
         card.addView(text(item.optString("repository", ""), 11, 0xFF8294A3));
         card.addView(text(item.optString("status", "unknown") + " · " + item.optString("priority", ""), 12, 0xFF68E4A2));
+        if (!item.optString("repository", "").isEmpty()) {
+            String projectId = item.optString("id", "");
+            card.addView(button("APPROVE BUILD", v -> approveBuild(projectId)));
+        }
         return card;
     }
 
@@ -170,6 +174,34 @@ public final class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> status.setText(parsed.optString("summary", mode + " accepted")));
             } catch (Exception error) {
                 runOnUiThread(() -> status.setText("Command failed: " + error.getMessage()));
+            }
+        });
+    }
+
+    private void approveBuild(String projectId) {
+        String objective = commandPrompt.getText().toString().trim();
+        if (objective.isEmpty()) {
+            status.setText("Enter the task objective first.");
+            return;
+        }
+        status.setText("Approving task for " + projectId + "…");
+        executor.execute(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("projectId", projectId);
+                body.put("objective", objective);
+                body.put("mode", "build");
+                body.put("preferredAgent", "auto");
+                String result = EventoApi.post(
+                        endpoint.getText().toString().trim(),
+                        token.getText().toString().trim(),
+                        "/api/evento/mobile-admin/tasks",
+                        body);
+                JSONObject parsed = new JSONObject(result);
+                runOnUiThread(() -> status.setText(
+                        "Approved · GitHub task #" + parsed.optInt("number", 0)));
+            } catch (Exception error) {
+                runOnUiThread(() -> status.setText("Approval failed: " + error.getMessage()));
             }
         });
     }
