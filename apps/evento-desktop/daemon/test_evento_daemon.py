@@ -144,6 +144,14 @@ class EventoDaemonTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     MODULE.unity_run_editmode_tests("x", ".")
 
+    def test_agent_plan_rejects_unknown_provider(self):
+        with self.assertRaises(PermissionError):
+            MODULE.agent_plan("unknown", "aaa-empire", "inspect")
+
+    def test_agent_plan_rejects_empty_prompt(self):
+        with self.assertRaises(ValueError):
+            MODULE.agent_plan("codex", "aaa-empire", "   ")
+
     def test_agent_cli_diagnostics_are_allowlisted(self):
         data = MODULE.load_local_actions()
         ids = {item["id"] for item in data["actions"]}
