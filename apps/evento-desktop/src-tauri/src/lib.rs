@@ -1191,4 +1191,13 @@ mod tests {
         assert!(validate_credential_name("shell").is_err());
         assert!(validate_credential_name("../secret").is_err());
     }
+
+    #[test]
+    fn remote_task_title_states_are_bounded() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][APPROVED] x"), Some("approved"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][LOCAL-BUILT] x"), Some("local-built"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][PR-OPEN] x"), Some("pr-open"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
+        assert_eq!(remote_task_state_from_title("ordinary issue"), None);
+    }
 }
