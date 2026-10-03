@@ -62,3 +62,13 @@ test('merge readiness is surfaced as audit metadata only', async () => {
   assert.match(lib, /mergeReadinessAt/)
   assert.ok(!lib.includes('merge_pull_request'))
 })
+
+
+test('protected merge state is visible but release remains false', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /\[EVENTO TASK\]\[MERGED\]/)
+  assert.match(lib, /'merged'/)
+  assert.match(lib, /EVENTO protected merge/)
+  assert.match(lib, /mergeSummary/)
+  assert.ok(!lib.includes('deploy_production'))
+})
