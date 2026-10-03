@@ -9,6 +9,7 @@ const tools = document.querySelector('#tools')
 const operatorMode = document.querySelector('#operatorMode')
 const branchSuffix = document.querySelector('#branchSuffix')
 const projectToolPath = document.querySelector('#projectToolPath')
+const agentProject = document.querySelector('#agentProject')
 const apkPath = document.querySelector('#apkPath')
 let operatorEnabled = false
 
@@ -35,6 +36,7 @@ function renderProjects(snapshot) {
     projects.innerHTML = '<p class="muted">No project workspaces registered.</p>'
     return
   }
+  agentProject.innerHTML = items.map(item => '<option value="'+escapeHtml(item.project_id)+'">'+escapeHtml(item.project_id)+'</option>').join('')
   projects.innerHTML = items.map(item => {
     const workspace = item.workspace
     const state = workspace?.is_git ? 'git ready' : item.configured ? 'check' : 'unconfigured'
@@ -225,3 +227,18 @@ async function refreshConnectors() {
 
 document.querySelector('#refreshConnectors').addEventListener('click', refreshConnectors)
 refreshConnectors()
+
+
+document.querySelector('#runAgentPlan').addEventListener('click', async () => {
+  const provider = document.querySelector('#agentProvider').value
+  const projectId = agentProject.value
+  const prompt = document.querySelector('#agentPrompt').value
+  const output = document.querySelector('#agentOutput')
+  output.textContent = 'Running ' + provider + ' in read-only planning mode…'
+  try {
+    const result = await invoke('agent_plan', { provider, projectId, prompt })
+    output.textContent = result.output || JSON.stringify(result, null, 2)
+  } catch (error) {
+    output.textContent = String(error)
+  }
+})
