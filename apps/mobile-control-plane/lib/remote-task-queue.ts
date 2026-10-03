@@ -2,6 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -14,6 +15,15 @@ export type RemoteTaskEnvelope = {
   release: false
   approved_at: string
   approved_via: 'android-admin'
+}
+
+function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][MERGE-HANDOFF-APPROVED]')) return 'merge-handoff-approved'
+  if (title.startsWith('[EVENTO TASK][REVISION-REQUESTED]')) return 'revision-requested'
+  if (title.startsWith('[EVENTO TASK][PR-OPEN]')) return 'pr-open'
+  if (title.startsWith('[EVENTO TASK][LOCAL-BUILT]')) return 'local-built'
+  if (title.startsWith('[EVENTO TASK][APPROVED]')) return 'approved'
+  return null
 }
 
 function taskRepo() {
@@ -89,6 +99,31 @@ export async function createRemoteTaskIssue(task: RemoteTaskEnvelope) {
 }
 
 
+async function issueComments(repository: string, issueNumber: number) {
+  const response = await fetch(
+    `https://api.github.com/repos/${repository}/issues/${issueNumber}/comments?per_page=50`,
+    { headers: githubHeaders(), cache: 'no-store' },
+  )
+  const comments = await response.json()
+  if (!response.ok || !Array.isArray(comments)) return []
+  return comments.map((comment: any) => ({
+    body: typeof comment.body === 'string' ? comment.body : '',
+    createdAt: typeof comment.created_at === 'string' ? comment.created_at : '',
+  }))
+}
+
+function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }>) {
+  const evidence = [...comments].reverse().find((comment) => comment.body.includes('EVENTO execution evidence'))
+  const handoff = [...comments].reverse().find((comment) => comment.body.includes('EVENTO PR handoff'))
+  const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
+  return {
+    evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
+    evidenceAt: evidence?.createdAt ?? null,
+    prUrl: prMatch?.[0] ?? null,
+    handoffSummary: handoff ? handoff.body.slice(0, 1600) : null,
+  }
+}
+
 export async function listRemoteTaskIssues() {
   if (!remoteTasksEnabled()) throw new Error('Remote task queue is disabled')
   const repository = taskRepo()
@@ -100,15 +135,9 @@ export async function listRemoteTaskIssues() {
   if (!response.ok) throw new Error(issues?.message || `GitHub issue listing failed: ${response.status}`)
   if (!Array.isArray(issues)) return []
 
-  return issues.flatMap((issue: any) => {
+  const parsed = issues.flatMap((issue: any) => {
     const title = typeof issue.title === 'string' ? issue.title : ''
-    const state = title.startsWith('[EVENTO TASK][PR-OPEN]')
-      ? 'pr-open'
-      : title.startsWith('[EVENTO TASK][LOCAL-BUILT]')
-        ? 'local-built'
-        : title.startsWith('[EVENTO TASK][APPROVED]')
-          ? 'approved'
-          : null
+    const state = taskStateFromTitle(title)
     if (!state || typeof issue.body !== 'string') return []
     try {
       const task = JSON.parse(issue.body) as RemoteTaskEnvelope
@@ -116,11 +145,95 @@ export async function listRemoteTaskIssues() {
       return [{
         number: issue.number as number,
         url: issue.html_url as string,
+        title,
         state,
         task,
       }]
     } catch {
       return []
     }
+  }).slice(0, 20)
+
+  return Promise.all(parsed.map(async (row) => ({
+    ...row,
+    ...(extractTaskEvidence(await issueComments(repository, row.number))),
+  })))
+}
+
+
+export async function applyRemoteTaskDecision(input: {
+  issueNumber?: number
+  action?: string
+  note?: string
+}) {
+  if (!remoteTasksEnabled()) throw new Error('Remote task queue is disabled')
+  const issueNumber = Number(input.issueNumber)
+  if (!Number.isInteger(issueNumber) || issueNumber <= 0) throw new Error('Invalid task number')
+  const action = input.action
+  if (!['request-revision','approve-merge-handoff'].includes(action ?? '')) {
+    throw new Error('Task decision is not allowlisted')
+  }
+
+  const repository = taskRepo()
+  const issueUrl = `https://api.github.com/repos/${repository}/issues/${issueNumber}`
+  const response = await fetch(issueUrl, { headers: githubHeaders(), cache: 'no-store' })
+  const issue = await response.json()
+  if (!response.ok) throw new Error(issue?.message || `Task lookup failed: ${response.status}`)
+
+  const title = typeof issue.title === 'string' ? issue.title : ''
+  const currentState = taskStateFromTitle(title)
+  if (!currentState) throw new Error('Issue is not an EVENTO remote task')
+
+  let nextState: RemoteTaskState
+  let prefix: string
+  let auditText: string
+
+  if (action === 'request-revision') {
+    if (!['local-built','pr-open','merge-handoff-approved'].includes(currentState)) {
+      throw new Error('Revision can only be requested after a local build or PR handoff')
+    }
+    nextState = 'revision-requested'
+    prefix = '[EVENTO TASK][REVISION-REQUESTED]'
+    auditText = 'Revision requested from EVENTO Admin Android. No merge, deploy, or release action was performed.'
+  } else {
+    if (currentState !== 'pr-open') {
+      throw new Error('Merge handoff approval requires a PR-open task')
+    }
+    nextState = 'merge-handoff-approved'
+    prefix = '[EVENTO TASK][MERGE-HANDOFF-APPROVED]'
+    auditText = 'Merge handoff approved from EVENTO Admin Android. This is an approval marker only; no merge, deploy, or release action was performed.'
+  }
+
+  const suffix = title.replace(/^\[EVENTO TASK\]\[[^\]]+\]\s*/, '')
+  const patch = await fetch(issueUrl, {
+    method: 'PATCH',
+    headers: githubHeaders(),
+    body: JSON.stringify({ title: `${prefix} ${suffix}` }),
+    cache: 'no-store',
   })
+  const patched = await patch.json()
+  if (!patch.ok) throw new Error(patched?.message || `Task state update failed: ${patch.status}`)
+
+  const note = typeof input.note === 'string' && input.note.trim()
+    ? `\n\nOperator note:\n${input.note.trim().slice(0, 2000)}`
+    : ''
+  const comment = await fetch(`${issueUrl}/comments`, {
+    method: 'POST',
+    headers: githubHeaders(),
+    body: JSON.stringify({
+      body: `## EVENTO mobile decision\n\n${auditText}${note}\n\nResulting state: **${nextState}**`,
+    }),
+    cache: 'no-store',
+  })
+  if (!comment.ok) throw new Error(`Task audit comment failed: ${comment.status}`)
+
+  return {
+    ok: true,
+    number: issueNumber,
+    previousState: currentState,
+    state: nextState,
+    merge: false,
+    deploy: false,
+    release: false,
+  }
 }
