@@ -29,3 +29,26 @@ test('remote task status supports audited PR-open handoff without release', asyn
   assert.match(lib, /release !== false/)
   assert.ok(!lib.includes('merge_pull_request'))
 })
+
+
+test('mobile review decisions are audit-only and cannot merge or release', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  const route = await text('app/api/evento/mobile-admin/tasks/route.ts')
+  assert.match(lib, /request-revision/)
+  assert.match(lib, /approve-merge-handoff/)
+  assert.match(lib, /MERGE-HANDOFF-APPROVED/)
+  assert.match(lib, /REVISION-REQUESTED/)
+  assert.match(lib, /merge: false/)
+  assert.match(lib, /deploy: false/)
+  assert.match(lib, /release: false/)
+  assert.match(route, /export async function PATCH/)
+  assert.ok(!lib.includes('merge_pull_request'))
+})
+
+test('task listing surfaces evidence and PR handoff metadata', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /EVENTO execution evidence/)
+  assert.match(lib, /EVENTO PR handoff/)
+  assert.match(lib, /evidenceSummary/)
+  assert.match(lib, /prUrl/)
+})
