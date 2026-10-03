@@ -110,6 +110,34 @@
         "provider"
       ],
       "description": "Create an isolated EVENTO worktree, run an allowlisted write agent inside it, validate the diff, and emit an Evidence Pack. No push, merge, deploy or release."
+    },
+    {
+      "id": "remote-task-review",
+      "kind": "agent",
+      "parameters": [
+        "project_id",
+        "issue_number",
+        "objective"
+      ],
+      "description": "Run independent Claude Code review in read-only plan mode against an isolated remote-task worktree."
+    },
+    {
+      "id": "remote-task-test-gate",
+      "kind": "test",
+      "parameters": [
+        "project_id",
+        "issue_number"
+      ],
+      "description": "Run the explicit registered test gate for a remote-task worktree."
+    },
+    {
+      "id": "remote-task-ready-for-handoff",
+      "kind": "git",
+      "parameters": [
+        "project_id",
+        "issue_number"
+      ],
+      "description": "Verify review, project gate, diff cleanliness, and non-empty changes before PR handoff."
     }
   ]
 }
