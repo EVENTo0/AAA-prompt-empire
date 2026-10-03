@@ -266,6 +266,8 @@ async function refreshRemoteTasks() {
           '<button data-remote-pipeline="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.state!=='approved'||task.preferred_agent==='claude-code'?'disabled':'')+'>Run Safe Pipeline</button>' +
           '<button data-remote-readiness="'+task.number+'" data-remote-repository="'+escapeHtml(task.repository)+'" '+(task.state!=='merge-handoff-approved'?'disabled':'')+'>Check Merge Readiness</button>' +
           '<button data-remote-merge="'+task.number+'" data-remote-repository="'+escapeHtml(task.repository)+'" '+(task.state!=='merge-handoff-approved'?'disabled':'')+'>Protected Merge</button>' +
+          '<button data-remote-postmerge="'+task.number+'" data-remote-repository="'+escapeHtml(task.repository)+'" '+(task.state!=='merged'?'disabled':'')+'>Verify Main CI</button>' +
+          '<button data-remote-deployreadiness="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(task.state!=='merged-verified'?'disabled':'')+'>Deploy Readiness</button>' +
         '</div>' +
       '</article>'
     ).join('')
@@ -275,7 +277,7 @@ async function refreshRemoteTasks() {
 }
 
 remoteTasksEl.addEventListener('click', async event => {
-  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness],button[data-remote-merge]')
+  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness],button[data-remote-merge],button[data-remote-postmerge],button[data-remote-deployreadiness]')
   if (!button) return
   button.disabled = true
   const projectId = button.dataset.remoteProject
@@ -287,12 +289,24 @@ remoteTasksEl.addEventListener('click', async event => {
   const pipeline = Boolean(button.dataset.remotePipeline)
   const readiness = Boolean(button.dataset.remoteReadiness)
   const protectedMerge = Boolean(button.dataset.remoteMerge)
-  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness || button.dataset.remoteMerge)
-  const actionLabel = protectedMerge ? 'Protected merge for' : readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
+  const postMerge = Boolean(button.dataset.remotePostmerge)
+  const deployReadiness = Boolean(button.dataset.remoteDeployreadiness)
+  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness || button.dataset.remoteMerge || button.dataset.remotePostmerge || button.dataset.remoteDeployreadiness)
+  const actionLabel = deployReadiness ? 'Checking deploy readiness for' : postMerge ? 'Verifying main CI for' : protectedMerge ? 'Protected merge for' : readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
   log.textContent = actionLabel + ' approved task #' + issueNumber + '…'
   try {
     let result
-    if (protectedMerge) {
+    if (deployReadiness) {
+      result = await invoke('remote_task_deploy_readiness', {
+        issueNumber,
+        projectId,
+      })
+    } else if (postMerge) {
+      result = await invoke('remote_task_post_merge_verify', {
+        issueNumber,
+        repository: button.dataset.remoteRepository,
+      })
+    } else if (protectedMerge) {
       const expected = 'MERGE #' + issueNumber
       const confirmation = window.prompt('Type ' + expected + ' to merge this PR. This does not deploy or release.')
       if (confirmation !== expected) throw new Error('Protected merge confirmation did not match.')
@@ -329,7 +343,7 @@ remoteTasksEl.addEventListener('click', async event => {
       result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
     }
     log.textContent = result.output || result.agent_summary || JSON.stringify(result, null, 2)
-    if (execute || review || publish || pipeline || readiness || protectedMerge) await refreshRemoteTasks()
+    if (execute || review || publish || pipeline || readiness || protectedMerge || postMerge || deployReadiness) await refreshRemoteTasks()
   } catch (error) {
     log.textContent = String(error)
   } finally {
