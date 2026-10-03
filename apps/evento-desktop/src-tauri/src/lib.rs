@@ -1051,7 +1051,7 @@ fn task_pr_url(issue_number: u64, token: &str) -> Result<String, String> {
         if let Some(start) = body.find("https://github.com/") {
             let tail = &body[start..];
             let end = tail.find(char::is_whitespace).unwrap_or(tail.len());
-            let candidate = tail[..end].trim_end_matches(|c: char| c == ')' || c == ',' || c == '.');
+            let candidate = tail[..end].trim_end_matches([')', ',', '.']);
             if candidate.contains("/pull/") {
                 return Ok(candidate.to_string());
             }
