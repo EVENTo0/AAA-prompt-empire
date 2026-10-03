@@ -473,7 +473,9 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][MERGED]") {
+    if title.starts_with("[EVENTO TASK][MERGED-VERIFIED]") {
+        Some("merged-verified")
+    } else if title.starts_with("[EVENTO TASK][MERGED]") {
         Some("merged")
     } else if title.starts_with("[EVENTO TASK][MERGE-HANDOFF-APPROVED]") {
         Some("merge-handoff-approved")
@@ -1371,6 +1373,7 @@ fn remote_task_protected_merge(
         .and_then(|v| v.as_str())
         .unwrap_or("");
     mark_task_merged(issue_number, merge_sha, pr_url)?;
+    spawn_post_merge_watch(issue_number, repository.clone(), merge_sha.to_string());
 
     Ok(serde_json::json!({
         "ok": true,
@@ -1384,6 +1387,367 @@ fn remote_task_protected_merge(
         "deploy": false,
         "release": false
     }))
+}
+
+
+
+fn task_comments(issue_number: u64, token: &str) -> Result<Vec<serde_json::Value>, String> {
+    let repo = task_repository();
+    let url = format!(
+        "https://api.github.com/repos/{}/issues/{}/comments?per_page=100",
+        repo, issue_number
+    );
+    let payload = github_get_json(&url, token)?;
+    Ok(payload.as_array().cloned().unwrap_or_default())
+}
+
+fn task_merge_sha(issue_number: u64, token: &str) -> Result<String, String> {
+    for comment in task_comments(issue_number, token)?.iter().rev() {
+        let body = comment.get("body").and_then(|v| v.as_str()).unwrap_or("");
+        if !body.contains("EVENTO protected merge") {
+            continue;
+        }
+        for line in body.lines() {
+            if let Some(value) = line.strip_prefix("Merge SHA: ") {
+                let sha = value.trim();
+                if sha.len() >= 7 && sha.chars().all(|c| c.is_ascii_hexdigit()) {
+                    return Ok(sha.to_string());
+                }
+            }
+        }
+    }
+    Err("Merge SHA not found in task audit trail".to_string())
+}
+
+fn evaluate_post_merge_ci(repository: &str, merge_sha: &str) -> Result<serde_json::Value, String> {
+    let token = credential_value("github")?;
+    let default_branch = github_default_branch(repository, &token)?;
+
+    let compare_url = format!(
+        "https://api.github.com/repos/{}/compare/{}...{}",
+        repository, merge_sha, default_branch
+    );
+    let compare = github_get_json(&compare_url, &token)?;
+    let compare_status = compare.get("status").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let in_default_history = matches!(compare_status, "ahead" | "identical");
+
+    let runs_url = format!(
+        "https://api.github.com/repos/{}/actions/runs?branch={}&head_sha={}&per_page=100",
+        repository, default_branch, merge_sha
+    );
+    let runs_payload = github_get_json(&runs_url, &token)?;
+    let runs = runs_payload
+        .get("workflow_runs")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let checks_url = format!(
+        "https://api.github.com/repos/{}/commits/{}/check-runs?per_page=100",
+        repository, merge_sha
+    );
+    let checks_payload = github_get_json(&checks_url, &token)?;
+    let checks = checks_payload
+        .get("check_runs")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let status_url = format!(
+        "https://api.github.com/repos/{}/commits/{}/status",
+        repository, merge_sha
+    );
+    let status_payload = github_get_json(&status_url, &token)?;
+    let statuses = status_payload
+        .get("statuses")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+    let combined_status = status_payload
+        .get("state")
+        .and_then(|v| v.as_str())
+        .unwrap_or("pending");
+
+    let mut pending = 0usize;
+    let mut failed = 0usize;
+    let mut successful = 0usize;
+
+    for run in &runs {
+        let status = run.get("status").and_then(|v| v.as_str()).unwrap_or("");
+        let conclusion = run.get("conclusion").and_then(|v| v.as_str()).unwrap_or("");
+        if status != "completed" {
+            pending += 1;
+        } else if matches!(conclusion, "success" | "neutral" | "skipped") {
+            successful += 1;
+        } else {
+            failed += 1;
+        }
+    }
+
+    for check in &checks {
+        let status = check.get("status").and_then(|v| v.as_str()).unwrap_or("");
+        let conclusion = check.get("conclusion").and_then(|v| v.as_str()).unwrap_or("");
+        if status != "completed" {
+            pending += 1;
+        } else if matches!(conclusion, "success" | "neutral" | "skipped") {
+            successful += 1;
+        } else {
+            failed += 1;
+        }
+    }
+
+    if !statuses.is_empty() {
+        match combined_status {
+            "success" => successful += statuses.len(),
+            "failure" | "error" => failed += statuses.len(),
+            _ => pending += statuses.len(),
+        }
+    }
+
+    let evidence_count = runs.len() + checks.len() + statuses.len();
+    let verified = in_default_history && evidence_count > 0 && pending == 0 && failed == 0;
+    let terminal_failure = !in_default_history || failed > 0;
+
+    Ok(serde_json::json!({
+        "evento_post_merge_version": 1,
+        "repository": repository,
+        "merge_sha": merge_sha,
+        "default_branch": default_branch,
+        "in_default_history": in_default_history,
+        "compare_status": compare_status,
+        "workflow_runs": runs.len(),
+        "check_runs": checks.len(),
+        "status_contexts": statuses.len(),
+        "successful": successful,
+        "pending": pending,
+        "failed": failed,
+        "evidence_count": evidence_count,
+        "verified": verified,
+        "terminal_failure": terminal_failure,
+        "deploy": false,
+        "release": false
+    }))
+}
+
+fn post_task_audit(issue_number: u64, heading: &str, marker: &str, payload: &serde_json::Value) -> Result<(), String> {
+    let token = credential_value("github")?;
+    let repo = task_repository();
+    let url = format!(
+        "https://api.github.com/repos/{}/issues/{}/comments",
+        repo, issue_number
+    );
+    let body = format!(
+        "## {heading}\n\n{marker}={}\n\nDeploy: **false**\nRelease: **false**",
+        serde_json::to_string(payload).map_err(|error| error.to_string())?
+    );
+    let response = ureq::post(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({ "body": body }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("Task audit comment failed: {}", response.status()));
+    }
+    Ok(())
+}
+
+fn set_task_state(issue_number: u64, state_label: &str) -> Result<(), String> {
+    let token = credential_value("github")?;
+    let repo = task_repository();
+    let issue_url = format!("https://api.github.com/repos/{}/issues/{}", repo, issue_number);
+    let issue = github_get_json(&issue_url, &token)?;
+    let title = issue.get("title").and_then(|v| v.as_str()).unwrap_or("");
+    let suffix = title
+        .splitn(3, ']')
+        .skip(2)
+        .collect::<Vec<_>>()
+        .join("]")
+        .trim()
+        .to_string();
+    let response = ureq::patch(&issue_url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({
+            "title": format!("[EVENTO TASK][{}] {}", state_label, suffix)
+        }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("Task state update failed: {}", response.status()));
+    }
+    Ok(())
+}
+
+fn evaluate_and_record_post_merge(
+    issue_number: u64,
+    repository: &str,
+    merge_sha: &str,
+) -> Result<serde_json::Value, String> {
+    let result = evaluate_post_merge_ci(repository, merge_sha)?;
+    if result.get("verified").and_then(|v| v.as_bool()) == Some(true) {
+        set_task_state(issue_number, "MERGED-VERIFIED")?;
+    }
+    post_task_audit(
+        issue_number,
+        "EVENTO post-merge verification",
+        "EVENTO_POST_MERGE_JSON",
+        &result,
+    )?;
+    Ok(result)
+}
+
+fn spawn_post_merge_watch(issue_number: u64, repository: String, merge_sha: String) {
+    std::thread::spawn(move || {
+        for attempt in 0..50u32 {
+            if attempt > 0 {
+                std::thread::sleep(Duration::from_secs(12));
+            }
+            match evaluate_post_merge_ci(&repository, &merge_sha) {
+                Ok(result) => {
+                    if result.get("verified").and_then(|v| v.as_bool()) == Some(true) {
+                        let _ = set_task_state(issue_number, "MERGED-VERIFIED");
+                        let _ = post_task_audit(
+                            issue_number,
+                            "EVENTO post-merge verification",
+                            "EVENTO_POST_MERGE_JSON",
+                            &result,
+                        );
+                        break;
+                    }
+                    if result.get("terminal_failure").and_then(|v| v.as_bool()) == Some(true) {
+                        let _ = post_task_audit(
+                            issue_number,
+                            "EVENTO post-merge verification",
+                            "EVENTO_POST_MERGE_JSON",
+                            &result,
+                        );
+                        break;
+                    }
+                }
+                Err(_) => {}
+            }
+        }
+    });
+}
+
+#[tauri::command]
+fn remote_task_post_merge_verify(
+    issue_number: u64,
+    repository: String,
+) -> Result<serde_json::Value, String> {
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    if !matches!(task_state.as_str(), "merged" | "merged-verified") {
+        return Err("Post-merge verification requires a merged task".to_string());
+    }
+    let merge_sha = task_merge_sha(issue_number, &token)?;
+    evaluate_and_record_post_merge(issue_number, &repository, &merge_sha)
+}
+
+fn deploy_registry() -> Result<serde_json::Value, String> {
+    serde_json::from_str(include_str!("../../../../registry/evento-deploy-targets.json"))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn remote_task_deploy_readiness(
+    issue_number: u64,
+    project_id: String,
+) -> Result<serde_json::Value, String> {
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    let mut blockers: Vec<String> = Vec::new();
+    if task_state != "merged-verified" {
+        blockers.push("post_merge_not_verified".to_string());
+    }
+
+    let registry = deploy_registry()?;
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned();
+
+    let Some(project) = project else {
+        blockers.push("deploy_target_not_registered".to_string());
+        let result = serde_json::json!({
+            "evento_deploy_readiness_version": 1,
+            "issue_number": issue_number,
+            "project_id": project_id,
+            "task_state": task_state,
+            "ready": false,
+            "status": "NOT DEPLOYABLE",
+            "blockers": blockers,
+            "deploy": false,
+            "production": false,
+            "release": false
+        });
+        post_task_audit(
+            issue_number,
+            "EVENTO deploy readiness",
+            "EVENTO_DEPLOY_READINESS_JSON",
+            &result,
+        )?;
+        return Ok(result);
+    };
+
+    let preview_supported = project
+        .get("preview_supported")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let binding_verified = project
+        .get("binding_verified")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let target = project.get("deploy_target").and_then(|v| v.as_str()).unwrap_or("");
+
+    if !preview_supported {
+        blockers.push("preview_not_supported".to_string());
+    }
+    if target.is_empty() {
+        blockers.push("no_deploy_target_registered".to_string());
+    }
+    if !binding_verified {
+        blockers.push("deploy_binding_not_verified".to_string());
+    }
+
+    if target == "vercel-preview" {
+        match credential_value("vercel") {
+            Ok(secret) => {
+                if probe_json(
+                    "https://api.vercel.com/v2/user",
+                    ("Authorization", format!("Bearer {secret}")),
+                ).is_err() {
+                    blockers.push("vercel_auth_failed".to_string());
+                }
+            }
+            Err(_) => blockers.push("vercel_credential_missing".to_string()),
+        }
+    }
+
+    let ready = blockers.is_empty();
+    let result = serde_json::json!({
+        "evento_deploy_readiness_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "task_state": task_state,
+        "target": target,
+        "preview_supported": preview_supported,
+        "binding_verified": binding_verified,
+        "ready": ready,
+        "status": if ready { "READY FOR PREVIEW DEPLOY" } else { "NOT DEPLOYABLE" },
+        "blockers": blockers,
+        "deploy": false,
+        "production": false,
+        "release": false
+    });
+    post_task_audit(
+        issue_number,
+        "EVENTO deploy readiness",
+        "EVENTO_DEPLOY_READINESS_JSON",
+        &result,
+    )?;
+    Ok(result)
 }
 
 #[tauri::command]
@@ -1572,6 +1936,8 @@ pub fn run() {
             remote_task_safe_pipeline,
             remote_task_merge_readiness,
             remote_task_protected_merge,
+            remote_task_post_merge_verify,
+            remote_task_deploy_readiness,
             autostart_status,
             set_autostart
         ])
@@ -1604,6 +1970,13 @@ mod tests {
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGE-HANDOFF-APPROVED] x"), Some("merge-handoff-approved"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGED] x"), Some("merged"));
         assert_ne!(remote_task_state_from_title("[EVENTO TASK][PR-OPEN] x"), Some("merge-handoff-approved"));
+    }
+
+    #[test]
+    fn post_merge_state_is_separate_from_release() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGED-VERIFIED] x"), Some("merged-verified"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGED] x"), Some("merged"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
     }
 
     #[test]
