@@ -462,6 +462,7 @@ fn credential_delete(name: String) -> Result<(), String> {
 struct RemoteTask {
     number: u64,
     title: String,
+    state: String,
     url: String,
     repository: String,
     project_id: String,
@@ -469,6 +470,18 @@ struct RemoteTask {
     mode: String,
     preferred_agent: String,
     approved_at: String,
+}
+
+fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
+    if title.starts_with("[EVENTO TASK][PR-OPEN]") {
+        Some("pr-open")
+    } else if title.starts_with("[EVENTO TASK][LOCAL-BUILT]") {
+        Some("local-built")
+    } else if title.starts_with("[EVENTO TASK][APPROVED]") {
+        Some("approved")
+    } else {
+        None
+    }
 }
 
 fn task_repository() -> String {
@@ -501,9 +514,9 @@ fn remote_tasks() -> Result<Vec<RemoteTask>, String> {
     let mut tasks = Vec::new();
     for issue in issues {
         let title = issue.get("title").and_then(|v| v.as_str()).unwrap_or("");
-        if !title.starts_with("[EVENTO TASK][APPROVED]") {
+        let Some(task_state) = remote_task_state_from_title(title) else {
             continue;
-        }
+        };
         let body = issue.get("body").and_then(|v| v.as_str()).unwrap_or("");
         let envelope: serde_json::Value = match serde_json::from_str(body) {
             Ok(value) => value,
@@ -533,6 +546,7 @@ fn remote_tasks() -> Result<Vec<RemoteTask>, String> {
         tasks.push(RemoteTask {
             number: issue.get("number").and_then(|v| v.as_u64()).unwrap_or(0),
             title: title.to_string(),
+            state: task_state.to_string(),
             url: issue.get("html_url").and_then(|v| v.as_str()).unwrap_or("").to_string(),
             repository: repository.to_string(),
             project_id: project_id.to_string(),
@@ -905,6 +919,68 @@ fn remote_task_publish_pr(
     }))
 }
 
+
+
+#[tauri::command]
+fn remote_task_safe_pipeline(
+    state: State<'_, DaemonState>,
+    issue_number: u64,
+    project_id: String,
+    repository: String,
+    objective: String,
+    preferred_agent: String,
+) -> Result<serde_json::Value, String> {
+    if preferred_agent == "claude-code" {
+        return Err("Claude is reviewer-only in safe pipeline v1; choose Auto or Codex for the writer.".to_string());
+    }
+
+    let build = remote_task_execute(
+        state.clone(),
+        issue_number,
+        project_id.clone(),
+        objective.clone(),
+        preferred_agent,
+    )?;
+
+    let review_gate = remote_task_review_gate(
+        state.clone(),
+        issue_number,
+        project_id.clone(),
+        objective.clone(),
+    )?;
+    if review_gate.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Ok(serde_json::json!({
+            "ok": false,
+            "stage": "review-gate",
+            "build": build,
+            "review_gate": review_gate,
+            "draft_pr": null,
+            "merge": false,
+            "deploy": false,
+            "release": false
+        }));
+    }
+
+    let handoff = remote_task_publish_pr(
+        state,
+        issue_number,
+        project_id,
+        repository,
+        objective,
+    )?;
+
+    Ok(serde_json::json!({
+        "ok": true,
+        "stage": "draft-pr-open",
+        "build": build,
+        "review_gate": review_gate,
+        "handoff": handoff,
+        "merge": false,
+        "deploy": false,
+        "release": false
+    }))
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -1088,6 +1164,7 @@ pub fn run() {
             remote_task_execute,
             remote_task_review_gate,
             remote_task_publish_pr,
+            remote_task_safe_pipeline,
             autostart_status,
             set_autostart
         ])
