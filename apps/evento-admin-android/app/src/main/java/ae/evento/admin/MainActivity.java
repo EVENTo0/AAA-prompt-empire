@@ -26,6 +26,7 @@ public final class MainActivity extends AppCompatActivity {
     private EditText token;
     private EditText commandPrompt;
     private LinearLayout projects;
+    private LinearLayout remoteTasks;
     private TextView status;
 
     @Override
@@ -70,6 +71,11 @@ public final class MainActivity extends AppCompatActivity {
         projects.setOrientation(LinearLayout.VERTICAL);
         root.addView(projects);
 
+        root.addView(section("Remote tasks"));
+        remoteTasks = new LinearLayout(this);
+        remoteTasks.setOrientation(LinearLayout.VERTICAL);
+        root.addView(remoteTasks);
+
         root.addView(section("Safe command"));
         root.addView(commandPrompt);
         LinearLayout commands = row();
@@ -106,6 +112,7 @@ public final class MainActivity extends AppCompatActivity {
             secureStore.put("endpoint", url);
             secureStore.put("token", secret);
             status.setText("Saved in Android Keystore");
+            refresh();
         } catch (Exception error) {
             status.setText("Save failed: " + error.getMessage());
         }
@@ -127,15 +134,68 @@ public final class MainActivity extends AppCompatActivity {
                     projects.removeAllViews();
                     if (list == null || list.length() == 0) {
                         projects.addView(text("No projects returned.", 13, 0xFF8294A3));
-                        return;
+                    } else {
+                        for (int i = 0; i < list.length(); i++) {
+                            JSONObject item = list.optJSONObject(i);
+                            if (item != null) projects.addView(projectCard(item));
+                        }
                     }
-                    for (int i = 0; i < list.length(); i++) {
-                        JSONObject item = list.optJSONObject(i);
-                        if (item != null) projects.addView(projectCard(item));
-                    }
+                    refreshRemoteTasks();
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> status.setText("Connection failed: " + error.getMessage()));
+            }
+        });
+    }
+
+    private void refreshRemoteTasks() {
+        remoteTasks.removeAllViews();
+        remoteTasks.addView(text("Loading approved tasks…", 12, 0xFF8294A3));
+        executor.execute(() -> {
+            try {
+                String raw = EventoApi.get(
+                        endpoint.getText().toString().trim(),
+                        token.getText().toString().trim(),
+                        "/api/evento/mobile-admin/tasks");
+                JSONObject body = new JSONObject(raw);
+                JSONArray list = body.optJSONArray("tasks");
+                runOnUiThread(() -> {
+                    remoteTasks.removeAllViews();
+                    if (list == null || list.length() == 0) {
+                        remoteTasks.addView(text("No remote tasks.", 12, 0xFF8294A3));
+                        return;
+                    }
+                    for (int i = 0; i < list.length(); i++) {
+                        JSONObject row = list.optJSONObject(i);
+                        if (row == null) continue;
+                        JSONObject task = row.optJSONObject("task");
+                        if (task == null) continue;
+                        LinearLayout card = new LinearLayout(this);
+                        card.setOrientation(LinearLayout.VERTICAL);
+                        card.setPadding(dp(12), dp(12), dp(12), dp(12));
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+                        params.setMargins(0, 0, 0, dp(8));
+                        card.setLayoutParams(params);
+                        card.setBackgroundColor(0xFF0B151E);
+                        String state = row.optString("state", "approved");
+                        int stateColor = "local-built".equals(state) ? 0xFF4FD4FF : 0xFF68E4A2;
+                        card.addView(text(
+                                "#" + row.optInt("number", 0) + " · " + task.optString("project_id", ""),
+                                15,
+                                Color.WHITE));
+                        card.addView(text(task.optString("objective", ""), 12, 0xFFB7C4CD));
+                        card.addView(text(
+                                state + " · " + task.optString("preferred_agent", "auto"),
+                                11,
+                                stateColor));
+                        remoteTasks.addView(card);
+                    }
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    remoteTasks.removeAllViews();
+                    remoteTasks.addView(text("Task status unavailable: " + error.getMessage(), 12, 0xFFFF6F7D));
+                });
             }
         });
     }
