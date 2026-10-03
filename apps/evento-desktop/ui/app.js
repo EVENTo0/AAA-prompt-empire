@@ -261,6 +261,8 @@ async function refreshRemoteTasks() {
         '<div class="nativeActions">' +
           '<button data-remote-plan="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'">Plan task</button>' +
           '<button data-remote-execute="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.preferred_agent==='claude-code'?'disabled':'')+'>Execute build</button>' +
+          '<button data-remote-review="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled?'disabled':'')+'>Review + Gate</button>' +
+          '<button data-remote-publish="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled?'disabled':'')+'>Publish Draft PR</button>' +
         '</div>' +
       '</article>'
     ).join('')
@@ -270,21 +272,36 @@ async function refreshRemoteTasks() {
 }
 
 remoteTasksEl.addEventListener('click', async event => {
-  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute]')
+  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish]')
   if (!button) return
   button.disabled = true
   const projectId = button.dataset.remoteProject
   const preferredAgent = button.dataset.remoteAgent
   const objective = button.dataset.remoteObjective
   const execute = Boolean(button.dataset.remoteExecute)
-  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan)
-  log.textContent = (execute ? 'Executing' : 'Planning') + ' approved task #' + issueNumber + '…'
+  const review = Boolean(button.dataset.remoteReview)
+  const publish = Boolean(button.dataset.remotePublish)
+  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish)
+  const actionLabel = publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
+  log.textContent = actionLabel + ' approved task #' + issueNumber + '…'
   try {
-    const result = execute
-      ? await invoke('remote_task_execute', { issueNumber, projectId, objective, preferredAgent })
-      : await invoke('remote_task_plan', { projectId, objective, preferredAgent })
+    let result
+    if (publish) {
+      result = await invoke('remote_task_publish_pr', {
+        issueNumber,
+        projectId,
+        repository: button.dataset.remoteRepository,
+        objective,
+      })
+    } else if (review) {
+      result = await invoke('remote_task_review_gate', { issueNumber, projectId, objective })
+    } else if (execute) {
+      result = await invoke('remote_task_execute', { issueNumber, projectId, objective, preferredAgent })
+    } else {
+      result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
+    }
     log.textContent = result.output || result.agent_summary || JSON.stringify(result, null, 2)
-    if (execute) await refreshRemoteTasks()
+    if (execute || review || publish) await refreshRemoteTasks()
   } catch (error) {
     log.textContent = String(error)
   } finally {
