@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authorizeMobileAdmin } from '@/lib/mobile-admin'
-import { buildRemoteTask, createRemoteTaskIssue, listRemoteTaskIssues } from '@/lib/remote-task-queue'
+import { applyRemoteTaskDecision, buildRemoteTask, createRemoteTaskIssue, listRemoteTaskIssues } from '@/lib/remote-task-queue'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +34,21 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Could not create approved task' },
+      { status: 400 },
+    )
+  }
+}
+
+
+export async function PATCH(request: NextRequest) {
+  if (!authorizeMobileAdmin(request.headers.get('authorization'))) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  try {
+    return NextResponse.json(await applyRemoteTaskDecision(await request.json()))
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Could not apply task decision' },
       { status: 400 },
     )
   }
