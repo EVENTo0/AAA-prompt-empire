@@ -102,11 +102,13 @@ export async function listRemoteTaskIssues() {
 
   return issues.flatMap((issue: any) => {
     const title = typeof issue.title === 'string' ? issue.title : ''
-    const state = title.startsWith('[EVENTO TASK][LOCAL-BUILT]')
-      ? 'local-built'
-      : title.startsWith('[EVENTO TASK][APPROVED]')
-        ? 'approved'
-        : null
+    const state = title.startsWith('[EVENTO TASK][PR-OPEN]')
+      ? 'pr-open'
+      : title.startsWith('[EVENTO TASK][LOCAL-BUILT]')
+        ? 'local-built'
+        : title.startsWith('[EVENTO TASK][APPROVED]')
+          ? 'approved'
+          : null
     if (!state || typeof issue.body !== 'string') return []
     try {
       const task = JSON.parse(issue.body) as RemoteTaskEnvelope
