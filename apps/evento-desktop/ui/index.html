@@ -86,6 +86,21 @@
 
     <section class="panel">
       <div class="sectionRow">
+        <div><p class="kicker">AGENTS</p><h3>Codex + Claude Planning</h3></div>
+        <span class="pill quiet">READ ONLY</span>
+      </div>
+      <p class="muted">Runs against a registered local project with a read-only planning contract. No Release authority and no Operator Mode required.</p>
+      <div class="agentPlanner">
+        <select id="agentProvider"><option value="codex">Codex</option><option value="claude-code">Claude Code</option></select>
+        <select id="agentProject"></select>
+        <textarea id="agentPrompt" rows="4" placeholder="Describe the planning/review task"></textarea>
+        <button id="runAgentPlan">Run plan</button>
+      </div>
+      <pre id="agentOutput">Agent planner ready.</pre>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
         <div><p class="kicker">SECURITY</p><h3>Local Credential Store</h3></div>
         <span class="pill quiet">OS PROTECTED</span>
       </div>
