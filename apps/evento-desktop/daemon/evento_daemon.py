@@ -358,6 +358,63 @@ def approved_script_path(script: str) -> Path:
     raise PermissionError("script_not_approved")
 
 
+
+
+def agent_plan(provider: str, project_id: str, prompt: str) -> dict[str, Any]:
+    if provider not in {"codex", "claude-code"}:
+        raise PermissionError("agent_provider_not_allowlisted")
+    clean_prompt = prompt.strip()
+    if not clean_prompt or len(clean_prompt) > 8000:
+        raise ValueError("agent_prompt_invalid")
+
+    project = registered_project_path(project_id)
+    guardrail = (
+        "EVENTO READ-ONLY PLANNING TASK. Do not modify files, commit, push, deploy, "
+        "change credentials, or perform release actions. Inspect the repository and return "
+        "a concrete plan, risks, tests, and evidence needed. Task: "
+    )
+    task = guardrail + clean_prompt
+
+    if provider == "codex":
+        executable = _configured_executable("EVENTO_CODEX_EXECUTABLE", ("codex", "codex.exe"))
+        if not executable:
+            raise RuntimeError("codex_unavailable")
+        command = [executable, "exec", task]
+    else:
+        executable = _configured_executable("EVENTO_CLAUDE_EXECUTABLE", ("claude", "claude.exe"))
+        if not executable:
+            raise RuntimeError("claude_unavailable")
+        command = [
+            executable,
+            "-p",
+            task,
+            "--permission-mode",
+            "plan",
+            "--output-format",
+            "text",
+            "--max-turns",
+            "3",
+        ]
+
+    completed = subprocess.run(
+        command,
+        cwd=project,
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    output = ((completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")).strip()
+    if completed.returncode != 0:
+        raise RuntimeError(output[-12000:] or "agent_plan_failed")
+    return {
+        "provider": provider,
+        "project_id": project_id,
+        "mode": "read-only-plan",
+        "output": output[-20000:],
+        "exit_code": completed.returncode,
+    }
+
 def run_diagnostic(action_id: str) -> dict[str, Any]:
     registry = load_local_actions()
     action = next((item for item in registry["actions"] if item["id"] == action_id), None)
@@ -526,6 +583,16 @@ class Handler(BaseHTTPRequestHandler):
             payload = self._read_payload()
             if self.path == "/v1/diagnostics/run":
                 self._json(200, run_diagnostic(str(payload.get("action", ""))))
+                return
+            if self.path == "/v1/agent/plan":
+                self._json(
+                    200,
+                    agent_plan(
+                        str(payload.get("provider", "")),
+                        str(payload.get("project_id", "")),
+                        str(payload.get("prompt", "")),
+                    ),
+                )
                 return
             if self.path == "/v1/actions/run":
                 if not self._write_authorized():
