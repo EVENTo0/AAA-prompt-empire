@@ -178,8 +178,10 @@ public final class MainActivity extends AppCompatActivity {
                         card.setLayoutParams(params);
                         card.setBackgroundColor(0xFF0B151E);
                         String state = row.optString("state", "approved");
-                        int stateColor = "merged".equals(state)
+                        int stateColor = "merged-verified".equals(state)
                                 ? 0xFF68E4A2
+                                : "merged".equals(state)
+                                ? 0xFF4FD4FF
                                 : "pr-open".equals(state)
                                     ? 0xFFD6AB63
                                     : "local-built".equals(state)
@@ -207,6 +209,34 @@ public final class MainActivity extends AppCompatActivity {
                         String mergeSummary = row.optString("mergeSummary", "");
                         if (!mergeSummary.isEmpty()) {
                             card.addView(text(mergeSummary, 10, 0xFF68E4A2));
+                        }
+
+                        JSONObject postMergeVerification = row.optJSONObject("postMergeVerification");
+                        if (postMergeVerification != null) {
+                            boolean verified = postMergeVerification.optBoolean("verified", false);
+                            String detail = verified
+                                    ? "MAIN CI VERIFIED"
+                                    : "MAIN CI " + (postMergeVerification.optInt("failed", 0) > 0 ? "FAILED" : "PENDING");
+                            card.addView(text(
+                                    detail,
+                                    11,
+                                    verified ? 0xFF68E4A2 : 0xFFFFBF62));
+                        }
+
+                        JSONObject deployReadiness = row.optJSONObject("deployReadiness");
+                        if (deployReadiness != null) {
+                            boolean deployReady = deployReadiness.optBoolean("ready", false);
+                            JSONArray deployBlockers = deployReadiness.optJSONArray("blockers");
+                            String deployDetail = deployReadiness.optString(
+                                    "status",
+                                    deployReady ? "READY FOR PREVIEW DEPLOY" : "NOT DEPLOYABLE");
+                            if (!deployReady && deployBlockers != null) {
+                                deployDetail += " · " + deployBlockers.toString();
+                            }
+                            card.addView(text(
+                                    deployDetail,
+                                    11,
+                                    deployReady ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
                         JSONObject mergeReadiness = row.optJSONObject("mergeReadiness");
