@@ -1603,29 +1603,26 @@ fn spawn_post_merge_watch(issue_number: u64, repository: String, merge_sha: Stri
             if attempt > 0 {
                 std::thread::sleep(Duration::from_secs(12));
             }
-            match evaluate_post_merge_ci(&repository, &merge_sha) {
-                Ok(result) => {
-                    if result.get("verified").and_then(|v| v.as_bool()) == Some(true) {
-                        let _ = set_task_state(issue_number, "MERGED-VERIFIED");
-                        let _ = post_task_audit(
-                            issue_number,
-                            "EVENTO post-merge verification",
-                            "EVENTO_POST_MERGE_JSON",
-                            &result,
-                        );
-                        break;
-                    }
-                    if result.get("terminal_failure").and_then(|v| v.as_bool()) == Some(true) {
-                        let _ = post_task_audit(
-                            issue_number,
-                            "EVENTO post-merge verification",
-                            "EVENTO_POST_MERGE_JSON",
-                            &result,
-                        );
-                        break;
-                    }
+            if let Ok(result) = evaluate_post_merge_ci(&repository, &merge_sha) {
+                if result.get("verified").and_then(|v| v.as_bool()) == Some(true) {
+                    let _ = set_task_state(issue_number, "MERGED-VERIFIED");
+                    let _ = post_task_audit(
+                        issue_number,
+                        "EVENTO post-merge verification",
+                        "EVENTO_POST_MERGE_JSON",
+                        &result,
+                    );
+                    break;
                 }
-                Err(_) => {}
+                if result.get("terminal_failure").and_then(|v| v.as_bool()) == Some(true) {
+                    let _ = post_task_audit(
+                        issue_number,
+                        "EVENTO post-merge verification",
+                        "EVENTO_POST_MERGE_JSON",
+                        &result,
+                    );
+                    break;
+                }
             }
         }
     });
