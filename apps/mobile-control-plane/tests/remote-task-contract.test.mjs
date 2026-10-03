@@ -20,3 +20,12 @@ test('remote task issue body contains structured task JSON only', async () => {
   assert.match(lib, /body: JSON\.stringify\(task, null, 2\)/)
   assert.ok(!lib.includes('CONTROL_PLANE_ACCESS_KEY'))
 })
+
+
+test('remote task status supports audited PR-open handoff without release', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /\[EVENTO TASK\]\[PR-OPEN\]/)
+  assert.match(lib, /'pr-open'/)
+  assert.match(lib, /release !== false/)
+  assert.ok(!lib.includes('merge_pull_request'))
+})
