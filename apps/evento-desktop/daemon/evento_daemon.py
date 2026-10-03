@@ -478,6 +478,134 @@ def python_run_approved(script: str, args: list[str]) -> dict[str, Any]:
     return {"action": "python-run-approved", "script": str(script_path.relative_to(REPO_ROOT)), "exit_code": completed.returncode, "output": output[:12000]}
 
 
+
+
+def _git_capture(cwd: Path, args: list[str], timeout: int = 30) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(cwd), *args],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        check=False,
+    )
+
+
+def agent_build_worktree(project_id: str, issue_number: int, objective: str, provider: str) -> dict[str, Any]:
+    if provider != "codex":
+        raise PermissionError("remote_write_provider_not_enabled")
+    if issue_number <= 0:
+        raise ValueError("issue_number_invalid")
+    clean_objective = objective.strip()
+    if not clean_objective or len(clean_objective) > 4000:
+        raise ValueError("agent_objective_invalid")
+
+    repo = registered_project_path(project_id)
+    probe = _git_capture(repo, ["rev-parse", "--show-toplevel"])
+    if probe.returncode != 0:
+        raise ValueError("repository_not_git")
+
+    base = _git_capture(repo, ["rev-parse", "HEAD"])
+    if base.returncode != 0:
+        raise RuntimeError("base_sha_unavailable")
+    base_sha = base.stdout.strip()
+
+    branch = f"evento/remote-task-{issue_number}"
+    destination = safe_workspace_path(f"{project_id}/remote-tasks/{issue_number}")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists():
+        raise FileExistsError("remote_task_worktree_exists")
+
+    created = subprocess.run(
+        ["git", "-C", str(repo), "worktree", "add", "-b", branch, str(destination), base_sha],
+        capture_output=True,
+        text=True,
+        timeout=45,
+        check=False,
+    )
+    if created.returncode != 0:
+        raise RuntimeError((created.stderr or created.stdout).strip()[:4000])
+
+    executable = _configured_executable("EVENTO_CODEX_EXECUTABLE", ("codex", "codex.exe"))
+    if not executable:
+        raise RuntimeError("codex_unavailable")
+
+    task = (
+        "EVENTO APPROVED BUILD TASK. You may edit files only inside the current isolated worktree. "
+        "Do not push, merge, deploy, release, modify credentials, access secrets, or change files outside "
+        "this worktree. Do not run destructive Git commands. Implement the smallest correct change for: "
+        + clean_objective
+        + "\nWhen finished, summarize changed files and validation you performed."
+    )
+    completed = subprocess.run(
+        [
+            executable,
+            "exec",
+            "--sandbox",
+            "workspace-write",
+            "--ask-for-approval",
+            "never",
+            task,
+        ],
+        cwd=destination,
+        capture_output=True,
+        text=True,
+        timeout=1800,
+        check=False,
+    )
+    agent_output = ((completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")).strip()
+
+    diff_check = _git_capture(destination, ["diff", "--check"], timeout=60)
+    status = _git_capture(destination, ["status", "--short"], timeout=60)
+    diff_stat = _git_capture(destination, ["diff", "--stat"], timeout=60)
+    changed = _git_capture(destination, ["diff", "--name-only"], timeout=60)
+    changed_files = [line.strip() for line in changed.stdout.splitlines() if line.strip()]
+
+    evidence_dir = safe_workspace_path(f"{project_id}/evidence/remote-task-{issue_number}")
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    evidence_path = evidence_dir / "evidence.json"
+    evidence = {
+        "evento_evidence_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "provider": provider,
+        "mode": "approved-build-worktree",
+        "base_sha": base_sha,
+        "branch": branch,
+        "agent_exit_code": completed.returncode,
+        "diff_check_exit_code": diff_check.returncode,
+        "changed_files": changed_files,
+        "status": status.stdout.strip(),
+        "diff_stat": diff_stat.stdout.strip(),
+        "release": False,
+        "push": False,
+        "merge": False,
+        "deploy": False,
+    }
+    evidence_path.write_text(json.dumps(evidence, indent=2), encoding="utf-8")
+
+    if completed.returncode != 0:
+        raise RuntimeError(agent_output[-12000:] or "agent_build_failed")
+    if diff_check.returncode != 0:
+        raise RuntimeError((diff_check.stdout + diff_check.stderr)[-12000:] or "git_diff_check_failed")
+
+    return {
+        "action": "agent-build-worktree",
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "provider": provider,
+        "branch": branch,
+        "base_sha": base_sha,
+        "changed_files": changed_files,
+        "diff_stat": diff_stat.stdout.strip(),
+        "status": status.stdout.strip(),
+        "evidence": str(evidence_path),
+        "agent_summary": agent_output[-12000:],
+        "release": False,
+        "push": False,
+        "merge": False,
+        "deploy": False,
+    }
+
 def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     allowed = {item["id"] for item in load_local_write_actions()["actions"]}
     if action_id not in allowed:
@@ -510,6 +638,13 @@ def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         return unity_run_editmode_tests(str(payload.get("project_id", "")), str(payload.get("unity_project", ".")))
     if action_id == "blender-export-glb":
         return blender_export_glb(str(payload.get("project_id", "")), str(payload.get("blend_file", "")))
+    if action_id == "agent-build-worktree":
+        return agent_build_worktree(
+            str(payload.get("project_id", "")),
+            int(payload.get("issue_number", 0)),
+            str(payload.get("objective", "")),
+            str(payload.get("provider", "codex")),
+        )
     raise KeyError(action_id)
 
 
