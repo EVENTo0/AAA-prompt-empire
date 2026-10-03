@@ -1,0 +1,45 @@
+name: EVENTO Admin Android
+
+on:
+  pull_request:
+    paths:
+      - 'apps/evento-admin-android/**'
+      - 'apps/mobile-control-plane/app/api/evento/mobile-admin/**'
+      - 'apps/mobile-control-plane/lib/mobile-admin.ts'
+      - 'apps/mobile-control-plane/tests/mobile-admin-contract.test.mjs'
+      - '.github/workflows/evento-admin-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/evento-admin-android
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Build debug APK
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Upload EVENTO Admin APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: evento-admin-android-debug
+          path: apps/evento-admin-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
