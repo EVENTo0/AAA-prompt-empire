@@ -473,7 +473,11 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][PR-OPEN]") {
+    if title.starts_with("[EVENTO TASK][MERGE-HANDOFF-APPROVED]") {
+        Some("merge-handoff-approved")
+    } else if title.starts_with("[EVENTO TASK][REVISION-REQUESTED]") {
+        Some("revision-requested")
+    } else if title.starts_with("[EVENTO TASK][PR-OPEN]") {
         Some("pr-open")
     } else if title.starts_with("[EVENTO TASK][LOCAL-BUILT]") {
         Some("local-built")
@@ -769,6 +773,34 @@ fn remote_task_review_gate(
     }))
 }
 
+
+fn github_task_handoff_comment(
+    issue_number: u64,
+    pr_url: &str,
+    branch: &str,
+    commit_sha: &str,
+) -> Result<(), String> {
+    let token = credential_value("github")?;
+    let repo = task_repository();
+    let url = format!(
+        "https://api.github.com/repos/{}/issues/{}/comments",
+        repo, issue_number
+    );
+    let body = format!(
+        "## EVENTO PR handoff\n\nDraft PR: {pr_url}\nBranch: {branch}\nCommit: {commit_sha}\n\nMerge: false\nDeploy: false\nRelease: false\n\nHuman/operator review is still required before any merge or release action."
+    );
+    let response = ureq::post(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({ "body": body }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("GitHub handoff comment failed: {}", response.status()));
+    }
+    Ok(())
+}
+
 fn github_default_branch(repository: &str, token: &str) -> Result<String, String> {
     let url = format!("https://api.github.com/repos/{repository}");
     let mut response = ureq::get(&url)
@@ -878,6 +910,11 @@ fn remote_task_publish_pr(
         .and_then(|v| v.as_str())
         .ok_or_else(|| "Published branch missing".to_string())?;
     let pr = create_draft_pr(&repository, &github_token, branch, issue_number, &objective)?;
+    let pr_url = pr.get("html_url").and_then(|v| v.as_str()).unwrap_or("");
+    let commit_sha = published.get("commit_sha").and_then(|v| v.as_str()).unwrap_or("");
+    if !pr_url.is_empty() {
+        let _ = github_task_handoff_comment(issue_number, pr_url, branch, commit_sha);
+    }
 
     let task_repo = task_repository();
     let task_url = format!(
@@ -1197,6 +1234,8 @@ mod tests {
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][APPROVED] x"), Some("approved"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][LOCAL-BUILT] x"), Some("local-built"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][PR-OPEN] x"), Some("pr-open"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][REVISION-REQUESTED] x"), Some("revision-requested"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGE-HANDOFF-APPROVED] x"), Some("merge-handoff-approved"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
         assert_eq!(remote_task_state_from_title("ordinary issue"), None);
     }
