@@ -256,13 +256,14 @@ async function refreshRemoteTasks() {
     }
     remoteTasksEl.innerHTML = tasks.map(task =>
       '<article class="projectCard">' +
-        '<div class="projectTop"><div><strong>#'+task.number+' · '+escapeHtml(task.project_id)+'</strong><small>'+escapeHtml(task.mode)+' · '+escapeHtml(task.preferred_agent)+'</small></div><span class="pill good">approved</span></div>' +
+        '<div class="projectTop"><div><strong>#'+task.number+' · '+escapeHtml(task.project_id)+'</strong><small>'+escapeHtml(task.mode)+' · '+escapeHtml(task.preferred_agent)+'</small></div><span class="pill '+(task.state==='pr-open'?'warn':'good')+'">'+escapeHtml(task.state)+'</span></div>' +
         '<p>'+escapeHtml(task.objective)+'</p>' +
         '<div class="nativeActions">' +
           '<button data-remote-plan="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'">Plan task</button>' +
-          '<button data-remote-execute="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.preferred_agent==='claude-code'?'disabled':'')+'>Execute build</button>' +
-          '<button data-remote-review="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled?'disabled':'')+'>Review + Gate</button>' +
-          '<button data-remote-publish="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled?'disabled':'')+'>Publish Draft PR</button>' +
+          '<button data-remote-execute="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.state!=='approved'||task.preferred_agent==='claude-code'?'disabled':'')+'>Execute build</button>' +
+          '<button data-remote-review="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.state!=='local-built'?'disabled':'')+'>Review + Gate</button>' +
+          '<button data-remote-publish="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.state!=='local-built'?'disabled':'')+'>Publish Draft PR</button>' +
+          '<button data-remote-pipeline="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'" '+(!operatorEnabled||task.state!=='approved'||task.preferred_agent==='claude-code'?'disabled':'')+'>Run Safe Pipeline</button>' +
         '</div>' +
       '</article>'
     ).join('')
@@ -272,7 +273,7 @@ async function refreshRemoteTasks() {
 }
 
 remoteTasksEl.addEventListener('click', async event => {
-  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish]')
+  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline]')
   if (!button) return
   button.disabled = true
   const projectId = button.dataset.remoteProject
@@ -281,12 +282,21 @@ remoteTasksEl.addEventListener('click', async event => {
   const execute = Boolean(button.dataset.remoteExecute)
   const review = Boolean(button.dataset.remoteReview)
   const publish = Boolean(button.dataset.remotePublish)
-  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish)
-  const actionLabel = publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
+  const pipeline = Boolean(button.dataset.remotePipeline)
+  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline)
+  const actionLabel = pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
   log.textContent = actionLabel + ' approved task #' + issueNumber + '…'
   try {
     let result
-    if (publish) {
+    if (pipeline) {
+      result = await invoke('remote_task_safe_pipeline', {
+        issueNumber,
+        projectId,
+        repository: button.dataset.remoteRepository,
+        objective,
+        preferredAgent,
+      })
+    } else if (publish) {
       result = await invoke('remote_task_publish_pr', {
         issueNumber,
         projectId,
@@ -301,7 +311,7 @@ remoteTasksEl.addEventListener('click', async event => {
       result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
     }
     log.textContent = result.output || result.agent_summary || JSON.stringify(result, null, 2)
-    if (execute || review || publish) await refreshRemoteTasks()
+    if (execute || review || publish || pipeline) await refreshRemoteTasks()
   } catch (error) {
     log.textContent = String(error)
   } finally {
