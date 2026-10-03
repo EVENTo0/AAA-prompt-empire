@@ -242,3 +242,47 @@ document.querySelector('#runAgentPlan').addEventListener('click', async () => {
     output.textContent = String(error)
   }
 })
+
+
+const remoteTasksEl = document.querySelector('#remoteTasks')
+
+async function refreshRemoteTasks() {
+  remoteTasksEl.innerHTML = '<p class="muted">Reading approved GitHub tasks…</p>'
+  try {
+    const tasks = await invoke('remote_tasks')
+    if (!tasks.length) {
+      remoteTasksEl.innerHTML = '<p class="muted">No approved remote tasks.</p>'
+      return
+    }
+    remoteTasksEl.innerHTML = tasks.map(task =>
+      '<article class="projectCard">' +
+        '<div class="projectTop"><div><strong>#'+task.number+' · '+escapeHtml(task.project_id)+'</strong><small>'+escapeHtml(task.mode)+' · '+escapeHtml(task.preferred_agent)+'</small></div><span class="pill good">approved</span></div>' +
+        '<p>'+escapeHtml(task.objective)+'</p>' +
+        '<div class="nativeActions"><button data-remote-number="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-agent="'+escapeHtml(task.preferred_agent)+'" data-remote-objective="'+escapeHtml(task.objective)+'">Plan task</button></div>' +
+      '</article>'
+    ).join('')
+  } catch (error) {
+    remoteTasksEl.innerHTML = '<p class="bad">'+escapeHtml(String(error))+'</p>'
+  }
+}
+
+remoteTasksEl.addEventListener('click', async event => {
+  const button = event.target.closest('button[data-remote-number]')
+  if (!button) return
+  button.disabled = true
+  const projectId = button.dataset.remoteProject
+  const preferredAgent = button.dataset.remoteAgent
+  const objective = button.dataset.remoteObjective
+  log.textContent = 'Planning approved task #' + button.dataset.remoteNumber + '…'
+  try {
+    const result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
+    log.textContent = result.output || JSON.stringify(result, null, 2)
+  } catch (error) {
+    log.textContent = String(error)
+  } finally {
+    button.disabled = false
+  }
+})
+
+document.querySelector('#refreshRemoteTasks').addEventListener('click', refreshRemoteTasks)
+refreshRemoteTasks()
