@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "policy": {
+    "provider_neutral": true,
+    "no_agent_release_authority": true,
+    "isolated_worktree_for_writes": true,
+    "evidence_required": true
+  },
+  "routes": [
+    {
+      "lane": "coding-tests-git",
+      "preferred": ["codex", "claude-code"],
+      "fallback": ["openhands", "cline"],
+      "reason": "Use Codex first for repository implementation, tests, refactors and Git-oriented execution; Claude Code remains a strong alternate/reviewer."
+    },
+    {
+      "lane": "architecture-large-context-review",
+      "preferred": ["claude-code", "codex"],
+      "fallback": ["cline"],
+      "reason": "Use Claude Code first for architecture, long-context review and documentation; Codex is the alternate engineering reviewer."
+    },
+    {
+      "lane": "independent-review",
+      "preferred": ["codex", "claude-code"],
+      "require_distinct_agent_from_author": true,
+      "reason": "The agent that authors a critical change must not be its sole reviewer."
+    }
+  ]
+}
