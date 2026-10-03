@@ -327,6 +327,29 @@ fn project_action(
             "project_id": project_id,
             "unity_project": value.unwrap_or_else(|| ".".to_string()),
         }),
+        "unity-test" => serde_json::json!({
+            "action": "unity-run-editmode-tests",
+            "confirmation": "unity-run-editmode-tests",
+            "project_id": project_id,
+            "unity_project": value.unwrap_or_else(|| ".".to_string()),
+        }),
+        "blender-export" => serde_json::json!({
+            "action": "blender-export-glb",
+            "confirmation": "blender-export-glb",
+            "project_id": project_id,
+            "blend_file": value.unwrap_or_default(),
+        }),
+        "adb-install" => {
+            if project_id != "evento-mobile" {
+                return Err("APK install is restricted to evento-mobile in v1".to_string());
+            }
+            serde_json::json!({
+                "action": "android-install-apk",
+                "confirmation": "android-install-apk",
+                "project_id": project_id,
+                "apk_path": value.unwrap_or_default(),
+            })
+        }
         _ => return Err("Native project action is not allowlisted".to_string()),
     };
 
