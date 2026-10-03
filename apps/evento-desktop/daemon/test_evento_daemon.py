@@ -119,6 +119,31 @@ class EventoDaemonTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MODULE._configured_executable("EVENTO_BLENDER_EXECUTABLE", ("blender",))
 
+    def test_android_install_rejects_non_apk_before_adb(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            bad = root / "build.txt"
+            bad.write_text("x")
+            with patch.object(MODULE, "registered_project_path", return_value=root):
+                with self.assertRaises(ValueError):
+                    MODULE.android_install_apk("x", "build.txt")
+
+    def test_blender_export_rejects_non_blend_before_tool(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            bad = root / "scene.txt"
+            bad.write_text("x")
+            with patch.object(MODULE, "registered_project_path", return_value=root):
+                with self.assertRaises(ValueError):
+                    MODULE.blender_export_glb("x", "scene.txt")
+
+    def test_unity_test_adapter_requires_project_markers(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td).resolve()
+            with patch.object(MODULE, "registered_project_path", return_value=root):
+                with self.assertRaises(ValueError):
+                    MODULE.unity_run_editmode_tests("x", ".")
+
     def test_registry_never_contains_runtime_secret_values(self):
         raw = MODULE.CONNECTOR_REGISTRY.read_text(encoding="utf-8")
         parsed = json.loads(raw)
