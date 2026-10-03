@@ -28,6 +28,17 @@ final class EventoApi {
         return read(connection);
     }
 
+    static String patch(String baseUrl, String token, String path, JSONObject body) throws Exception {
+        HttpURLConnection connection = open(baseUrl, token, path, "PATCH");
+        connection.setDoOutput(true);
+        byte[] data = body.toString().getBytes(StandardCharsets.UTF_8);
+        connection.setFixedLengthStreamingMode(data.length);
+        try (OutputStream stream = connection.getOutputStream()) {
+            stream.write(data);
+        }
+        return read(connection);
+    }
+
     private static HttpURLConnection open(String baseUrl, String token, String path, String method) throws Exception {
         String normalized = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         URI uri = URI.create(normalized + path);
