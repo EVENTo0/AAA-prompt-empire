@@ -8,6 +8,7 @@ on:
       - 'registry/evento-local-actions.json'
       - 'registry/evento-local-write-actions.json'
       - 'registry/evento-project-workspaces.json'
+      - 'registry/evento-project-test-gates.json'
       - '.github/workflows/evento-desktop.yml'
   workflow_dispatch:
 
