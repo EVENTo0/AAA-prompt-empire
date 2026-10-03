@@ -144,6 +144,12 @@ class EventoDaemonTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     MODULE.unity_run_editmode_tests("x", ".")
 
+    def test_agent_cli_diagnostics_are_allowlisted(self):
+        data = MODULE.load_local_actions()
+        ids = {item["id"] for item in data["actions"]}
+        self.assertIn("codex-version", ids)
+        self.assertIn("claude-version", ids)
+
     def test_registry_never_contains_runtime_secret_values(self):
         raw = MODULE.CONNECTOR_REGISTRY.read_text(encoding="utf-8")
         parsed = json.loads(raw)
