@@ -64,6 +64,22 @@
         "devices",
         "-l"
       ]
+    },
+    {
+      "id": "codex-version",
+      "kind": "diagnostic",
+      "command": [
+        "codex",
+        "--version"
+      ]
+    },
+    {
+      "id": "claude-version",
+      "kind": "diagnostic",
+      "command": [
+        "claude",
+        "--version"
+      ]
     }
   ]
 }
