@@ -9,6 +9,7 @@ const tools = document.querySelector('#tools')
 const operatorMode = document.querySelector('#operatorMode')
 const branchSuffix = document.querySelector('#branchSuffix')
 const projectToolPath = document.querySelector('#projectToolPath')
+const apkPath = document.querySelector('#apkPath')
 let operatorEnabled = false
 
 function show(result) {
@@ -47,7 +48,10 @@ function renderProjects(snapshot) {
         '<button data-project="'+escapeHtml(item.project_id)+'" data-action="worktree" '+(!workspace?.is_git||!operatorEnabled?'disabled':'')+'>Worktree</button>' +
         '<button data-project="'+escapeHtml(item.project_id)+'" data-action="gate" '+(item.project_id!=='aaa-empire'||!operatorEnabled?'disabled':'')+'>Gate</button>' +
         '<button data-project="'+escapeHtml(item.project_id)+'" data-action="blender" '+(!item.configured||!operatorEnabled?'disabled':'')+'>Blender</button>' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="blender-export" '+(!item.configured||!operatorEnabled?'disabled':'')+'>Export GLB</button>' +
         '<button data-project="'+escapeHtml(item.project_id)+'" data-action="unity" '+(!item.configured||!operatorEnabled?'disabled':'')+'>Unity</button>' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="unity-test" '+(!item.configured||!operatorEnabled?'disabled':'')+'>Unity Test</button>' +
+        '<button data-project="'+escapeHtml(item.project_id)+'" data-action="adb-install" '+(item.project_id!=='evento-mobile'||!item.configured||!operatorEnabled?'disabled':'')+'>Install APK</button>' +
       '</div>' +
       '</article>'
   }).join('')
@@ -189,7 +193,8 @@ projects.addEventListener('click', async event => {
   const projectId = button.dataset.project
   let value = null
   if (action === 'worktree') value = branchSuffix.value
-  if (action === 'blender' || action === 'unity') value = projectToolPath.value
+  if (action === 'blender' || action === 'blender-export' || action === 'unity' || action === 'unity-test') value = projectToolPath.value
+  if (action === 'adb-install') value = apkPath.value
   button.disabled = true
   log.textContent = projectId + ' · ' + action + '…'
   try {
