@@ -31,6 +31,7 @@ CONNECTOR_REGISTRY = RESOURCE_ROOT / "registry" / "evento-connectors.json"
 LOCAL_ACTIONS = RESOURCE_ROOT / "registry" / "evento-local-actions.json"
 LOCAL_WRITE_ACTIONS = RESOURCE_ROOT / "registry" / "evento-local-write-actions.json"
 PROJECT_WORKSPACES = RESOURCE_ROOT / "registry" / "evento-project-workspaces.json"
+PROJECT_TEST_GATES = RESOURCE_ROOT / "registry" / "evento-project-test-gates.json"
 
 DEFAULT_WORKSPACE_ROOT = REPO_ROOT / ".evento-workspaces"
 APPROVED_SCRIPT_ROOTS = (
@@ -70,6 +71,10 @@ def load_local_write_actions() -> dict[str, Any]:
 
 def load_project_workspaces() -> dict[str, Any]:
     return load_json(PROJECT_WORKSPACES)
+
+
+def load_project_test_gates() -> dict[str, Any]:
+    return load_json(PROJECT_TEST_GATES)
 
 
 def inspect_git_workspace(path: Path) -> dict[str, Any]:
@@ -606,6 +611,164 @@ def agent_build_worktree(project_id: str, issue_number: int, objective: str, pro
         "deploy": False,
     }
 
+
+
+def remote_task_worktree(project_id: str, issue_number: int) -> Path:
+    if issue_number <= 0:
+        raise ValueError("issue_number_invalid")
+    path = safe_workspace_path(f"{project_id}/remote-tasks/{issue_number}")
+    if not path.is_dir():
+        raise ValueError("remote_task_worktree_missing")
+    probe = _git_capture(path, ["rev-parse", "--show-toplevel"])
+    if probe.returncode != 0:
+        raise ValueError("remote_task_worktree_not_git")
+    return path
+
+
+def remote_task_review(project_id: str, issue_number: int, objective: str) -> dict[str, Any]:
+    worktree = remote_task_worktree(project_id, issue_number)
+    executable = _configured_executable("EVENTO_CLAUDE_EXECUTABLE", ("claude", "claude.exe"))
+    if not executable:
+        raise RuntimeError("claude_unavailable")
+    clean_objective = objective.strip()
+    if not clean_objective or len(clean_objective) > 4000:
+        raise ValueError("review_objective_invalid")
+
+    prompt = (
+        "EVENTO INDEPENDENT REVIEW. Read-only review only: do not edit files, commit, push, deploy, "
+        "change credentials, or perform release actions. Review the current git diff against the task objective. "
+        "First line MUST be exactly EVENTO_REVIEW=PASS if there are no blocking correctness/security/regression issues, "
+        "otherwise EVENTO_REVIEW=FAIL. Then list findings with file/line references where possible. Objective: "
+        + clean_objective
+    )
+    completed = subprocess.run(
+        [
+            executable,
+            "-p",
+            prompt,
+            "--permission-mode",
+            "plan",
+            "--output-format",
+            "text",
+            "--max-turns",
+            "4",
+        ],
+        cwd=worktree,
+        capture_output=True,
+        text=True,
+        timeout=600,
+        check=False,
+    )
+    output = ((completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")).strip()
+    if completed.returncode != 0:
+        raise RuntimeError(output[-12000:] or "claude_review_failed")
+
+    verdict = "pass" if output.startswith("EVENTO_REVIEW=PASS") else "fail"
+    evidence_dir = safe_workspace_path(f"{project_id}/evidence/remote-task-{issue_number}")
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    review_path = evidence_dir / "claude-review.txt"
+    review_path.write_text(output, encoding="utf-8")
+    return {
+        "action": "remote-task-review",
+        "project_id": project_id,
+        "issue_number": issue_number,
+        "provider": "claude-code",
+        "verdict": verdict,
+        "output": output[-20000:],
+        "evidence": str(review_path),
+        "release": False,
+    }
+
+
+def remote_task_test_gate(project_id: str, issue_number: int) -> dict[str, Any]:
+    worktree = remote_task_worktree(project_id, issue_number)
+    registry = load_project_test_gates()
+    commands = registry.get("projects", {}).get(project_id)
+    if not isinstance(commands, list) or not commands:
+        raise PermissionError("project_test_gate_not_registered")
+
+    evidence_dir = safe_workspace_path(f"{project_id}/evidence/remote-task-{issue_number}")
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    results: list[dict[str, Any]] = []
+    all_passed = True
+
+    for raw in commands:
+        if not isinstance(raw, list) or not raw or not all(isinstance(x, str) for x in raw):
+            raise ValueError("invalid_project_gate_command")
+        executable = shutil.which(raw[0])
+        if executable is None:
+            results.append({
+                "command": raw,
+                "exit_code": None,
+                "passed": False,
+                "output": f"executable_not_found:{raw[0]}",
+            })
+            all_passed = False
+            break
+        completed = subprocess.run(
+            [executable, *raw[1:]],
+            cwd=worktree,
+            capture_output=True,
+            text=True,
+            timeout=900,
+            check=False,
+        )
+        output = ((completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")).strip()
+        passed = completed.returncode == 0
+        results.append({
+            "command": raw,
+            "exit_code": completed.returncode,
+            "passed": passed,
+            "output": output[-12000:],
+        })
+        if not passed:
+            all_passed = False
+            break
+
+    payload = {
+        "evento_gate_version": 1,
+        "project_id": project_id,
+        "issue_number": issue_number,
+        "passed": all_passed,
+        "results": results,
+        "release": False,
+    }
+    gate_path = evidence_dir / "project-gate.json"
+    gate_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return {**payload, "evidence": str(gate_path)}
+
+
+def remote_task_ready_for_handoff(project_id: str, issue_number: int) -> dict[str, Any]:
+    evidence_dir = safe_workspace_path(f"{project_id}/evidence/remote-task-{issue_number}")
+    review_path = evidence_dir / "claude-review.txt"
+    gate_path = evidence_dir / "project-gate.json"
+    if not review_path.is_file() or not gate_path.is_file():
+        return {"ready": False, "reason": "review_or_gate_missing"}
+
+    review_text = review_path.read_text(encoding="utf-8", errors="replace")
+    gate = json.loads(gate_path.read_text(encoding="utf-8"))
+    if not review_text.startswith("EVENTO_REVIEW=PASS"):
+        return {"ready": False, "reason": "independent_review_failed"}
+    if gate.get("passed") is not True:
+        return {"ready": False, "reason": "project_gate_failed"}
+
+    worktree = remote_task_worktree(project_id, issue_number)
+    diff_check = _git_capture(worktree, ["diff", "--check"], timeout=60)
+    if diff_check.returncode != 0:
+        return {"ready": False, "reason": "git_diff_check_failed"}
+    status = _git_capture(worktree, ["status", "--short"], timeout=60)
+    if not status.stdout.strip():
+        return {"ready": False, "reason": "no_changes"}
+
+    return {
+        "ready": True,
+        "reason": "review_and_gate_passed",
+        "status": status.stdout.strip(),
+        "release": False,
+        "merge": False,
+        "deploy": False,
+    }
+
 def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     allowed = {item["id"] for item in load_local_write_actions()["actions"]}
     if action_id not in allowed:
@@ -644,6 +807,22 @@ def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
             int(payload.get("issue_number", 0)),
             str(payload.get("objective", "")),
             str(payload.get("provider", "codex")),
+        )
+    if action_id == "remote-task-review":
+        return remote_task_review(
+            str(payload.get("project_id", "")),
+            int(payload.get("issue_number", 0)),
+            str(payload.get("objective", "")),
+        )
+    if action_id == "remote-task-test-gate":
+        return remote_task_test_gate(
+            str(payload.get("project_id", "")),
+            int(payload.get("issue_number", 0)),
+        )
+    if action_id == "remote-task-ready-for-handoff":
+        return remote_task_ready_for_handoff(
+            str(payload.get("project_id", "")),
+            int(payload.get("issue_number", 0)),
         )
     raise KeyError(action_id)
 
