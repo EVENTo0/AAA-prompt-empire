@@ -109,6 +109,15 @@
 
     <section class="panel">
       <div class="sectionRow">
+        <div><p class="kicker">CONNECTORS</p><h3>Live Connector Health</h3></div>
+        <button id="refreshConnectors" class="secondary">Probe connectors</button>
+      </div>
+      <p class="muted">Probes run in Rust using the OS credential store. Secret values are never returned to the webview.</p>
+      <div id="connectors" class="credentialGrid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
         <div><p class="kicker">STARTUP</p><h3>Windows Startup</h3></div>
         <span id="autostartState" class="pill quiet">CHECKING</span>
       </div>
