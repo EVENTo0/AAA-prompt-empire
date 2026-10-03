@@ -72,6 +72,33 @@
         "unity_project"
       ],
       "description": "Open a verified Unity project folder inside a registered project."
+    },
+    {
+      "id": "android-install-apk",
+      "kind": "android",
+      "parameters": [
+        "project_id",
+        "apk_path"
+      ],
+      "description": "Install an APK located inside a registered project through ADB."
+    },
+    {
+      "id": "unity-run-editmode-tests",
+      "kind": "unity",
+      "parameters": [
+        "project_id",
+        "unity_project"
+      ],
+      "description": "Run Unity EditMode tests in batch mode and emit results into EVENTO workspace evidence."
+    },
+    {
+      "id": "blender-export-glb",
+      "kind": "blender",
+      "parameters": [
+        "project_id",
+        "blend_file"
+      ],
+      "description": "Export a registered Blender file to GLB using the bundled approved exporter script."
     }
   ]
 }
