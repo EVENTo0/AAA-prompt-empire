@@ -115,12 +115,24 @@ async function issueComments(repository: string, issueNumber: number) {
 function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }>) {
   const evidence = [...comments].reverse().find((comment) => comment.body.includes('EVENTO execution evidence'))
   const handoff = [...comments].reverse().find((comment) => comment.body.includes('EVENTO PR handoff'))
+  const readiness = [...comments].reverse().find((comment) => comment.body.includes('EVENTO merge readiness'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
+  let mergeReadiness: any = null
+  if (readiness) {
+    const marker = 'EVENTO_MERGE_READINESS_JSON='
+    const index = readiness.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = readiness.body.slice(index + marker.length).split('\n')[0]
+      try { mergeReadiness = JSON.parse(raw) } catch {}
+    }
+  }
   return {
     evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
     evidenceAt: evidence?.createdAt ?? null,
     prUrl: prMatch?.[0] ?? null,
     handoffSummary: handoff ? handoff.body.slice(0, 1600) : null,
+    mergeReadiness,
+    mergeReadinessAt: readiness?.createdAt ?? null,
   }
 }
 
