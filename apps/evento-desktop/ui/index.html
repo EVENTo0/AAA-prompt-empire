@@ -89,7 +89,7 @@
         <div><p class="kicker">REMOTE APPROVALS</p><h3>Approved Task Inbox</h3></div>
         <button id="refreshRemoteTasks" class="secondary">Refresh tasks</button>
       </div>
-      <p class="muted">Tasks approved from EVENTO Admin Android are read from the audited GitHub task queue. PLAN TASK is read-only; repository writing remains a separate gate.</p>
+      <p class="muted">Tasks approved from EVENTO Admin Android are read from the audited GitHub task queue. PLAN TASK is read-only. EXECUTE BUILD requires Operator Mode and writes only to an isolated worktree; it never pushes, merges, deploys or releases.</p>
       <div id="remoteTasks" class="projectGrid"><p class="muted">Load approved tasks to begin.</p></div>
     </section>
 
