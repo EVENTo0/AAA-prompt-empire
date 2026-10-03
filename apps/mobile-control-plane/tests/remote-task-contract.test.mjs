@@ -72,3 +72,17 @@ test('protected merge state is visible but release remains false', async () => {
   assert.match(lib, /mergeSummary/)
   assert.ok(!lib.includes('deploy_production'))
 })
+
+
+test('post-merge verification and deploy readiness remain non-release gates', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /MERGED-VERIFIED/)
+  assert.match(lib, /merged-verified/)
+  assert.match(lib, /EVENTO post-merge verification/)
+  assert.match(lib, /EVENTO_POST_MERGE_JSON=/)
+  assert.match(lib, /EVENTO deploy readiness/)
+  assert.match(lib, /EVENTO_DEPLOY_READINESS_JSON=/)
+  assert.match(lib, /postMergeVerification/)
+  assert.match(lib, /deployReadiness/)
+  assert.ok(!lib.includes('production_deploy'))
+})
