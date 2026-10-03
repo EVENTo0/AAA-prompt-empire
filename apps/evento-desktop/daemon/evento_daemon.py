@@ -34,6 +34,7 @@ PROJECT_WORKSPACES = RESOURCE_ROOT / "registry" / "evento-project-workspaces.jso
 
 DEFAULT_WORKSPACE_ROOT = REPO_ROOT / ".evento-workspaces"
 APPROVED_SCRIPT_ROOTS = (
+    RESOURCE_ROOT / "scripts",
     REPO_ROOT / "scripts",
     REPO_ROOT / "tools",
     REPO_ROOT / "apps" / "evento-desktop" / "scripts",
@@ -224,6 +225,116 @@ def unity_open_project(project_id: str, unity_project: str = ".") -> dict[str, A
     return {"action": "unity-open-project", "project_id": project_id, "path": str(target), **result}
 
 
+
+
+def android_install_apk(project_id: str, apk_path: str) -> dict[str, Any]:
+    target = safe_project_child(project_id, apk_path)
+    if target.suffix.lower() != ".apk" or not target.is_file():
+        raise ValueError("apk_file_invalid")
+    adb = _configured_executable("EVENTO_ADB_EXECUTABLE", ("adb", "adb.exe"))
+    if not adb:
+        raise RuntimeError("adb_unavailable")
+    completed = subprocess.run(
+        [adb, "install", "-r", str(target)],
+        cwd=registered_project_path(project_id),
+        capture_output=True,
+        text=True,
+        timeout=180,
+        check=False,
+    )
+    output = ((completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")).strip()
+    if completed.returncode != 0:
+        raise RuntimeError(output[:4000] or "adb_install_failed")
+    return {"action": "android-install-apk", "project_id": project_id, "apk": str(target), "output": output[:4000]}
+
+
+def unity_run_editmode_tests(project_id: str, unity_project: str = ".") -> dict[str, Any]:
+    target = safe_project_child(project_id, unity_project)
+    if not (target / "Assets").is_dir() or not (target / "ProjectSettings").is_dir():
+        raise ValueError("unity_project_invalid")
+    executable = _configured_executable("EVENTO_UNITY_EDITOR", ("Unity", "Unity.exe"))
+    if not executable:
+        raise RuntimeError("unity_unavailable")
+    evidence_dir = safe_workspace_path(project_id + "/evidence/unity")
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    results = evidence_dir / "editmode-results.xml"
+    log_file = evidence_dir / "editmode.log"
+    completed = subprocess.run(
+        [
+            executable,
+            "-batchmode",
+            "-nographics",
+            "-quit",
+            "-projectPath",
+            str(target),
+            "-runTests",
+            "-testPlatform",
+            "editmode",
+            "-testResults",
+            str(results),
+            "-logFile",
+            str(log_file),
+        ],
+        cwd=target,
+        capture_output=True,
+        text=True,
+        timeout=900,
+        check=False,
+    )
+    if completed.returncode != 0:
+        tail = ""
+        if log_file.is_file():
+            tail = log_file.read_text(encoding="utf-8", errors="replace")[-8000:]
+        raise RuntimeError(tail or "unity_tests_failed")
+    return {
+        "action": "unity-run-editmode-tests",
+        "project_id": project_id,
+        "results": str(results),
+        "log": str(log_file),
+        "exit_code": completed.returncode,
+    }
+
+
+def blender_export_glb(project_id: str, blend_file: str) -> dict[str, Any]:
+    target = safe_project_child(project_id, blend_file)
+    if target.suffix.lower() != ".blend" or not target.is_file():
+        raise ValueError("blend_file_invalid")
+    executable = _configured_executable("EVENTO_BLENDER_EXECUTABLE", ("blender",))
+    if not executable:
+        raise RuntimeError("blender_unavailable")
+    script = approved_script_path("blender_export_glb.py")
+    export_dir = safe_workspace_path(project_id + "/artifacts/blender")
+    export_dir.mkdir(parents=True, exist_ok=True)
+    output = export_dir / (target.stem + ".glb")
+    completed = subprocess.run(
+        [
+            executable,
+            "--background",
+            str(target),
+            "--python",
+            str(script),
+            "--",
+            "--output",
+            str(output),
+        ],
+        cwd=registered_project_path(project_id),
+        capture_output=True,
+        text=True,
+        timeout=900,
+        check=False,
+    )
+    logs = ((completed.stdout or "") + ("\n" + completed.stderr if completed.stderr else "")).strip()
+    if completed.returncode != 0 or not output.is_file():
+        raise RuntimeError(logs[-8000:] or "blender_export_failed")
+    return {
+        "action": "blender-export-glb",
+        "project_id": project_id,
+        "source": str(target),
+        "output": str(output),
+        "bytes": output.stat().st_size,
+        "log": logs[-4000:],
+    }
+
 def _inside(path: Path, roots: tuple[Path, ...]) -> bool:
     resolved = path.resolve()
     return any(resolved == root or root in resolved.parents for root in roots)
@@ -336,6 +447,12 @@ def run_write_action(action_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         return blender_open_project(str(payload.get("project_id", "")), str(payload.get("blend_file", "")))
     if action_id == "unity-open-project":
         return unity_open_project(str(payload.get("project_id", "")), str(payload.get("unity_project", ".")))
+    if action_id == "android-install-apk":
+        return android_install_apk(str(payload.get("project_id", "")), str(payload.get("apk_path", "")))
+    if action_id == "unity-run-editmode-tests":
+        return unity_run_editmode_tests(str(payload.get("project_id", "")), str(payload.get("unity_project", ".")))
+    if action_id == "blender-export-glb":
+        return blender_export_glb(str(payload.get("project_id", "")), str(payload.get("blend_file", "")))
     raise KeyError(action_id)
 
 
