@@ -2,7 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
-export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -18,6 +18,7 @@ export type RemoteTaskEnvelope = {
 }
 
 function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][MERGED-VERIFIED]')) return 'merged-verified'
   if (title.startsWith('[EVENTO TASK][MERGED]')) return 'merged'
   if (title.startsWith('[EVENTO TASK][MERGE-HANDOFF-APPROVED]')) return 'merge-handoff-approved'
   if (title.startsWith('[EVENTO TASK][REVISION-REQUESTED]')) return 'revision-requested'
@@ -118,6 +119,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const handoff = [...comments].reverse().find((comment) => comment.body.includes('EVENTO PR handoff'))
   const readiness = [...comments].reverse().find((comment) => comment.body.includes('EVENTO merge readiness'))
   const merged = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected merge'))
+  const postMerge = [...comments].reverse().find((comment) => comment.body.includes('EVENTO post-merge verification'))
+  const deployReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO deploy readiness'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -126,6 +129,24 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     if (index >= 0) {
       const raw = readiness.body.slice(index + marker.length).split('\n')[0]
       try { mergeReadiness = JSON.parse(raw) } catch {}
+    }
+  }
+  let postMergeVerification: any = null
+  if (postMerge) {
+    const marker = 'EVENTO_POST_MERGE_JSON='
+    const index = postMerge.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = postMerge.body.slice(index + marker.length).split('\n')[0]
+      try { postMergeVerification = JSON.parse(raw) } catch {}
+    }
+  }
+  let deployReadiness: any = null
+  if (deployReadinessComment) {
+    const marker = 'EVENTO_DEPLOY_READINESS_JSON='
+    const index = deployReadinessComment.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = deployReadinessComment.body.slice(index + marker.length).split('\n')[0]
+      try { deployReadiness = JSON.parse(raw) } catch {}
     }
   }
   return {
@@ -137,6 +158,10 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     mergeReadinessAt: readiness?.createdAt ?? null,
     mergeSummary: merged ? merged.body.slice(0, 1600) : null,
     mergeAt: merged?.createdAt ?? null,
+    postMergeVerification,
+    postMergeAt: postMerge?.createdAt ?? null,
+    deployReadiness,
+    deployReadinessAt: deployReadinessComment?.createdAt ?? null,
   }
 }
 
