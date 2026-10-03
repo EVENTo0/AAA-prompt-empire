@@ -178,7 +178,11 @@ public final class MainActivity extends AppCompatActivity {
                         card.setLayoutParams(params);
                         card.setBackgroundColor(0xFF0B151E);
                         String state = row.optString("state", "approved");
-                        int stateColor = "local-built".equals(state) ? 0xFF4FD4FF : 0xFF68E4A2;
+                        int stateColor = "pr-open".equals(state)
+                                ? 0xFFD6AB63
+                                : "local-built".equals(state)
+                                    ? 0xFF4FD4FF
+                                    : 0xFF68E4A2;
                         card.addView(text(
                                 "#" + row.optInt("number", 0) + " · " + task.optString("project_id", ""),
                                 15,
