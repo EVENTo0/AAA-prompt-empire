@@ -202,6 +202,19 @@ public final class MainActivity extends AppCompatActivity {
                             card.addView(text("Draft PR: " + prUrl, 10, 0xFFD6AB63));
                         }
 
+                        JSONObject mergeReadiness = row.optJSONObject("mergeReadiness");
+                        if (mergeReadiness != null) {
+                            boolean ready = mergeReadiness.optBoolean("ready", false);
+                            JSONArray blockers = mergeReadiness.optJSONArray("blockers");
+                            String detail = ready
+                                    ? "READY TO MERGE"
+                                    : "BLOCKED" + (blockers != null ? " · " + blockers.toString() : "");
+                            card.addView(text(
+                                    detail,
+                                    11,
+                                    ready ? 0xFF68E4A2 : 0xFFFF6F7D));
+                        }
+
                         int issueNumber = row.optInt("number", 0);
                         if ("local-built".equals(state) || "pr-open".equals(state) || "merge-handoff-approved".equals(state)) {
                             card.addView(button("REQUEST REVISION", v -> taskDecision(issueNumber, "request-revision")));
