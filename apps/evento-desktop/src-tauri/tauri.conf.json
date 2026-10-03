@@ -36,7 +36,8 @@
       "../../../registry/evento-local-actions.json": "runtime/registry/evento-local-actions.json",
       "../../../registry/evento-local-write-actions.json": "runtime/registry/evento-local-write-actions.json",
       "../../../registry/evento-project-workspaces.json": "runtime/registry/evento-project-workspaces.json",
-      "../scripts/blender_export_glb.py": "runtime/scripts/blender_export_glb.py"
+      "../scripts/blender_export_glb.py": "runtime/scripts/blender_export_glb.py",
+      "../../../registry/evento-project-test-gates.json": "runtime/registry/evento-project-test-gates.json"
     },
     "windows": {
       "bundleVCRuntime": true
