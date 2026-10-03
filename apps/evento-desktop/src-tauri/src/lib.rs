@@ -548,6 +548,38 @@ fn remote_tasks() -> Result<Vec<RemoteTask>, String> {
 
 
 
+
+fn github_task_mark_local_built(issue_number: u64) -> Result<(), String> {
+    let token = credential_value("github")?;
+    let repo = task_repository();
+    let url = format!("https://api.github.com/repos/{}/issues/{}", repo, issue_number);
+    let mut response = ureq::get(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .call()
+        .map_err(|error| error.to_string())?;
+    let issue = response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())?;
+    let title = issue.get("title").and_then(|v| v.as_str()).unwrap_or("");
+    if !title.starts_with("[EVENTO TASK][APPROVED]") {
+        return Ok(());
+    }
+    let next_title = title.replacen("[EVENTO TASK][APPROVED]", "[EVENTO TASK][LOCAL-BUILT]", 1);
+    let response = ureq::patch(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({ "title": next_title }))
+        .map_err(|error| error.to_string())?;
+    if response.status().as_u16() >= 300 {
+        return Err(format!("GitHub task status update failed: {}", response.status()));
+    }
+    Ok(())
+}
+
 fn github_task_comment(issue_number: u64, result: &serde_json::Value) -> Result<(), String> {
     let token = credential_value("github")?;
     let repo = task_repository();
@@ -630,6 +662,7 @@ fn remote_task_execute(
     )?;
 
     github_task_comment(issue_number, &result)?;
+    let _ = github_task_mark_local_built(issue_number);
     Ok(result)
 }
 
