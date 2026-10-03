@@ -463,6 +463,7 @@ struct RemoteTask {
     number: u64,
     title: String,
     url: String,
+    repository: String,
     project_id: String,
     objective: String,
     mode: String,
@@ -515,6 +516,7 @@ fn remote_tasks() -> Result<Vec<RemoteTask>, String> {
             continue;
         }
         let Some(project_id) = envelope.get("project_id").and_then(|v| v.as_str()) else { continue };
+        let Some(repository) = envelope.get("repository").and_then(|v| v.as_str()) else { continue };
         let Some(objective) = envelope.get("objective").and_then(|v| v.as_str()) else { continue };
         let mode = envelope.get("mode").and_then(|v| v.as_str()).unwrap_or("build");
         if !matches!(mode, "build" | "verify" | "preview") {
@@ -532,6 +534,7 @@ fn remote_tasks() -> Result<Vec<RemoteTask>, String> {
             number: issue.get("number").and_then(|v| v.as_u64()).unwrap_or(0),
             title: title.to_string(),
             url: issue.get("html_url").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+            repository: repository.to_string(),
             project_id: project_id.to_string(),
             objective: objective.to_string(),
             mode: mode.to_string(),
@@ -664,6 +667,242 @@ fn remote_task_execute(
     github_task_comment(issue_number, &result)?;
     let _ = github_task_mark_local_built(issue_number);
     Ok(result)
+}
+
+
+
+#[tauri::command]
+fn remote_task_review_gate(
+    state: State<'_, DaemonState>,
+    issue_number: u64,
+    project_id: String,
+    objective: String,
+) -> Result<serde_json::Value, String> {
+    if issue_number == 0 {
+        return Err("Invalid remote task number".to_string());
+    }
+    let token = state
+        .token
+        .lock()
+        .map_err(|_| "Token state poisoned")?
+        .clone()
+        .ok_or_else(|| "EVENTO daemon is offline".to_string())?;
+    let write_token = state
+        .write_token
+        .lock()
+        .map_err(|_| "Write token state poisoned")?
+        .clone()
+        .ok_or_else(|| "Operator Mode must be enabled before review/test gate".to_string())?;
+
+    let review = daemon_post_json(
+        "/v1/actions/run",
+        &token,
+        &write_token,
+        serde_json::json!({
+            "action": "remote-task-review",
+            "confirmation": "remote-task-review",
+            "project_id": project_id,
+            "issue_number": issue_number,
+            "objective": objective,
+        }),
+    )?;
+    if review.get("verdict").and_then(|v| v.as_str()) != Some("pass") {
+        return Ok(serde_json::json!({
+            "ready": false,
+            "stage": "review",
+            "review": review,
+        }));
+    }
+
+    let gate = daemon_post_json(
+        "/v1/actions/run",
+        &token,
+        &write_token,
+        serde_json::json!({
+            "action": "remote-task-test-gate",
+            "confirmation": "remote-task-test-gate",
+            "project_id": project_id,
+            "issue_number": issue_number,
+        }),
+    )?;
+    if gate.get("passed").and_then(|v| v.as_bool()) != Some(true) {
+        return Ok(serde_json::json!({
+            "ready": false,
+            "stage": "test-gate",
+            "review": review,
+            "gate": gate,
+        }));
+    }
+
+    let readiness = daemon_post_json(
+        "/v1/actions/run",
+        &token,
+        &write_token,
+        serde_json::json!({
+            "action": "remote-task-ready-for-handoff",
+            "confirmation": "remote-task-ready-for-handoff",
+            "project_id": project_id,
+            "issue_number": issue_number,
+        }),
+    )?;
+
+    Ok(serde_json::json!({
+        "ready": readiness.get("ready").and_then(|v| v.as_bool()).unwrap_or(false),
+        "stage": "complete",
+        "review": review,
+        "gate": gate,
+        "readiness": readiness,
+    }))
+}
+
+fn github_default_branch(repository: &str, token: &str) -> Result<String, String> {
+    let url = format!("https://api.github.com/repos/{repository}");
+    let mut response = ureq::get(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .call()
+        .map_err(|error| error.to_string())?;
+    let payload = response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())?;
+    payload
+        .get("default_branch")
+        .and_then(|v| v.as_str())
+        .map(str::to_string)
+        .ok_or_else(|| "GitHub default branch unavailable".to_string())
+}
+
+fn create_draft_pr(
+    repository: &str,
+    token: &str,
+    branch: &str,
+    issue_number: u64,
+    objective: &str,
+) -> Result<serde_json::Value, String> {
+    let base = github_default_branch(repository, token)?;
+    let url = format!("https://api.github.com/repos/{repository}/pulls");
+    let body = format!(
+        "EVENTO remote task #{issue_number}\n\nObjective:\n{objective}\n\nThis handoff passed independent Claude review and the registered project test gate.\n\nRelease: false\nMerge: manual review required\nDeploy: false"
+    );
+    let mut response = ureq::post(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .send_json(serde_json::json!({
+            "title": format!("[EVENTO] Remote task #{issue_number}: {}", objective.chars().take(80).collect::<String>()),
+            "head": branch,
+            "base": base,
+            "body": body,
+            "draft": true
+        }))
+        .map_err(|error| error.to_string())?;
+    response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn remote_task_publish_pr(
+    state: State<'_, DaemonState>,
+    issue_number: u64,
+    project_id: String,
+    repository: String,
+    objective: String,
+) -> Result<serde_json::Value, String> {
+    if issue_number == 0 || repository.trim().is_empty() {
+        return Err("Invalid handoff request".to_string());
+    }
+    let token = state
+        .token
+        .lock()
+        .map_err(|_| "Token state poisoned")?
+        .clone()
+        .ok_or_else(|| "EVENTO daemon is offline".to_string())?;
+    let write_token = state
+        .write_token
+        .lock()
+        .map_err(|_| "Write token state poisoned")?
+        .clone()
+        .ok_or_else(|| "Operator Mode must be enabled before PR handoff".to_string())?;
+
+    let readiness = daemon_post_json(
+        "/v1/actions/run",
+        &token,
+        &write_token,
+        serde_json::json!({
+            "action": "remote-task-ready-for-handoff",
+            "confirmation": "remote-task-ready-for-handoff",
+            "project_id": project_id,
+            "issue_number": issue_number,
+        }),
+    )?;
+    if readiness.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Err(format!(
+            "Task is not ready for PR handoff: {}",
+            readiness.get("reason").and_then(|v| v.as_str()).unwrap_or("unknown")
+        ));
+    }
+
+    let published = daemon_post_json(
+        "/v1/actions/run",
+        &token,
+        &write_token,
+        serde_json::json!({
+            "action": "remote-task-publish-branch",
+            "confirmation": "remote-task-publish-branch",
+            "project_id": project_id,
+            "issue_number": issue_number,
+        }),
+    )?;
+
+    let github_token = credential_value("github")?;
+    let branch = published
+        .get("branch")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "Published branch missing".to_string())?;
+    let pr = create_draft_pr(&repository, &github_token, branch, issue_number, &objective)?;
+
+    let task_repo = task_repository();
+    let task_url = format!(
+        "https://api.github.com/repos/{}/issues/{}",
+        task_repo, issue_number
+    );
+    let mut issue_response = ureq::get(&task_url)
+        .header("Authorization", &format!("Bearer {github_token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .call()
+        .map_err(|error| error.to_string())?;
+    let issue = issue_response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())?;
+    let title = issue.get("title").and_then(|v| v.as_str()).unwrap_or("");
+    if title.starts_with("[EVENTO TASK]") {
+        let suffix = title.splitn(3, ']').skip(2).collect::<Vec<_>>().join("]").trim().to_string();
+        let _ = ureq::patch(&task_url)
+            .header("Authorization", &format!("Bearer {github_token}"))
+            .header("Accept", "application/vnd.github+json")
+            .header("X-GitHub-Api-Version", "2026-03-10")
+            .send_json(serde_json::json!({
+                "title": format!("[EVENTO TASK][PR-OPEN] {}", suffix)
+            }));
+    }
+
+    Ok(serde_json::json!({
+        "ok": true,
+        "branch": branch,
+        "commit_sha": published.get("commit_sha"),
+        "pr_number": pr.get("number"),
+        "pr_url": pr.get("html_url"),
+        "draft": true,
+        "merge": false,
+        "deploy": false,
+        "release": false
+    }))
 }
 
 #[tauri::command]
@@ -847,6 +1086,8 @@ pub fn run() {
             remote_tasks,
             remote_task_plan,
             remote_task_execute,
+            remote_task_review_gate,
+            remote_task_publish_pr,
             autostart_status,
             set_autostart
         ])
