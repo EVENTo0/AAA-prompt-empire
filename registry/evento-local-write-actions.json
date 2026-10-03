@@ -99,6 +99,17 @@
         "blend_file"
       ],
       "description": "Export a registered Blender file to GLB using the bundled approved exporter script."
+    },
+    {
+      "id": "agent-build-worktree",
+      "kind": "agent",
+      "parameters": [
+        "project_id",
+        "issue_number",
+        "objective",
+        "provider"
+      ],
+      "description": "Create an isolated EVENTO worktree, run an allowlisted write agent inside it, validate the diff, and emit an Evidence Pack. No push, merge, deploy or release."
     }
   ]
 }
