@@ -456,6 +456,111 @@ fn credential_delete(name: String) -> Result<(), String> {
 
 
 
+
+
+#[derive(Serialize)]
+struct RemoteTask {
+    number: u64,
+    title: String,
+    url: String,
+    project_id: String,
+    objective: String,
+    mode: String,
+    preferred_agent: String,
+    approved_at: String,
+}
+
+fn task_repository() -> String {
+    std::env::var("EVENTO_TASK_REPOSITORY")
+        .unwrap_or_else(|_| "EVENTo0/AAA-prompt-empire".to_string())
+}
+
+#[tauri::command]
+fn remote_tasks() -> Result<Vec<RemoteTask>, String> {
+    let token = credential_value("github")?;
+    let repo = task_repository();
+    let url = format!(
+        "https://api.github.com/repos/{}/issues?state=open&per_page=50",
+        repo
+    );
+    let mut response = ureq::get(&url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2026-03-10")
+        .config()
+        .timeout_global(Some(Duration::from_secs(8)))
+        .build()
+        .call()
+        .map_err(|error| error.to_string())?;
+    let issues = response
+        .body_mut()
+        .read_json::<Vec<serde_json::Value>>()
+        .map_err(|error| error.to_string())?;
+
+    let mut tasks = Vec::new();
+    for issue in issues {
+        let title = issue.get("title").and_then(|v| v.as_str()).unwrap_or("");
+        if !title.starts_with("[EVENTO TASK][APPROVED]") {
+            continue;
+        }
+        let body = issue.get("body").and_then(|v| v.as_str()).unwrap_or("");
+        let envelope: serde_json::Value = match serde_json::from_str(body) {
+            Ok(value) => value,
+            Err(_) => continue,
+        };
+        if envelope.get("evento_task_version").and_then(|v| v.as_u64()) != Some(1)
+            || envelope.get("state").and_then(|v| v.as_str()) != Some("approved")
+            || envelope.get("release").and_then(|v| v.as_bool()) != Some(false)
+        {
+            continue;
+        }
+        let Some(project_id) = envelope.get("project_id").and_then(|v| v.as_str()) else { continue };
+        let Some(objective) = envelope.get("objective").and_then(|v| v.as_str()) else { continue };
+        let mode = envelope.get("mode").and_then(|v| v.as_str()).unwrap_or("build");
+        if !matches!(mode, "build" | "verify" | "preview") {
+            continue;
+        }
+        let preferred_agent = envelope
+            .get("preferred_agent")
+            .and_then(|v| v.as_str())
+            .unwrap_or("auto");
+        if !matches!(preferred_agent, "auto" | "codex" | "claude-code") {
+            continue;
+        }
+
+        tasks.push(RemoteTask {
+            number: issue.get("number").and_then(|v| v.as_u64()).unwrap_or(0),
+            title: title.to_string(),
+            url: issue.get("html_url").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+            project_id: project_id.to_string(),
+            objective: objective.to_string(),
+            mode: mode.to_string(),
+            preferred_agent: preferred_agent.to_string(),
+            approved_at: envelope
+                .get("approved_at")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+        });
+    }
+    Ok(tasks)
+}
+
+#[tauri::command]
+fn remote_task_plan(
+    state: State<'_, DaemonState>,
+    project_id: String,
+    objective: String,
+    preferred_agent: String,
+) -> Result<serde_json::Value, String> {
+    let provider = if preferred_agent == "claude-code" {
+        "claude-code"
+    } else {
+        "codex"
+    };
+    agent_plan(state, provider.to_string(), project_id, objective)
+}
+
 #[derive(Serialize)]
 struct ConnectorProbe {
     name: String,
@@ -619,6 +724,8 @@ pub fn run() {
             credential_set,
             credential_delete,
             connector_probe,
+            remote_tasks,
+            remote_task_plan,
             autostart_status,
             set_autostart
         ])
