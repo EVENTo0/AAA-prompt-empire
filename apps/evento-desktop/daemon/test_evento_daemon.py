@@ -144,6 +144,14 @@ class EventoDaemonTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     MODULE.unity_run_editmode_tests("x", ".")
 
+    def test_remote_build_requires_codex(self):
+        with self.assertRaises(PermissionError):
+            MODULE.agent_build_worktree("aaa-empire", 1, "inspect", "claude-code")
+
+    def test_remote_build_rejects_invalid_issue(self):
+        with self.assertRaises(ValueError):
+            MODULE.agent_build_worktree("aaa-empire", 0, "inspect", "codex")
+
     def test_agent_plan_rejects_unknown_provider(self):
         with self.assertRaises(PermissionError):
             MODULE.agent_plan("unknown", "aaa-empire", "inspect")
