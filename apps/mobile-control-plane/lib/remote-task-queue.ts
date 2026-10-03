@@ -2,7 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
-export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -18,6 +18,7 @@ export type RemoteTaskEnvelope = {
 }
 
 function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][MERGED]')) return 'merged'
   if (title.startsWith('[EVENTO TASK][MERGE-HANDOFF-APPROVED]')) return 'merge-handoff-approved'
   if (title.startsWith('[EVENTO TASK][REVISION-REQUESTED]')) return 'revision-requested'
   if (title.startsWith('[EVENTO TASK][PR-OPEN]')) return 'pr-open'
@@ -116,6 +117,7 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const evidence = [...comments].reverse().find((comment) => comment.body.includes('EVENTO execution evidence'))
   const handoff = [...comments].reverse().find((comment) => comment.body.includes('EVENTO PR handoff'))
   const readiness = [...comments].reverse().find((comment) => comment.body.includes('EVENTO merge readiness'))
+  const merged = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected merge'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -133,6 +135,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     handoffSummary: handoff ? handoff.body.slice(0, 1600) : null,
     mergeReadiness,
     mergeReadinessAt: readiness?.createdAt ?? null,
+    mergeSummary: merged ? merged.body.slice(0, 1600) : null,
+    mergeAt: merged?.createdAt ?? null,
   }
 }
 
