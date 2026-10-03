@@ -52,3 +52,13 @@ test('task listing surfaces evidence and PR handoff metadata', async () => {
   assert.match(lib, /evidenceSummary/)
   assert.match(lib, /prUrl/)
 })
+
+
+test('merge readiness is surfaced as audit metadata only', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /EVENTO merge readiness/)
+  assert.match(lib, /EVENTO_MERGE_READINESS_JSON=/)
+  assert.match(lib, /mergeReadiness/)
+  assert.match(lib, /mergeReadinessAt/)
+  assert.ok(!lib.includes('merge_pull_request'))
+})
