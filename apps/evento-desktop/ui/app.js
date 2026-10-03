@@ -202,3 +202,21 @@ projects.addEventListener('click', async event => {
     button.disabled = false
   }
 })
+
+
+const connectorsEl = document.querySelector('#connectors')
+const connectorNames = ['github','supabase','vercel','openai','anthropic','google','generic-llm']
+
+async function refreshConnectors() {
+  connectorsEl.innerHTML = '<div class="credentialCard"><span>status</span><b class="quiet">probing…</b></div>'
+  const results = await Promise.all(connectorNames.map(async name => {
+    try { return await invoke('connector_probe', { name }) }
+    catch (error) { return { name, configured:false, reachable:false, summary:String(error) } }
+  }))
+  connectorsEl.innerHTML = results.map(item =>
+    '<div class="credentialCard"><span>'+escapeHtml(item.name)+'</span><b class="'+(item.reachable?'good':item.configured?'warn':'quiet')+'">'+escapeHtml(item.summary)+'</b></div>'
+  ).join('')
+}
+
+document.querySelector('#refreshConnectors').addEventListener('click', refreshConnectors)
+refreshConnectors()
