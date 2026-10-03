@@ -1,0 +1,10 @@
+<resources>
+  <style name="Theme.EventoAdmin" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <item name="android:fontFamily">sans</item>
+    <item name="colorPrimary">#D6AB63</item>
+    <item name="colorSecondary">#4FD4FF</item>
+    <item name="android:navigationBarColor">#050A0F</item>
+    <item name="android:statusBarColor">#050A0F</item>
+    <item name="android:windowLightStatusBar">false</item>
+  </style>
+</resources>

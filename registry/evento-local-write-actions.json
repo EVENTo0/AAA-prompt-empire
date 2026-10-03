@@ -1,0 +1,152 @@
+{
+  "version": "1.0",
+  "policy": {
+    "default": "deny",
+    "requires_write_token": true,
+    "requires_write_enable": true,
+    "arbitrary_shell": false,
+    "release": false
+  },
+  "actions": [
+    {
+      "id": "workspace-write-text",
+      "kind": "workspace",
+      "parameters": [
+        "relative_path",
+        "content"
+      ],
+      "description": "Write UTF-8 text only inside an allowlisted workspace root."
+    },
+    {
+      "id": "git-create-worktree",
+      "kind": "git",
+      "parameters": [
+        "repository",
+        "branch",
+        "base_ref",
+        "destination"
+      ],
+      "description": "Create an isolated Git worktree under an allowlisted workspace root."
+    },
+    {
+      "id": "python-run-approved",
+      "kind": "python",
+      "parameters": [
+        "script",
+        "args"
+      ],
+      "description": "Run a committed Python script from the approved script roots; no inline code or shell."
+    },
+    {
+      "id": "project-create-worktree",
+      "kind": "git",
+      "parameters": [
+        "project_id",
+        "branch",
+        "base_ref"
+      ],
+      "description": "Create an isolated worktree for a registered project; destination is derived by EVENTO."
+    },
+    {
+      "id": "project-open-folder",
+      "kind": "workspace",
+      "parameters": [
+        "project_id"
+      ],
+      "description": "Open the registered project folder using the host OS."
+    },
+    {
+      "id": "blender-open-project",
+      "kind": "blender",
+      "parameters": [
+        "project_id",
+        "blend_file"
+      ],
+      "description": "Open an allowlisted .blend file inside a registered project."
+    },
+    {
+      "id": "unity-open-project",
+      "kind": "unity",
+      "parameters": [
+        "project_id",
+        "unity_project"
+      ],
+      "description": "Open a verified Unity project folder inside a registered project."
+    },
+    {
+      "id": "android-install-apk",
+      "kind": "android",
+      "parameters": [
+        "project_id",
+        "apk_path"
+      ],
+      "description": "Install an APK located inside a registered project through ADB."
+    },
+    {
+      "id": "unity-run-editmode-tests",
+      "kind": "unity",
+      "parameters": [
+        "project_id",
+        "unity_project"
+      ],
+      "description": "Run Unity EditMode tests in batch mode and emit results into EVENTO workspace evidence."
+    },
+    {
+      "id": "blender-export-glb",
+      "kind": "blender",
+      "parameters": [
+        "project_id",
+        "blend_file"
+      ],
+      "description": "Export a registered Blender file to GLB using the bundled approved exporter script."
+    },
+    {
+      "id": "agent-build-worktree",
+      "kind": "agent",
+      "parameters": [
+        "project_id",
+        "issue_number",
+        "objective",
+        "provider"
+      ],
+      "description": "Create an isolated EVENTO worktree, run an allowlisted write agent inside it, validate the diff, and emit an Evidence Pack. No push, merge, deploy or release."
+    },
+    {
+      "id": "remote-task-review",
+      "kind": "agent",
+      "parameters": [
+        "project_id",
+        "issue_number",
+        "objective"
+      ],
+      "description": "Run independent Claude Code review in read-only plan mode against an isolated remote-task worktree."
+    },
+    {
+      "id": "remote-task-test-gate",
+      "kind": "test",
+      "parameters": [
+        "project_id",
+        "issue_number"
+      ],
+      "description": "Run the explicit registered test gate for a remote-task worktree."
+    },
+    {
+      "id": "remote-task-ready-for-handoff",
+      "kind": "git",
+      "parameters": [
+        "project_id",
+        "issue_number"
+      ],
+      "description": "Verify review, project gate, diff cleanliness, and non-empty changes before PR handoff."
+    },
+    {
+      "id": "remote-task-publish-branch",
+      "kind": "git",
+      "parameters": [
+        "project_id",
+        "issue_number"
+      ],
+      "description": "Commit and push a reviewed remote-task branch only after independent review and the registered project gate pass. No merge, deploy or release."
+    }
+  ]
+}

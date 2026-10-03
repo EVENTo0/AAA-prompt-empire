@@ -1,0 +1,24 @@
+{
+  "id": "evento-memory-core-rule",
+  "title": "Convert repeated mistakes into reusable checks",
+  "memory_type": "rule",
+  "domain": "engineering-governance",
+  "summary": "When a failure or manual check repeats, capture the lesson and automate it when practical.",
+  "rule": "If a mistake repeats, propose a reusable rule. If the rule can be checked deterministically, promote it into an automated validator or test after evidence review.",
+  "trigger": "Repeated failure, repeated manual review, or recurring correction across projects",
+  "project_id": null,
+  "scope": "evento_shared",
+  "validation_state": "active",
+  "confidence": 1,
+  "applies_to": ["all-projects", "agents", "ci"],
+  "evidence": [
+    {
+      "kind": "manual_review",
+      "ref": "EVENTO Memory Architecture v1",
+      "note": "Foundational governance rule approved for the memory system."
+    }
+  ],
+  "superseded_by": null,
+  "created_at": "2026-10-01T18:59:00Z",
+  "last_verified_at": "2026-10-01T18:59:00Z"
+}

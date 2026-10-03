@@ -1,0 +1,74 @@
+name: EVENTO Desktop Shell
+
+on:
+  pull_request:
+    paths:
+      - 'apps/evento-desktop/src-tauri/**'
+      - 'apps/evento-desktop/ui/**'
+      - 'apps/evento-desktop/rust-toolchain.toml'
+      - '.github/workflows/evento-desktop-shell.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust-check:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/evento-desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install Rust 1.99
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal
+          rustup default 1.99.0
+          rustc --version
+          cargo --version
+      - name: Cargo check
+        run: cargo check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Cargo unit tests
+        run: cargo test --lib
+
+
+  windows-bundle:
+    name: windows-installer
+    needs: rust-check
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: apps/evento-desktop
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install Rust 1.99
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal
+          rustup default 1.99.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install Tauri CLI
+        run: npm install --ignore-scripts
+      - name: Build EVENTO Windows installers
+        run: npx tauri build --bundles nsis,msi
+      - name: Upload EVENTO installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evento-desktop-windows
+          path: |
+            apps/evento-desktop/src-tauri/target/release/bundle/nsis/**
+            apps/evento-desktop/src-tauri/target/release/bundle/msi/**
+            apps/evento-desktop/src-tauri/Cargo.lock
+          if-no-files-found: error
+          retention-days: 14

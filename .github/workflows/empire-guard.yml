@@ -20,27 +20,70 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Validate Empire v2 governance
         run: python scripts/validate_empire.py
       - name: Run routing and permission contract evals
         run: python scripts/run_empire_evals.py
+      - name: Validate EVENTO Memory and Agent Contract Gate 1
+        run: python scripts/validate_evento_control_plane.py
       - name: Check workflow text hygiene
         run: |
           python - <<'PY'
           import pathlib
           for p in pathlib.Path('.github/workflows').glob('*.yml'):
               text=p.read_text(encoding='utf-8')
-              if '\t' in text:
+              if chr(9) in text:
                   raise SystemExit(f'tab character not allowed in {p}')
           print('workflow text checks passed')
           PY
+
+  evento-memory-db-security:
+    name: evento-memory-db-security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.117.0
+      - name: Prove EVENTO Memory migration security on clean local database
+        shell: bash
+        run: |
+          set -euo pipefail
+          work_dir="${RUNNER_TEMP}/evento-memory-db"
+          cleanup() {
+            if [ -d "${work_dir}/supabase" ]; then
+              (cd "${work_dir}" && supabase stop --no-backup) || true
+            fi
+            rm -rf "${work_dir}"
+          }
+          trap cleanup EXIT
+
+          rm -rf "${work_dir}"
+          mkdir -p "${work_dir}"
+          cd "${work_dir}"
+          supabase init
+          mkdir -p supabase/migrations
+          cp "${GITHUB_WORKSPACE}/supabase/migrations/20261001190000_evento_memory_v1.sql" supabase/migrations/
+
+          supabase db start
+
+          PGPASSWORD=postgres psql \
+            "postgresql://postgres@127.0.0.1:54322/postgres" \
+            -X \
+            -v ON_ERROR_STOP=1 \
+            -f "${GITHUB_WORKSPACE}/supabase/tests/evento_memory_v1_security.sql"
 
   sensitive-diff:
     name: sensitive-diff-policy
@@ -52,7 +95,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -72,7 +115,7 @@ jobs:
           hits = [x for x in changed if x == 'AGENTS.md' or x == 'CLAUDE.md' or x.startswith(sensitive_prefixes[2:])]
           if hits:
               print('Sensitive Empire control-plane files changed:')
-              print('\n'.join(f'- {x}' for x in hits))
+              print('\\n'.join(f'- {x}' for x in hits))
               print('CODEOWNERS + branch/ruleset protection should require owner review before merge.')
           else:
               print('No sensitive control-plane paths changed.')

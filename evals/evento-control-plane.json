@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "memory-authoritative-only",
+      "task": "Build Android Unity preview",
+      "domain": "unity",
+      "expect_included": ["verified-unity-rule", "active-shared-rule"],
+      "expect_excluded": ["proposed-unity-rule"]
+    },
+    {
+      "id": "memory-domain-ranking",
+      "task": "Fix Blender export for humanoid GLB",
+      "domain": "blender",
+      "expect_top": "verified-blender-rule"
+    }
+  ]
+}

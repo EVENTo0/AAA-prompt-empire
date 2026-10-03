@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "policy": {
+    "default": "deny",
+    "production_deploy": false,
+    "release": false
+  },
+  "projects": {
+    "aaa-empire": {
+      "kind": "internal-control-plane",
+      "deploy_target": null,
+      "preview_supported": false,
+      "production_supported": false,
+      "binding_verified": false,
+      "release": false
+    },
+    "evento-mobile": {
+      "kind": "mobile-artifact",
+      "deploy_target": null,
+      "preview_supported": false,
+      "production_supported": false,
+      "binding_verified": false,
+      "release": false
+    },
+    "evento-one": {
+      "kind": "web-saas",
+      "deploy_target": "vercel-preview",
+      "preview_supported": true,
+      "production_supported": false,
+      "binding_verified": false,
+      "release": false
+    },
+    "evento-acquisition": {
+      "kind": "web-acquisition",
+      "deploy_target": "vercel-preview",
+      "preview_supported": true,
+      "production_supported": false,
+      "binding_verified": false,
+      "release": false
+    }
+  }
+}

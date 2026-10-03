@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "policy": {
+    "default": "deny",
+    "shell": false,
+    "release": false,
+    "network_required": false
+  },
+  "projects": {
+    "aaa-empire": [
+      ["python", "scripts/validate_evento_control_plane.py"],
+      ["python", "-m", "unittest", "apps/evento-desktop/daemon/test_evento_daemon.py"]
+    ],
+    "evento-one": [
+      ["npm", "test"],
+      ["npm", "run", "lint"],
+      ["npm", "run", "typecheck"]
+    ],
+    "evento-mobile": [
+      ["flutter", "analyze"],
+      ["flutter", "test"]
+    ]
+  }
+}
