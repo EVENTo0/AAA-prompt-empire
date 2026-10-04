@@ -98,3 +98,16 @@ test('preview deploy evidence is surfaced without production release', async () 
   assert.match(lib, /previewDeployAt/)
   assert.ok(!lib.includes('promote_preview'))
 })
+
+
+test('preview acceptance and production readiness are audit-only', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /accept-preview/)
+  assert.match(lib, /PREVIEW-ACCEPTED/)
+  assert.match(lib, /preview-accepted/)
+  assert.match(lib, /EVENTO production readiness/)
+  assert.match(lib, /EVENTO_PRODUCTION_READINESS_JSON=/)
+  assert.match(lib, /productionReadiness/)
+  assert.match(lib, /productionReadinessAt/)
+  assert.ok(!lib.includes('production_deploy_execute'))
+})
