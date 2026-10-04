@@ -2946,6 +2946,164 @@ fn remote_task_protected_release_seal(
     Ok(result)
 }
 
+
+
+fn release_channel_registry() -> Result<serde_json::Value, String> {
+    serde_json::from_str(include_str!("../../../../registry/evento-release-channels.json"))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn remote_task_release_channel_readiness(
+    issue_number: u64,
+    project_id: String,
+) -> Result<serde_json::Value, String> {
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    let mut blockers: Vec<String> = Vec::new();
+
+    if task_state != "release-sealed" {
+        blockers.push("release_package_not_sealed".to_string());
+    }
+
+    let registry = release_channel_registry()?;
+    let external_release = registry
+        .get("policy")
+        .and_then(|v| v.get("external_release"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    if !external_release {
+        blockers.push("external_release_policy_disabled".to_string());
+    }
+
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned();
+
+    let Some(project) = project else {
+        blockers.push("release_channel_project_not_registered".to_string());
+        let result = serde_json::json!({
+            "evento_release_channel_readiness_version": 1,
+            "issue_number": issue_number,
+            "project_id": project_id,
+            "task_state": task_state,
+            "ready": false,
+            "status": "RELEASE CHANNEL BLOCKED",
+            "blockers": blockers,
+            "external_release": false,
+            "release": false
+        });
+        post_task_audit(
+            issue_number,
+            "EVENTO release channel readiness",
+            "EVENTO_RELEASE_CHANNEL_JSON",
+            &result,
+        )?;
+        return Ok(result);
+    };
+
+    let channel_type = project
+        .get("channel_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let channel = registry
+        .get("channel_types")
+        .and_then(|v| v.get(channel_type))
+        .cloned()
+        .ok_or_else(|| "Release channel type is not registered".to_string())?;
+
+    let binding_verified = project
+        .get("binding_verified")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let project_enabled = project
+        .get("enabled")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let channel_enabled = channel
+        .get("enabled")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let channel_id = project
+        .get("channel_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let provider = channel
+        .get("provider")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let credential = channel
+        .get("credential")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+
+    if !binding_verified {
+        blockers.push("release_channel_binding_not_verified".to_string());
+    }
+    if !project_enabled {
+        blockers.push("release_project_channel_disabled".to_string());
+    }
+    if !channel_enabled {
+        blockers.push("release_channel_type_disabled".to_string());
+    }
+    if channel_id.is_empty() {
+        blockers.push("release_channel_id_missing".to_string());
+    }
+
+    match credential {
+        "github" => {
+            if credential_value("github").is_err() {
+                blockers.push("github_credential_missing".to_string());
+            }
+        }
+        "vercel" => {
+            match credential_value("vercel") {
+                Ok(secret) => {
+                    if probe_json(
+                        "https://api.vercel.com/v2/user",
+                        ("Authorization", format!("Bearer {secret}")),
+                    ).is_err() {
+                        blockers.push("vercel_auth_failed".to_string());
+                    }
+                }
+                Err(_) => blockers.push("vercel_credential_missing".to_string()),
+            }
+        }
+        "google-play" => blockers.push("google_play_connector_not_configured".to_string()),
+        "" => blockers.push("release_channel_credential_missing".to_string()),
+        _ => blockers.push("release_channel_credential_not_allowlisted".to_string()),
+    }
+
+    let ready = blockers.is_empty();
+    let result = serde_json::json!({
+        "evento_release_channel_readiness_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "task_state": task_state,
+        "channel_type": channel_type,
+        "provider": provider,
+        "channel_id": channel_id,
+        "binding_verified": binding_verified,
+        "project_enabled": project_enabled,
+        "channel_enabled": channel_enabled,
+        "ready": ready,
+        "status": if ready { "READY FOR EXTERNAL RELEASE APPROVAL" } else { "RELEASE CHANNEL BLOCKED" },
+        "blockers": blockers,
+        "external_release": false,
+        "release": false
+    });
+
+    post_task_audit(
+        issue_number,
+        "EVENTO release channel readiness",
+        "EVENTO_RELEASE_CHANNEL_JSON",
+        &result,
+    )?;
+
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -3141,6 +3299,7 @@ pub fn run() {
             remote_task_release_readiness,
             remote_task_release_handoff_package,
             remote_task_protected_release_seal,
+            remote_task_release_channel_readiness,
             autostart_status,
             set_autostart
         ])
@@ -3248,6 +3407,15 @@ mod tests {
         assert_eq!(expected_release_confirmation(42), "RELEASE #42");
         assert_ne!(expected_release_confirmation(42), expected_merge_confirmation(42));
         assert_ne!(expected_release_confirmation(42), expected_production_confirmation(42));
+    }
+
+    #[test]
+    fn release_channel_registry_is_default_deny() {
+        let registry = release_channel_registry().expect("release channel registry");
+        assert_eq!(registry["policy"]["default"], "deny");
+        assert_eq!(registry["policy"]["external_release"], false);
+        assert_eq!(registry["channel_types"]["android-store"]["enabled"], false);
+        assert_eq!(registry["projects"]["evento-one"]["binding_verified"], false);
     }
 
     #[test]
