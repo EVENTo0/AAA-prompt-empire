@@ -473,7 +473,9 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][PREVIEW-ACCEPTED]") {
+    if title.starts_with("[EVENTO TASK][PRODUCTION-HANDOFF-APPROVED]") {
+        Some("production-handoff-approved")
+    } else if title.starts_with("[EVENTO TASK][PREVIEW-ACCEPTED]") {
         Some("preview-accepted")
     } else if title.starts_with("[EVENTO TASK][PREVIEW-VERIFIED]") {
         Some("preview-verified")
@@ -2140,6 +2142,152 @@ fn remote_task_production_readiness(
     Ok(result)
 }
 
+
+
+#[tauri::command]
+fn remote_task_rollback_readiness(
+    issue_number: u64,
+    project_id: String,
+) -> Result<serde_json::Value, String> {
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    let mut blockers: Vec<String> = Vec::new();
+
+    if task_state != "production-handoff-approved" {
+        blockers.push("production_handoff_not_approved".to_string());
+    }
+
+    let registry = deploy_registry()?;
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned();
+
+    let Some(project) = project else {
+        blockers.push("deploy_target_not_registered".to_string());
+        let result = serde_json::json!({
+            "evento_rollback_readiness_version": 1,
+            "issue_number": issue_number,
+            "project_id": project_id,
+            "task_state": task_state,
+            "ready": false,
+            "status": "ROLLBACK BLOCKED",
+            "blockers": blockers,
+            "rollback": false,
+            "deploy": false,
+            "release": false
+        });
+        post_task_audit(
+            issue_number,
+            "EVENTO rollback readiness",
+            "EVENTO_ROLLBACK_READINESS_JSON",
+            &result,
+        )?;
+        return Ok(result);
+    };
+
+    let binding_verified = project
+        .get("binding_verified")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let production_supported = project
+        .get("production_supported")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let provider = project.get("provider").and_then(|v| v.as_str()).unwrap_or("");
+
+    if !binding_verified {
+        blockers.push("deploy_binding_not_verified".to_string());
+    }
+    if !production_supported {
+        blockers.push("production_not_supported".to_string());
+    }
+
+    let mut rollback_candidates: Vec<serde_json::Value> = Vec::new();
+
+    if provider == "vercel" {
+        let team_id = project
+            .get("vercel_team_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let project_id_vercel = project
+            .get("vercel_project_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+
+        if team_id.is_empty() || project_id_vercel.is_empty() {
+            blockers.push("vercel_binding_incomplete".to_string());
+        } else {
+            match credential_value("vercel") {
+                Ok(secret) => {
+                    let url = format!(
+                        "https://api.vercel.com/v7/deployments?teamId={}&projectId={}&target=production&state=READY&rollbackCandidate=true&limit=10",
+                        team_id, project_id_vercel
+                    );
+                    match vercel_api_json("GET", &url, &secret, None) {
+                        Ok(payload) => {
+                            rollback_candidates = payload
+                                .get("deployments")
+                                .and_then(|v| v.as_array())
+                                .cloned()
+                                .unwrap_or_default()
+                                .into_iter()
+                                .map(|item| serde_json::json!({
+                                    "id": item.get("uid").or_else(|| item.get("id")).cloned(),
+                                    "url": item.get("url").cloned(),
+                                    "created": item.get("created").or_else(|| item.get("createdAt")).cloned(),
+                                    "state": item.get("state").or_else(|| item.get("readyState")).cloned()
+                                }))
+                                .collect();
+
+                            if rollback_candidates.is_empty() {
+                                blockers.push("no_verified_rollback_candidate".to_string());
+                            }
+                        }
+                        Err(_) => blockers.push("vercel_rollback_query_failed".to_string()),
+                    }
+                }
+                Err(_) => blockers.push("vercel_credential_missing".to_string()),
+            }
+        }
+    } else if !provider.is_empty() {
+        blockers.push("rollback_provider_not_allowlisted".to_string());
+    } else {
+        blockers.push("rollback_provider_missing".to_string());
+    }
+
+    let ready = blockers.is_empty();
+    let result = serde_json::json!({
+        "evento_rollback_readiness_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "task_state": task_state,
+        "provider": provider,
+        "binding_verified": binding_verified,
+        "production_supported": production_supported,
+        "rollback_candidates": rollback_candidates,
+        "ready": ready,
+        "status": if ready { "ROLLBACK READY" } else { "ROLLBACK BLOCKED" },
+        "blockers": blockers,
+        "rollback": false,
+        "deploy": false,
+        "release": false
+    });
+
+    post_task_audit(
+        issue_number,
+        "EVENTO rollback readiness",
+        "EVENTO_ROLLBACK_READINESS_JSON",
+        &result,
+    )?;
+
+    Ok(result)
+}
+
+fn expected_production_confirmation(issue_number: u64) -> String {
+    format!("PRODUCTION #{issue_number}")
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -2330,6 +2478,7 @@ pub fn run() {
             remote_task_deploy_readiness,
             remote_task_preview_deploy,
             remote_task_production_readiness,
+            remote_task_rollback_readiness,
             autostart_status,
             set_autostart
         ])
@@ -2400,6 +2549,12 @@ mod tests {
     fn preview_acceptance_state_is_not_release() {
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][PREVIEW-ACCEPTED] x"), Some("preview-accepted"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
+    }
+
+    #[test]
+    fn production_confirmation_is_distinct_from_merge() {
+        assert_eq!(expected_production_confirmation(42), "PRODUCTION #42");
+        assert_ne!(expected_production_confirmation(42), expected_merge_confirmation(42));
     }
 
     #[test]
