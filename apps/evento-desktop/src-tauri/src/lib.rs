@@ -473,7 +473,9 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][RELEASE-SEALED]") {
+    if title.starts_with("[EVENTO TASK][EXTERNAL-RELEASE-HANDOFF-APPROVED]") {
+        Some("external-release-handoff-approved")
+    } else if title.starts_with("[EVENTO TASK][RELEASE-SEALED]") {
         Some("release-sealed")
     } else if title.starts_with("[EVENTO TASK][RELEASE-PACKAGE-READY]") {
         Some("release-package-ready")
@@ -3416,6 +3418,12 @@ mod tests {
         assert_eq!(registry["policy"]["external_release"], false);
         assert_eq!(registry["channel_types"]["android-store"]["enabled"], false);
         assert_eq!(registry["projects"]["evento-one"]["binding_verified"], false);
+    }
+
+    #[test]
+    fn external_release_handoff_is_not_release() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][EXTERNAL-RELEASE-HANDOFF-APPROVED] x"), Some("external-release-handoff-approved"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
     }
 
     #[test]
