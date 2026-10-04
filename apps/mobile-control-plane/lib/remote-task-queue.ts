@@ -2,7 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
-export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -18,6 +18,7 @@ export type RemoteTaskEnvelope = {
 }
 
 function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][PREVIEW-VERIFIED]')) return 'preview-verified'
   if (title.startsWith('[EVENTO TASK][MERGED-VERIFIED]')) return 'merged-verified'
   if (title.startsWith('[EVENTO TASK][MERGED]')) return 'merged'
   if (title.startsWith('[EVENTO TASK][MERGE-HANDOFF-APPROVED]')) return 'merge-handoff-approved'
@@ -121,6 +122,7 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const merged = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected merge'))
   const postMerge = [...comments].reverse().find((comment) => comment.body.includes('EVENTO post-merge verification'))
   const deployReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO deploy readiness'))
+  const previewDeployComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO preview deploy'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -149,6 +151,15 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
       try { deployReadiness = JSON.parse(raw) } catch {}
     }
   }
+  let previewDeploy: any = null
+  if (previewDeployComment) {
+    const marker = 'EVENTO_PREVIEW_DEPLOY_JSON='
+    const index = previewDeployComment.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = previewDeployComment.body.slice(index + marker.length).split('\n')[0]
+      try { previewDeploy = JSON.parse(raw) } catch {}
+    }
+  }
   return {
     evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
     evidenceAt: evidence?.createdAt ?? null,
@@ -162,6 +173,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     postMergeAt: postMerge?.createdAt ?? null,
     deployReadiness,
     deployReadinessAt: deployReadinessComment?.createdAt ?? null,
+    previewDeploy,
+    previewDeployAt: previewDeployComment?.createdAt ?? null,
   }
 }
 
