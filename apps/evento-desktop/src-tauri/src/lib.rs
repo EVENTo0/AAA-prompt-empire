@@ -2284,6 +2284,7 @@ fn remote_task_rollback_readiness(
     Ok(result)
 }
 
+#[cfg(test)]
 fn expected_production_confirmation(issue_number: u64) -> String {
     format!("PRODUCTION #{issue_number}")
 }
