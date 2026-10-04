@@ -111,3 +111,19 @@ test('preview acceptance and production readiness are audit-only', async () => {
   assert.match(lib, /productionReadinessAt/)
   assert.ok(!lib.includes('production_deploy_execute'))
 })
+
+
+test('production handoff approval requires readiness and still does not deploy', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /approve-production-handoff/)
+  assert.match(lib, /PRODUCTION-HANDOFF-APPROVED/)
+  assert.match(lib, /production-handoff-approved/)
+  assert.match(lib, /READY production-readiness evidence/)
+  assert.match(lib, /deploy: false/)
+  assert.match(lib, /release: false/)
+})
+
+test('rollback readiness is evidence only', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.ok(!lib.includes('rollback_execute'))
+})
