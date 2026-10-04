@@ -473,7 +473,11 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][PRODUCTION-VERIFIED]") {
+    if title.starts_with("[EVENTO TASK][RELEASE-PACKAGE-READY]") {
+        Some("release-package-ready")
+    } else if title.starts_with("[EVENTO TASK][RELEASE-HANDOFF-APPROVED]") {
+        Some("release-handoff-approved")
+    } else if title.starts_with("[EVENTO TASK][PRODUCTION-VERIFIED]") {
         Some("production-verified")
     } else if title.starts_with("[EVENTO TASK][PRODUCTION-ROLLED-BACK]") {
         Some("production-rolled-back")
@@ -2716,6 +2720,85 @@ fn remote_task_release_readiness(
     Ok(result)
 }
 
+
+
+fn task_release_readiness_evidence(issue_number: u64, token: &str) -> Result<serde_json::Value, String> {
+    for comment in task_comments(issue_number, token)?.iter().rev() {
+        let body = comment.get("body").and_then(|v| v.as_str()).unwrap_or("");
+        if !body.contains("EVENTO release readiness") {
+            continue;
+        }
+        let marker = "EVENTO_RELEASE_READINESS_JSON=";
+        if let Some(index) = body.find(marker) {
+            let raw = body[index + marker.len()..].lines().next().unwrap_or("");
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(raw) {
+                return Ok(value);
+            }
+        }
+    }
+    Err("Release readiness evidence not found".to_string())
+}
+
+#[tauri::command]
+fn remote_task_release_handoff_package(
+    issue_number: u64,
+    project_id: String,
+) -> Result<serde_json::Value, String> {
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    if task_state != "release-handoff-approved" {
+        return Err("Release package requires RELEASE-HANDOFF-APPROVED".to_string());
+    }
+
+    let readiness = task_release_readiness_evidence(issue_number, &token)?;
+    if readiness.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Release package requires READY release-readiness evidence".to_string());
+    }
+
+    let registry = release_registry()?;
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned()
+        .ok_or_else(|| "Release project is not registered".to_string())?;
+    let contract_name = project
+        .get("contract")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "Release contract name missing".to_string())?;
+    let contract = registry
+        .get("contracts")
+        .and_then(|v| v.get(contract_name))
+        .cloned()
+        .ok_or_else(|| "Release contract definition missing".to_string())?;
+
+    let result = serde_json::json!({
+        "evento_release_package_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "contract": contract_name,
+        "release_channel": project.get("release_channel"),
+        "required_task_state": contract.get("required_task_state"),
+        "requires_code_signing": contract.get("requires_code_signing"),
+        "requires_signed_artifact": contract.get("requires_signed_artifact"),
+        "artifact_types": contract.get("artifact_types"),
+        "signing_evidence": project.get("signing_evidence"),
+        "signed_artifact_evidence": project.get("signed_artifact_evidence"),
+        "release_readiness": readiness,
+        "handoff": "approved",
+        "release": false
+    });
+
+    post_task_audit(
+        issue_number,
+        "EVENTO release handoff package",
+        "EVENTO_RELEASE_PACKAGE_JSON",
+        &result,
+    )?;
+    set_task_state(issue_number, "RELEASE-PACKAGE-READY")?;
+
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -2909,6 +2992,7 @@ pub fn run() {
             remote_task_rollback_readiness,
             remote_task_protected_production_deploy,
             remote_task_release_readiness,
+            remote_task_release_handoff_package,
             autostart_status,
             set_autostart
         ])
@@ -3002,6 +3086,13 @@ mod tests {
         assert_eq!(registry["contracts"]["web-production"]["release_enabled"], false);
         assert_eq!(registry["contracts"]["android-store"]["requires_signed_artifact"], true);
         assert_eq!(registry["contracts"]["desktop-installer"]["requires_code_signing"], true);
+    }
+
+    #[test]
+    fn release_handoff_states_are_not_released() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASE-HANDOFF-APPROVED] x"), Some("release-handoff-approved"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASE-PACKAGE-READY] x"), Some("release-package-ready"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
     }
 
     #[test]
