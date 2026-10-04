@@ -130,6 +130,7 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const productionReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO production readiness'))
   const rollbackReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO rollback readiness'))
   const productionDeployComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected production deploy'))
+  const releaseReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release readiness'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -194,6 +195,15 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
       try { productionDeploy = JSON.parse(raw) } catch {}
     }
   }
+  let releaseReadiness: any = null
+  if (releaseReadinessComment) {
+    const marker = 'EVENTO_RELEASE_READINESS_JSON='
+    const index = releaseReadinessComment.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = releaseReadinessComment.body.slice(index + marker.length).split('\n')[0]
+      try { releaseReadiness = JSON.parse(raw) } catch {}
+    }
+  }
   return {
     evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
     evidenceAt: evidence?.createdAt ?? null,
@@ -215,6 +225,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     rollbackReadinessAt: rollbackReadinessComment?.createdAt ?? null,
     productionDeploy,
     productionDeployAt: productionDeployComment?.createdAt ?? null,
+    releaseReadiness,
+    releaseReadinessAt: releaseReadinessComment?.createdAt ?? null,
   }
 }
 
