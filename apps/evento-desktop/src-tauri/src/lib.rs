@@ -473,7 +473,9 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][RELEASE-PACKAGE-READY]") {
+    if title.starts_with("[EVENTO TASK][RELEASE-SEALED]") {
+        Some("release-sealed")
+    } else if title.starts_with("[EVENTO TASK][RELEASE-PACKAGE-READY]") {
         Some("release-package-ready")
     } else if title.starts_with("[EVENTO TASK][RELEASE-HANDOFF-APPROVED]") {
         Some("release-handoff-approved")
@@ -2799,6 +2801,151 @@ fn remote_task_release_handoff_package(
     Ok(result)
 }
 
+
+
+fn expected_release_confirmation(issue_number: u64) -> String {
+    format!("RELEASE #{issue_number}")
+}
+
+fn task_release_package_evidence(issue_number: u64, token: &str) -> Result<serde_json::Value, String> {
+    for comment in task_comments(issue_number, token)?.iter().rev() {
+        let body = comment.get("body").and_then(|v| v.as_str()).unwrap_or("");
+        if !body.contains("EVENTO release handoff package") {
+            continue;
+        }
+        let marker = "EVENTO_RELEASE_PACKAGE_JSON=";
+        if let Some(index) = body.find(marker) {
+            let raw = body[index + marker.len()..].lines().next().unwrap_or("");
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(raw) {
+                return Ok(value);
+            }
+        }
+    }
+    Err("Release package evidence not found".to_string())
+}
+
+fn unix_timestamp_seconds() -> Result<u64, String> {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn remote_task_protected_release_seal(
+    issue_number: u64,
+    project_id: String,
+    confirmation: String,
+) -> Result<serde_json::Value, String> {
+    if confirmation != expected_release_confirmation(issue_number) {
+        return Err(format!(
+            "Explicit confirmation required: {}",
+            expected_release_confirmation(issue_number)
+        ));
+    }
+
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    if task_state != "release-package-ready" {
+        return Err("Protected release seal requires RELEASE-PACKAGE-READY".to_string());
+    }
+
+    let readiness = task_release_readiness_evidence(issue_number, &token)?;
+    if readiness.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Release readiness is no longer ready".to_string());
+    }
+
+    let package = task_release_package_evidence(issue_number, &token)?;
+    if package.get("handoff").and_then(|v| v.as_str()) != Some("approved") {
+        return Err("Release package handoff is not approved".to_string());
+    }
+    if package.get("project_id").and_then(|v| v.as_str()) != Some(project_id.as_str()) {
+        return Err("Release package project does not match requested project".to_string());
+    }
+
+    let registry = release_registry()?;
+    let global_release = registry
+        .get("policy")
+        .and_then(|v| v.get("release"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    if !global_release {
+        return Err("Global release policy is disabled".to_string());
+    }
+
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned()
+        .ok_or_else(|| "Release project is not registered".to_string())?;
+    let contract_name = project
+        .get("contract")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "Release contract name missing".to_string())?;
+    let contract = registry
+        .get("contracts")
+        .and_then(|v| v.get(contract_name))
+        .cloned()
+        .ok_or_else(|| "Release contract definition missing".to_string())?;
+
+    if project.get("release_enabled").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Project release is disabled".to_string());
+    }
+    if contract.get("release_enabled").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Release contract is disabled".to_string());
+    }
+    if project.get("release_channel").map(|v| v.is_null()).unwrap_or(true) {
+        return Err("Release channel is not configured".to_string());
+    }
+
+    let requires_signing = contract
+        .get("requires_code_signing")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let requires_artifact = contract
+        .get("requires_signed_artifact")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    if requires_signing
+        && project.get("signing_evidence").and_then(|v| v.as_bool()) != Some(true)
+    {
+        return Err("Signing evidence is missing".to_string());
+    }
+    if requires_artifact
+        && project.get("signed_artifact_evidence").and_then(|v| v.as_bool()) != Some(true)
+    {
+        return Err("Signed artifact evidence is missing".to_string());
+    }
+
+    let sealed_at = unix_timestamp_seconds()?;
+    let result = serde_json::json!({
+        "evento_release_seal_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "contract": contract_name,
+        "release_channel": project.get("release_channel"),
+        "sealed_at_unix": sealed_at,
+        "release_readiness": readiness,
+        "release_package": package,
+        "signing_evidence": project.get("signing_evidence"),
+        "signed_artifact_evidence": project.get("signed_artifact_evidence"),
+        "sealed": true,
+        "external_release_executed": false,
+        "release": false
+    });
+
+    post_task_audit(
+        issue_number,
+        "EVENTO protected release seal",
+        "EVENTO_RELEASE_SEAL_JSON",
+        &result,
+    )?;
+    set_task_state(issue_number, "RELEASE-SEALED")?;
+
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -2993,6 +3140,7 @@ pub fn run() {
             remote_task_protected_production_deploy,
             remote_task_release_readiness,
             remote_task_release_handoff_package,
+            remote_task_protected_release_seal,
             autostart_status,
             set_autostart
         ])
@@ -3093,6 +3241,13 @@ mod tests {
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASE-HANDOFF-APPROVED] x"), Some("release-handoff-approved"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASE-PACKAGE-READY] x"), Some("release-package-ready"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
+    }
+
+    #[test]
+    fn release_confirmation_is_distinct() {
+        assert_eq!(expected_release_confirmation(42), "RELEASE #42");
+        assert_ne!(expected_release_confirmation(42), expected_merge_confirmation(42));
+        assert_ne!(expected_release_confirmation(42), expected_production_confirmation(42));
     }
 
     #[test]
