@@ -151,3 +151,18 @@ test('release readiness is evidence-only and default deny', async () => {
   assert.match(lib, /releaseReadinessAt/)
   assert.ok(!lib.includes('release_execute'))
 })
+
+
+test('release handoff approval requires readiness and package is not release execution', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /approve-release-handoff/)
+  assert.match(lib, /RELEASE-HANDOFF-APPROVED/)
+  assert.match(lib, /release-handoff-approved/)
+  assert.match(lib, /RELEASE-PACKAGE-READY/)
+  assert.match(lib, /release-package-ready/)
+  assert.match(lib, /EVENTO release handoff package/)
+  assert.match(lib, /EVENTO_RELEASE_PACKAGE_JSON=/)
+  assert.match(lib, /releasePackage/)
+  assert.match(lib, /releasePackageAt/)
+  assert.ok(!lib.includes('release_execute'))
+})
