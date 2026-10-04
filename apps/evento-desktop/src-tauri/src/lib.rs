@@ -473,7 +473,9 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][MERGED-VERIFIED]") {
+    if title.starts_with("[EVENTO TASK][PREVIEW-VERIFIED]") {
+        Some("preview-verified")
+    } else if title.starts_with("[EVENTO TASK][MERGED-VERIFIED]") {
         Some("merged-verified")
     } else if title.starts_with("[EVENTO TASK][MERGED]") {
         Some("merged")
@@ -1747,6 +1749,275 @@ fn remote_task_deploy_readiness(
     Ok(result)
 }
 
+
+
+fn split_github_repository(repository: &str) -> Result<(&str, &str), String> {
+    let mut parts = repository.split('/');
+    let owner = parts.next().unwrap_or("");
+    let name = parts.next().unwrap_or("");
+    if owner.is_empty() || name.is_empty() || parts.next().is_some() {
+        return Err("Repository must be owner/name".to_string());
+    }
+    Ok((owner, name))
+}
+
+fn vercel_api_json(
+    method: &str,
+    url: &str,
+    token: &str,
+    body: Option<serde_json::Value>,
+) -> Result<serde_json::Value, String> {
+    let request = match method {
+        "GET" => ureq::get(url)
+            .header("Authorization", &format!("Bearer {token}"))
+            .header("Accept", "application/json"),
+        "POST" => ureq::post(url)
+            .header("Authorization", &format!("Bearer {token}"))
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json"),
+        _ => return Err("Unsupported Vercel API method".to_string()),
+    };
+
+    let mut response = if let Some(body) = body {
+        request
+            .send_json(body)
+            .map_err(|error| error.to_string())?
+    } else {
+        request.call().map_err(|error| error.to_string())?
+    };
+
+    response
+        .body_mut()
+        .read_json::<serde_json::Value>()
+        .map_err(|error| error.to_string())
+}
+
+fn smoke_preview_url(url: &str, paths: &[String]) -> Vec<serde_json::Value> {
+    let base = if url.starts_with("https://") {
+        url.trim_end_matches('/').to_string()
+    } else {
+        format!("https://{}", url.trim_end_matches('/'))
+    };
+    let mut results = Vec::new();
+
+    for path in paths {
+        let normalized = if path.starts_with('/') {
+            path.clone()
+        } else {
+            format!("/{path}")
+        };
+        let target = format!("{base}{normalized}");
+        let outcome = ureq::get(&target)
+            .config()
+            .timeout_global(Some(Duration::from_secs(12)))
+            .build()
+            .call();
+
+        match outcome {
+            Ok(response) => {
+                let status = response.status().as_u16();
+                results.push(serde_json::json!({
+                    "path": normalized,
+                    "url": target,
+                    "status": status,
+                    "ok": (200..400).contains(&status)
+                }));
+            }
+            Err(error) => {
+                results.push(serde_json::json!({
+                    "path": normalized,
+                    "url": target,
+                    "status": null,
+                    "ok": false,
+                    "error": error.to_string()
+                }));
+            }
+        }
+    }
+
+    results
+}
+
+fn preview_deploy_project_config(project_id: &str) -> Result<serde_json::Value, String> {
+    deploy_registry()?
+        .get("projects")
+        .and_then(|v| v.get(project_id))
+        .cloned()
+        .ok_or_else(|| "Deploy target is not registered".to_string())
+}
+
+#[tauri::command]
+fn remote_task_preview_deploy(
+    issue_number: u64,
+    project_id: String,
+    repository: String,
+) -> Result<serde_json::Value, String> {
+    let readiness = remote_task_deploy_readiness(issue_number, project_id.clone())?;
+    if readiness.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Err(format!(
+            "Preview deploy readiness blocked: {}",
+            readiness
+                .get("blockers")
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "unknown".to_string())
+        ));
+    }
+
+    let project = preview_deploy_project_config(&project_id)?;
+    if project.get("deploy_target").and_then(|v| v.as_str()) != Some("vercel-preview") {
+        return Err("Only vercel-preview is enabled in preview deploy v1".to_string());
+    }
+    if project.get("binding_verified").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Deploy binding is not verified".to_string());
+    }
+
+    let configured_repo = project.get("repository").and_then(|v| v.as_str()).unwrap_or("");
+    if configured_repo != repository {
+        return Err("Task repository does not match the verified deploy binding".to_string());
+    }
+
+    let team_id = project
+        .get("vercel_team_id")
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| "Vercel team binding missing".to_string())?;
+    let project_id_vercel = project
+        .get("vercel_project_id")
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| "Vercel project ID missing".to_string())?;
+    let project_name = project
+        .get("vercel_project_name")
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| "Vercel project name missing".to_string())?;
+
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    if task_state != "merged-verified" {
+        return Err("Preview deploy requires MERGED-VERIFIED task state".to_string());
+    }
+    let merge_sha = task_merge_sha(issue_number, &token)?;
+
+    let (org, repo_name) = split_github_repository(&repository)?;
+    let vercel_token = credential_value("vercel")?;
+    let create_url = format!(
+        "https://api.vercel.com/v13/deployments?teamId={}",
+        team_id
+    );
+
+    let created = vercel_api_json(
+        "POST",
+        &create_url,
+        &vercel_token,
+        Some(serde_json::json!({
+            "name": project_name,
+            "project": project_id_vercel,
+            "gitSource": {
+                "type": "github",
+                "org": org,
+                "repo": repo_name,
+                "ref": merge_sha
+            },
+            "gitMetadata": {
+                "commitSha": merge_sha,
+                "dirty": "false",
+                "ci": "true",
+                "ciType": "evento-desktop"
+            }
+        })),
+    )?;
+
+    let deployment_id = created
+        .get("id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "Vercel deployment ID missing".to_string())?
+        .to_string();
+
+    let mut deployment = created;
+    for _ in 0..60 {
+        let state = deployment
+            .get("readyState")
+            .or_else(|| deployment.get("status"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        if matches!(state, "READY" | "ERROR" | "CANCELED") {
+            break;
+        }
+        std::thread::sleep(Duration::from_secs(5));
+        let inspect_url = format!(
+            "https://api.vercel.com/v13/deployments/{}?teamId={}",
+            deployment_id, team_id
+        );
+        deployment = vercel_api_json("GET", &inspect_url, &vercel_token, None)?;
+    }
+
+    let ready_state = deployment
+        .get("readyState")
+        .or_else(|| deployment.get("status"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("UNKNOWN")
+        .to_string();
+    let deployment_url = deployment
+        .get("url")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+
+    let smoke_paths = project
+        .get("smoke_paths")
+        .and_then(|v| v.as_array())
+        .map(|items| {
+            items.iter()
+                .filter_map(|v| v.as_str())
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_else(|| vec!["/".to_string()]);
+
+    let smoke = if ready_state == "READY" && !deployment_url.is_empty() {
+        smoke_preview_url(&deployment_url, &smoke_paths)
+    } else {
+        Vec::new()
+    };
+    let smoke_passed = !smoke.is_empty()
+        && smoke
+            .iter()
+            .all(|item| item.get("ok").and_then(|v| v.as_bool()) == Some(true));
+    let verified = ready_state == "READY" && smoke_passed;
+
+    let result = serde_json::json!({
+        "evento_preview_deploy_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "repository": repository,
+        "merge_sha": merge_sha,
+        "provider": "vercel",
+        "environment": "preview",
+        "deployment_id": deployment_id,
+        "deployment_url": deployment_url,
+        "ready_state": ready_state,
+        "smoke_mode": project.get("smoke_mode"),
+        "smoke": smoke,
+        "verified": verified,
+        "production": false,
+        "release": false
+    });
+
+    post_task_audit(
+        issue_number,
+        "EVENTO preview deploy",
+        "EVENTO_PREVIEW_DEPLOY_JSON",
+        &result,
+    )?;
+
+    if verified {
+        set_task_state(issue_number, "PREVIEW-VERIFIED")?;
+    }
+
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -1935,6 +2206,7 @@ pub fn run() {
             remote_task_protected_merge,
             remote_task_post_merge_verify,
             remote_task_deploy_readiness,
+            remote_task_preview_deploy,
             autostart_status,
             set_autostart
         ])
@@ -1973,6 +2245,12 @@ mod tests {
     fn post_merge_state_is_separate_from_release() {
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGED-VERIFIED] x"), Some("merged-verified"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][MERGED] x"), Some("merged"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
+    }
+
+    #[test]
+    fn preview_verified_state_is_not_release() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][PREVIEW-VERIFIED] x"), Some("preview-verified"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
     }
 
