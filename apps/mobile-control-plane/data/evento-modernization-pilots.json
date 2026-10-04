@@ -35,9 +35,15 @@
         "memory",
         "evidence"
       ],
-      "status": "started",
+      "status": "contract-packs-added",
       "pilot_pr": "EVENTo0/Evento-One#9",
-      "pilot_head": "87753636b7023f84bb74a92725ffaa747b945d51"
+      "pilot_head": "fa267a5820a57785da875a518c2f5ab28b4bc406",
+      "contract_packs": [
+        "project",
+        "task",
+        "evidence",
+        "memory-policy"
+      ]
     },
     {
       "project_id": "evento-mobile",
