@@ -384,8 +384,8 @@ public final class MainActivity extends AppCompatActivity {
                             card.addView(button("ACCEPT PREVIEW", v -> taskDecision(issueNumber, "accept-preview")));
                         }
                         if ("release-sealed".equals(state)) {
-                            JSONObject releaseChannel = row.optJSONObject("releaseChannel");
-                            if (releaseChannel != null && releaseChannel.optBoolean("ready", false)) {
+                            JSONObject releaseChannelDecision = row.optJSONObject("releaseChannel");
+                            if (releaseChannelDecision != null && releaseChannelDecision.optBoolean("ready", false)) {
                                 card.addView(button("APPROVE EXTERNAL RELEASE HANDOFF", v -> taskDecision(issueNumber, "approve-external-release-handoff")));
                             }
                         }
