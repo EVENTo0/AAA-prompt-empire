@@ -86,3 +86,15 @@ test('post-merge verification and deploy readiness remain non-release gates', as
   assert.match(lib, /deployReadiness/)
   assert.ok(!lib.includes('production_deploy'))
 })
+
+
+test('preview deploy evidence is surfaced without production release', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /PREVIEW-VERIFIED/)
+  assert.match(lib, /preview-verified/)
+  assert.match(lib, /EVENTO preview deploy/)
+  assert.match(lib, /EVENTO_PREVIEW_DEPLOY_JSON=/)
+  assert.match(lib, /previewDeploy/)
+  assert.match(lib, /previewDeployAt/)
+  assert.ok(!lib.includes('promote_preview'))
+})
