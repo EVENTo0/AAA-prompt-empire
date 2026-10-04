@@ -383,6 +383,12 @@ public final class MainActivity extends AppCompatActivity {
                         if ("preview-verified".equals(state)) {
                             card.addView(button("ACCEPT PREVIEW", v -> taskDecision(issueNumber, "accept-preview")));
                         }
+                        if ("release-sealed".equals(state)) {
+                            JSONObject releaseChannel = row.optJSONObject("releaseChannel");
+                            if (releaseChannel != null && releaseChannel.optBoolean("ready", false)) {
+                                card.addView(button("APPROVE EXTERNAL RELEASE HANDOFF", v -> taskDecision(issueNumber, "approve-external-release-handoff")));
+                            }
+                        }
                         if ("production-verified".equals(state)) {
                             JSONObject release = row.optJSONObject("releaseReadiness");
                             if (release != null && release.optBoolean("ready", false)) {
