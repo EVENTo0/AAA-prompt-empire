@@ -178,7 +178,11 @@ public final class MainActivity extends AppCompatActivity {
                         card.setLayoutParams(params);
                         card.setBackgroundColor(0xFF0B151E);
                         String state = row.optString("state", "approved");
-                        int stateColor = "production-handoff-approved".equals(state)
+                        int stateColor = "production-verified".equals(state)
+                                ? 0xFF68E4A2
+                                : "production-rolled-back".equals(state)
+                                ? 0xFFFFBF62
+                                : "production-handoff-approved".equals(state)
                                 ? 0xFFD6AB63
                                 : "preview-accepted".equals(state)
                                 ? 0xFF68E4A2
@@ -243,6 +247,21 @@ public final class MainActivity extends AppCompatActivity {
                                     previewDetail,
                                     11,
                                     previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
+                        }
+
+                        JSONObject productionDeploy = row.optJSONObject("productionDeploy");
+                        if (productionDeploy != null) {
+                            boolean healthVerified = productionDeploy.optBoolean("health_verified", false);
+                            boolean rollbackSucceeded = productionDeploy.optBoolean("rollback_succeeded", false);
+                            String productionDetail = healthVerified
+                                    ? "PRODUCTION VERIFIED"
+                                    : rollbackSucceeded
+                                        ? "PRODUCTION ROLLED BACK"
+                                        : "PRODUCTION HEALTH FAILED";
+                            card.addView(text(
+                                    productionDetail,
+                                    11,
+                                    healthVerified ? 0xFF68E4A2 : 0xFFFFBF62));
                         }
 
                         JSONObject rollbackReadiness = row.optJSONObject("rollbackReadiness");
