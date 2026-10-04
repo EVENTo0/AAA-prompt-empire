@@ -188,3 +188,13 @@ test('release channel readiness is default-deny and external-action free', async
   assert.match(lib, /releaseChannelAt/)
   assert.ok(!lib.includes('external_release_execute'))
 })
+
+
+test('external release handoff requires sealed package and channel readiness', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /approve-external-release-handoff/)
+  assert.match(lib, /EXTERNAL-RELEASE-HANDOFF-APPROVED/)
+  assert.match(lib, /external-release-handoff-approved/)
+  assert.match(lib, /READY release-channel evidence/)
+  assert.match(lib, /no external release action was performed/)
+})
