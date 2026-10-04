@@ -273,6 +273,7 @@ async function refreshRemoteTasks() {
           '<button data-remote-rollbackreadiness="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(task.state!=='production-handoff-approved'?'disabled':'')+'>Rollback Readiness</button>' +
           '<button data-remote-productiondeploy="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(!operatorEnabled||task.state!=='production-handoff-approved'?'disabled':'')+'>Protected Production Deploy</button>' +
           '<button data-remote-releasereadiness="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(task.state!=='production-verified'?'disabled':'')+'>Release Readiness</button>' +
+          '<button data-remote-releasepackage="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(task.state!=='release-handoff-approved'?'disabled':'')+'>Build Release Package</button>' +
         '</div>' +
       '</article>'
     ).join('')
@@ -282,7 +283,7 @@ async function refreshRemoteTasks() {
 }
 
 remoteTasksEl.addEventListener('click', async event => {
-  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness],button[data-remote-merge],button[data-remote-postmerge],button[data-remote-deployreadiness],button[data-remote-previewdeploy],button[data-remote-productionreadiness],button[data-remote-rollbackreadiness],button[data-remote-productiondeploy],button[data-remote-releasereadiness]')
+  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness],button[data-remote-merge],button[data-remote-postmerge],button[data-remote-deployreadiness],button[data-remote-previewdeploy],button[data-remote-productionreadiness],button[data-remote-rollbackreadiness],button[data-remote-productiondeploy],button[data-remote-releasereadiness],button[data-remote-releasepackage]')
   if (!button) return
   button.disabled = true
   const projectId = button.dataset.remoteProject
@@ -301,12 +302,18 @@ remoteTasksEl.addEventListener('click', async event => {
   const rollbackReadiness = Boolean(button.dataset.remoteRollbackreadiness)
   const productionDeploy = Boolean(button.dataset.remoteProductiondeploy)
   const releaseReadiness = Boolean(button.dataset.remoteReleasereadiness)
-  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness || button.dataset.remoteMerge || button.dataset.remotePostmerge || button.dataset.remoteDeployreadiness || button.dataset.remotePreviewdeploy || button.dataset.remoteProductionreadiness || button.dataset.remoteRollbackreadiness || button.dataset.remoteProductiondeploy || button.dataset.remoteReleasereadiness)
-  const actionLabel = releaseReadiness ? 'Checking release readiness for' : productionDeploy ? 'Protected production deploy for' : rollbackReadiness ? 'Checking rollback readiness for' : productionReadiness ? 'Checking production readiness for' : previewDeploy ? 'Deploying preview for' : deployReadiness ? 'Checking deploy readiness for' : postMerge ? 'Verifying main CI for' : protectedMerge ? 'Protected merge for' : readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
+  const releasePackage = Boolean(button.dataset.remoteReleasepackage)
+  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness || button.dataset.remoteMerge || button.dataset.remotePostmerge || button.dataset.remoteDeployreadiness || button.dataset.remotePreviewdeploy || button.dataset.remoteProductionreadiness || button.dataset.remoteRollbackreadiness || button.dataset.remoteProductiondeploy || button.dataset.remoteReleasereadiness || button.dataset.remoteReleasepackage)
+  const actionLabel = releasePackage ? 'Building release package for' : releaseReadiness ? 'Checking release readiness for' : productionDeploy ? 'Protected production deploy for' : rollbackReadiness ? 'Checking rollback readiness for' : productionReadiness ? 'Checking production readiness for' : previewDeploy ? 'Deploying preview for' : deployReadiness ? 'Checking deploy readiness for' : postMerge ? 'Verifying main CI for' : protectedMerge ? 'Protected merge for' : readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
   log.textContent = actionLabel + ' approved task #' + issueNumber + '…'
   try {
     let result
-    if (releaseReadiness) {
+    if (releasePackage) {
+      result = await invoke('remote_task_release_handoff_package', {
+        issueNumber,
+        projectId,
+      })
+    } else if (releaseReadiness) {
       result = await invoke('remote_task_release_readiness', {
         issueNumber,
         projectId,
@@ -383,7 +390,7 @@ remoteTasksEl.addEventListener('click', async event => {
       result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
     }
     log.textContent = result.output || result.agent_summary || JSON.stringify(result, null, 2)
-    if (execute || review || publish || pipeline || readiness || protectedMerge || postMerge || deployReadiness || previewDeploy || productionReadiness || rollbackReadiness || productionDeploy || releaseReadiness) await refreshRemoteTasks()
+    if (execute || review || publish || pipeline || readiness || protectedMerge || postMerge || deployReadiness || previewDeploy || productionReadiness || rollbackReadiness || productionDeploy || releaseReadiness || releasePackage) await refreshRemoteTasks()
   } catch (error) {
     log.textContent = String(error)
   } finally {
