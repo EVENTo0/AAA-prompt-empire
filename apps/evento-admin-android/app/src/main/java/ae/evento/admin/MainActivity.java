@@ -249,6 +249,22 @@ public final class MainActivity extends AppCompatActivity {
                                     previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
+                        JSONObject releaseReadiness = row.optJSONObject("releaseReadiness");
+                        if (releaseReadiness != null) {
+                            boolean releaseReady = releaseReadiness.optBoolean("ready", false);
+                            JSONArray releaseBlockers = releaseReadiness.optJSONArray("blockers");
+                            String releaseDetail = releaseReadiness.optString(
+                                    "status",
+                                    releaseReady ? "READY FOR RELEASE APPROVAL" : "RELEASE BLOCKED");
+                            if (!releaseReady && releaseBlockers != null) {
+                                releaseDetail += " · " + releaseBlockers.toString();
+                            }
+                            card.addView(text(
+                                    releaseDetail,
+                                    11,
+                                    releaseReady ? 0xFF68E4A2 : 0xFFFF6F7D));
+                        }
+
                         JSONObject productionDeploy = row.optJSONObject("productionDeploy");
                         if (productionDeploy != null) {
                             boolean healthVerified = productionDeploy.optBoolean("health_verified", false);
