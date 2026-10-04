@@ -178,8 +178,10 @@ public final class MainActivity extends AppCompatActivity {
                         card.setLayoutParams(params);
                         card.setBackgroundColor(0xFF0B151E);
                         String state = row.optString("state", "approved");
-                        int stateColor = "preview-verified".equals(state)
+                        int stateColor = "preview-accepted".equals(state)
                                 ? 0xFF68E4A2
+                                : "preview-verified".equals(state)
+                                ? 0xFF4FD4FF
                                 : "merged-verified".equals(state)
                                 ? 0xFF68E4A2
                                 : "merged".equals(state)
@@ -241,6 +243,22 @@ public final class MainActivity extends AppCompatActivity {
                                     previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
+                        JSONObject productionReadiness = row.optJSONObject("productionReadiness");
+                        if (productionReadiness != null) {
+                            boolean productionReady = productionReadiness.optBoolean("ready", false);
+                            JSONArray productionBlockers = productionReadiness.optJSONArray("blockers");
+                            String productionDetail = productionReadiness.optString(
+                                    "status",
+                                    productionReady ? "READY FOR PRODUCTION HANDOFF" : "PRODUCTION BLOCKED");
+                            if (!productionReady && productionBlockers != null) {
+                                productionDetail += " · " + productionBlockers.toString();
+                            }
+                            card.addView(text(
+                                    productionDetail,
+                                    11,
+                                    productionReady ? 0xFF68E4A2 : 0xFFFF6F7D));
+                        }
+
                         JSONObject deployReadiness = row.optJSONObject("deployReadiness");
                         if (deployReadiness != null) {
                             boolean deployReady = deployReadiness.optBoolean("ready", false);
@@ -271,11 +289,14 @@ public final class MainActivity extends AppCompatActivity {
                         }
 
                         int issueNumber = row.optInt("number", 0);
-                        if ("local-built".equals(state) || "pr-open".equals(state) || "merge-handoff-approved".equals(state)) {
+                        if ("local-built".equals(state) || "pr-open".equals(state) || "merge-handoff-approved".equals(state) || "preview-verified".equals(state) || "preview-accepted".equals(state)) {
                             card.addView(button("REQUEST REVISION", v -> taskDecision(issueNumber, "request-revision")));
                         }
                         if ("pr-open".equals(state)) {
                             card.addView(button("APPROVE MERGE HANDOFF", v -> taskDecision(issueNumber, "approve-merge-handoff")));
+                        }
+                        if ("preview-verified".equals(state)) {
+                            card.addView(button("ACCEPT PREVIEW", v -> taskDecision(issueNumber, "accept-preview")));
                         }
                         remoteTasks.addView(card);
                     }
