@@ -2560,6 +2560,162 @@ fn remote_task_protected_production_deploy(
     Ok(result)
 }
 
+
+
+fn release_registry() -> Result<serde_json::Value, String> {
+    serde_json::from_str(include_str!("../../../../registry/evento-release-contracts.json"))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn remote_task_release_readiness(
+    issue_number: Option<u64>,
+    project_id: String,
+) -> Result<serde_json::Value, String> {
+    let registry = release_registry()?;
+    let mut blockers: Vec<String> = Vec::new();
+
+    let global_release = registry
+        .get("policy")
+        .and_then(|v| v.get("release"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    if !global_release {
+        blockers.push("global_release_policy_disabled".to_string());
+    }
+
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned();
+
+    let Some(project) = project else {
+        blockers.push("release_project_not_registered".to_string());
+        let result = serde_json::json!({
+            "evento_release_readiness_version": 1,
+            "issue_number": issue_number,
+            "project_id": project_id,
+            "ready": false,
+            "status": "RELEASE BLOCKED",
+            "blockers": blockers,
+            "release": false
+        });
+        if let Some(issue) = issue_number {
+            post_task_audit(
+                issue,
+                "EVENTO release readiness",
+                "EVENTO_RELEASE_READINESS_JSON",
+                &result,
+            )?;
+        }
+        return Ok(result);
+    };
+
+    let contract_name = project
+        .get("contract")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let contract = registry
+        .get("contracts")
+        .and_then(|v| v.get(contract_name))
+        .cloned()
+        .ok_or_else(|| "Release contract is not registered".to_string())?;
+
+    let project_release_enabled = project
+        .get("release_enabled")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let contract_release_enabled = contract
+        .get("release_enabled")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    if !project_release_enabled {
+        blockers.push("project_release_disabled".to_string());
+    }
+    if !contract_release_enabled {
+        blockers.push("contract_release_disabled".to_string());
+    }
+
+    if project
+        .get("release_channel")
+        .map(|v| v.is_null())
+        .unwrap_or(true)
+    {
+        blockers.push("release_channel_not_configured".to_string());
+    }
+
+    let requires_signing = contract
+        .get("requires_code_signing")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let requires_artifact = contract
+        .get("requires_signed_artifact")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    let signing_evidence = project
+        .get("signing_evidence")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let signed_artifact_evidence = project
+        .get("signed_artifact_evidence")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    if requires_signing && !signing_evidence {
+        blockers.push("signing_evidence_missing".to_string());
+    }
+    if requires_artifact && !signed_artifact_evidence {
+        blockers.push("signed_artifact_evidence_missing".to_string());
+    }
+
+    let required_task_state = contract
+        .get("required_task_state")
+        .and_then(|v| v.as_str())
+        .map(str::to_string);
+
+    let mut task_state: Option<String> = None;
+    if let Some(required_state) = required_task_state.as_deref() {
+        let issue = issue_number.ok_or_else(|| "Release contract requires a task issue number".to_string())?;
+        let token = credential_value("github")?;
+        let current = github_task_state(issue, &token)?;
+        if current != required_state {
+            blockers.push(format!("required_task_state_{required_state}"));
+        }
+        task_state = Some(current);
+    }
+
+    let ready = blockers.is_empty();
+    let result = serde_json::json!({
+        "evento_release_readiness_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "contract": contract_name,
+        "required_task_state": required_task_state,
+        "task_state": task_state,
+        "requires_code_signing": requires_signing,
+        "requires_signed_artifact": requires_artifact,
+        "signing_evidence": signing_evidence,
+        "signed_artifact_evidence": signed_artifact_evidence,
+        "ready": ready,
+        "status": if ready { "READY FOR RELEASE APPROVAL" } else { "RELEASE BLOCKED" },
+        "blockers": blockers,
+        "release": false
+    });
+
+    if let Some(issue) = issue_number {
+        post_task_audit(
+            issue,
+            "EVENTO release readiness",
+            "EVENTO_RELEASE_READINESS_JSON",
+            &result,
+        )?;
+    }
+
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -2752,6 +2908,7 @@ pub fn run() {
             remote_task_production_readiness,
             remote_task_rollback_readiness,
             remote_task_protected_production_deploy,
+            remote_task_release_readiness,
             autostart_status,
             set_autostart
         ])
@@ -2835,6 +2992,16 @@ mod tests {
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][PRODUCTION-VERIFIED] x"), Some("production-verified"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][PRODUCTION-ROLLED-BACK] x"), Some("production-rolled-back"));
         assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
+    }
+
+    #[test]
+    fn release_registry_is_default_deny() {
+        let registry = release_registry().expect("release registry");
+        assert_eq!(registry["policy"]["default"], "deny");
+        assert_eq!(registry["policy"]["release"], false);
+        assert_eq!(registry["contracts"]["web-production"]["release_enabled"], false);
+        assert_eq!(registry["contracts"]["android-store"]["requires_signed_artifact"], true);
+        assert_eq!(registry["contracts"]["desktop-installer"]["requires_code_signing"], true);
     }
 
     #[test]
