@@ -249,6 +249,14 @@ public final class MainActivity extends AppCompatActivity {
                                     previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
+                        JSONObject releaseSeal = row.optJSONObject("releaseSeal");
+                        if (releaseSeal != null) {
+                            card.addView(text(
+                                    "RELEASE SEALED · external release not executed",
+                                    11,
+                                    0xFFD6AB63));
+                        }
+
                         JSONObject releasePackage = row.optJSONObject("releasePackage");
                         if (releasePackage != null) {
                             card.addView(text(
