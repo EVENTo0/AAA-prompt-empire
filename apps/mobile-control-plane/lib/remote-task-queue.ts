@@ -2,7 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
-export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved' | 'production-verified' | 'production-rolled-back' | 'release-handoff-approved' | 'release-package-ready' | 'release-sealed'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved' | 'production-verified' | 'production-rolled-back' | 'release-handoff-approved' | 'release-package-ready' | 'release-sealed' | 'external-release-handoff-approved'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -18,6 +18,7 @@ export type RemoteTaskEnvelope = {
 }
 
 function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][EXTERNAL-RELEASE-HANDOFF-APPROVED]')) return 'external-release-handoff-approved'
   if (title.startsWith('[EVENTO TASK][RELEASE-SEALED]')) return 'release-sealed'
   if (title.startsWith('[EVENTO TASK][RELEASE-PACKAGE-READY]')) return 'release-package-ready'
   if (title.startsWith('[EVENTO TASK][RELEASE-HANDOFF-APPROVED]')) return 'release-handoff-approved'
@@ -315,7 +316,7 @@ export async function applyRemoteTaskDecision(input: {
   const issueNumber = Number(input.issueNumber)
   if (!Number.isInteger(issueNumber) || issueNumber <= 0) throw new Error('Invalid task number')
   const action = input.action
-  if (!['request-revision','approve-merge-handoff','accept-preview','approve-production-handoff','approve-release-handoff'].includes(action ?? '')) {
+  if (!['request-revision','approve-merge-handoff','accept-preview','approve-production-handoff','approve-release-handoff','approve-external-release-handoff'].includes(action ?? '')) {
     throw new Error('Task decision is not allowlisted')
   }
 
@@ -334,7 +335,7 @@ export async function applyRemoteTaskDecision(input: {
   let auditText: string
 
   if (action === 'request-revision') {
-    if (!['local-built','pr-open','merge-handoff-approved','preview-verified','preview-accepted','production-handoff-approved','production-verified','release-handoff-approved'].includes(currentState)) {
+    if (!['local-built','pr-open','merge-handoff-approved','preview-verified','preview-accepted','production-handoff-approved','production-verified','release-handoff-approved','release-sealed','external-release-handoff-approved'].includes(currentState)) {
       throw new Error('Revision can only be requested after a build, PR handoff, or preview review')
     }
     nextState = 'revision-requested'
@@ -366,7 +367,7 @@ export async function applyRemoteTaskDecision(input: {
     nextState = 'production-handoff-approved'
     prefix = '[EVENTO TASK][PRODUCTION-HANDOFF-APPROVED]'
     auditText = 'Production handoff approved from EVENTO Admin Android. This is an approval marker only; no production deploy or release action was performed.'
-  } else {
+  } else if (action === 'approve-release-handoff') {
     if (currentState !== 'production-verified') {
       throw new Error('Release handoff approval requires a PRODUCTION-VERIFIED task')
     }
@@ -378,6 +379,18 @@ export async function applyRemoteTaskDecision(input: {
     nextState = 'release-handoff-approved'
     prefix = '[EVENTO TASK][RELEASE-HANDOFF-APPROVED]'
     auditText = 'Release handoff approved from EVENTO Admin Android. This is an approval marker only; no release action was performed.'
+  } else {
+    if (currentState !== 'release-sealed') {
+      throw new Error('External release handoff approval requires a RELEASE-SEALED task')
+    }
+    const comments = await issueComments(repository, issueNumber)
+    const evidence = extractTaskEvidence(comments)
+    if (evidence.releaseChannel?.ready !== true) {
+      throw new Error('External release handoff approval requires READY release-channel evidence')
+    }
+    nextState = 'external-release-handoff-approved'
+    prefix = '[EVENTO TASK][EXTERNAL-RELEASE-HANDOFF-APPROVED]'
+    auditText = 'External release handoff approved from EVENTO Admin Android. This is an approval marker only; no external release action was performed.'
   }
 
   const suffix = title.replace(/^\[EVENTO TASK\]\[[^\]]+\]\s*/, '')
