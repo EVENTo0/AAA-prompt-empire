@@ -1767,23 +1767,19 @@ fn vercel_api_json(
     token: &str,
     body: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, String> {
-    let request = match method {
+    let mut response = match method {
         "GET" => ureq::get(url)
             .header("Authorization", &format!("Bearer {token}"))
-            .header("Accept", "application/json"),
+            .header("Accept", "application/json")
+            .call()
+            .map_err(|error| error.to_string())?,
         "POST" => ureq::post(url)
             .header("Authorization", &format!("Bearer {token}"))
             .header("Accept", "application/json")
-            .header("Content-Type", "application/json"),
+            .header("Content-Type", "application/json")
+            .send_json(body.ok_or_else(|| "Vercel POST body missing".to_string())?)
+            .map_err(|error| error.to_string())?,
         _ => return Err("Unsupported Vercel API method".to_string()),
-    };
-
-    let mut response = if let Some(body) = body {
-        request
-            .send_json(body)
-            .map_err(|error| error.to_string())?
-    } else {
-        request.call().map_err(|error| error.to_string())?
     };
 
     response
