@@ -249,6 +249,22 @@ public final class MainActivity extends AppCompatActivity {
                                     previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
+                        JSONObject releaseChannel = row.optJSONObject("releaseChannel");
+                        if (releaseChannel != null) {
+                            boolean channelReady = releaseChannel.optBoolean("ready", false);
+                            JSONArray channelBlockers = releaseChannel.optJSONArray("blockers");
+                            String channelDetail = releaseChannel.optString(
+                                    "status",
+                                    channelReady ? "READY FOR EXTERNAL RELEASE APPROVAL" : "RELEASE CHANNEL BLOCKED");
+                            if (!channelReady && channelBlockers != null) {
+                                channelDetail += " · " + channelBlockers.toString();
+                            }
+                            card.addView(text(
+                                    channelDetail,
+                                    11,
+                                    channelReady ? 0xFF68E4A2 : 0xFFFF6F7D));
+                        }
+
                         JSONObject releaseSeal = row.optJSONObject("releaseSeal");
                         if (releaseSeal != null) {
                             card.addView(text(
