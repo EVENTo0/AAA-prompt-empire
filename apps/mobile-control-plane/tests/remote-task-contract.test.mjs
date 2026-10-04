@@ -127,3 +127,17 @@ test('rollback readiness is evidence only', async () => {
   const lib = await text('lib/remote-task-queue.ts')
   assert.ok(!lib.includes('rollback_execute'))
 })
+
+
+test('protected production deploy remains separate from release', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /PRODUCTION-VERIFIED/)
+  assert.match(lib, /PRODUCTION-ROLLED-BACK/)
+  assert.match(lib, /production-verified/)
+  assert.match(lib, /production-rolled-back/)
+  assert.match(lib, /EVENTO protected production deploy/)
+  assert.match(lib, /EVENTO_PRODUCTION_DEPLOY_JSON=/)
+  assert.match(lib, /productionDeploy/)
+  assert.match(lib, /productionDeployAt/)
+  assert.ok(!lib.includes('release_execute'))
+})
