@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "policy": {
+    "default": "deny",
+    "external_release": false,
+    "require_verified_binding": true,
+    "require_signing_evidence": true
+  },
+  "channel_types": {
+    "web-production": {
+      "provider": "vercel",
+      "credential": "vercel",
+      "external_action": "publish-stable",
+      "enabled": false
+    },
+    "android-store": {
+      "provider": "google-play",
+      "credential": "google-play",
+      "external_action": "upload-signed-bundle",
+      "enabled": false
+    },
+    "desktop-installer": {
+      "provider": "github-release",
+      "credential": "github",
+      "external_action": "publish-signed-installer",
+      "enabled": false
+    }
+  },
+  "projects": {
+    "evento-one": {
+      "channel_type": "web-production",
+      "channel_id": null,
+      "binding_verified": false,
+      "enabled": false
+    },
+    "evento-acquisition": {
+      "channel_type": "web-production",
+      "channel_id": null,
+      "binding_verified": false,
+      "enabled": false
+    },
+    "evento-mobile": {
+      "channel_type": "android-store",
+      "channel_id": null,
+      "binding_verified": false,
+      "enabled": false
+    },
+    "evento-admin-android": {
+      "channel_type": "android-store",
+      "channel_id": null,
+      "binding_verified": false,
+      "enabled": false
+    },
+    "aaa-empire": {
+      "channel_type": "desktop-installer",
+      "channel_id": null,
+      "binding_verified": false,
+      "enabled": false
+    }
+  }
+}
