@@ -2,7 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
-export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved' | 'production-verified' | 'production-rolled-back'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -18,6 +18,8 @@ export type RemoteTaskEnvelope = {
 }
 
 function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][PRODUCTION-VERIFIED]')) return 'production-verified'
+  if (title.startsWith('[EVENTO TASK][PRODUCTION-ROLLED-BACK]')) return 'production-rolled-back'
   if (title.startsWith('[EVENTO TASK][PRODUCTION-HANDOFF-APPROVED]')) return 'production-handoff-approved'
   if (title.startsWith('[EVENTO TASK][PREVIEW-ACCEPTED]')) return 'preview-accepted'
   if (title.startsWith('[EVENTO TASK][PREVIEW-VERIFIED]')) return 'preview-verified'
@@ -127,6 +129,7 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const previewDeployComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO preview deploy'))
   const productionReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO production readiness'))
   const rollbackReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO rollback readiness'))
+  const productionDeployComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected production deploy'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -182,6 +185,15 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
       try { rollbackReadiness = JSON.parse(raw) } catch {}
     }
   }
+  let productionDeploy: any = null
+  if (productionDeployComment) {
+    const marker = 'EVENTO_PRODUCTION_DEPLOY_JSON='
+    const index = productionDeployComment.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = productionDeployComment.body.slice(index + marker.length).split('\n')[0]
+      try { productionDeploy = JSON.parse(raw) } catch {}
+    }
+  }
   return {
     evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
     evidenceAt: evidence?.createdAt ?? null,
@@ -201,6 +213,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     productionReadinessAt: productionReadinessComment?.createdAt ?? null,
     rollbackReadiness,
     rollbackReadinessAt: rollbackReadinessComment?.createdAt ?? null,
+    productionDeploy,
+    productionDeployAt: productionDeployComment?.createdAt ?? null,
   }
 }
 
