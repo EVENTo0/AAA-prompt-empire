@@ -2,7 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
-export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved' | 'production-verified' | 'production-rolled-back'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved' | 'production-verified' | 'production-rolled-back' | 'release-handoff-approved' | 'release-package-ready'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -18,6 +18,8 @@ export type RemoteTaskEnvelope = {
 }
 
 function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][RELEASE-PACKAGE-READY]')) return 'release-package-ready'
+  if (title.startsWith('[EVENTO TASK][RELEASE-HANDOFF-APPROVED]')) return 'release-handoff-approved'
   if (title.startsWith('[EVENTO TASK][PRODUCTION-VERIFIED]')) return 'production-verified'
   if (title.startsWith('[EVENTO TASK][PRODUCTION-ROLLED-BACK]')) return 'production-rolled-back'
   if (title.startsWith('[EVENTO TASK][PRODUCTION-HANDOFF-APPROVED]')) return 'production-handoff-approved'
@@ -131,6 +133,7 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const rollbackReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO rollback readiness'))
   const productionDeployComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected production deploy'))
   const releaseReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release readiness'))
+  const releasePackageComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release handoff package'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -204,6 +207,15 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
       try { releaseReadiness = JSON.parse(raw) } catch {}
     }
   }
+  let releasePackage: any = null
+  if (releasePackageComment) {
+    const marker = 'EVENTO_RELEASE_PACKAGE_JSON='
+    const index = releasePackageComment.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = releasePackageComment.body.slice(index + marker.length).split('\n')[0]
+      try { releasePackage = JSON.parse(raw) } catch {}
+    }
+  }
   return {
     evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
     evidenceAt: evidence?.createdAt ?? null,
@@ -227,6 +239,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     productionDeployAt: productionDeployComment?.createdAt ?? null,
     releaseReadiness,
     releaseReadinessAt: releaseReadinessComment?.createdAt ?? null,
+    releasePackage,
+    releasePackageAt: releasePackageComment?.createdAt ?? null,
   }
 }
 
@@ -276,7 +290,7 @@ export async function applyRemoteTaskDecision(input: {
   const issueNumber = Number(input.issueNumber)
   if (!Number.isInteger(issueNumber) || issueNumber <= 0) throw new Error('Invalid task number')
   const action = input.action
-  if (!['request-revision','approve-merge-handoff','accept-preview','approve-production-handoff'].includes(action ?? '')) {
+  if (!['request-revision','approve-merge-handoff','accept-preview','approve-production-handoff','approve-release-handoff'].includes(action ?? '')) {
     throw new Error('Task decision is not allowlisted')
   }
 
@@ -295,7 +309,7 @@ export async function applyRemoteTaskDecision(input: {
   let auditText: string
 
   if (action === 'request-revision') {
-    if (!['local-built','pr-open','merge-handoff-approved','preview-verified','preview-accepted','production-handoff-approved'].includes(currentState)) {
+    if (!['local-built','pr-open','merge-handoff-approved','preview-verified','preview-accepted','production-handoff-approved','production-verified','release-handoff-approved'].includes(currentState)) {
       throw new Error('Revision can only be requested after a build, PR handoff, or preview review')
     }
     nextState = 'revision-requested'
@@ -315,7 +329,7 @@ export async function applyRemoteTaskDecision(input: {
     nextState = 'preview-accepted'
     prefix = '[EVENTO TASK][PREVIEW-ACCEPTED]'
     auditText = 'Preview accepted from EVENTO Admin Android. This does not authorize production deployment or release.'
-  } else {
+  } else if (action === 'approve-production-handoff') {
     if (currentState !== 'preview-accepted') {
       throw new Error('Production handoff approval requires a PREVIEW-ACCEPTED task')
     }
@@ -327,6 +341,18 @@ export async function applyRemoteTaskDecision(input: {
     nextState = 'production-handoff-approved'
     prefix = '[EVENTO TASK][PRODUCTION-HANDOFF-APPROVED]'
     auditText = 'Production handoff approved from EVENTO Admin Android. This is an approval marker only; no production deploy or release action was performed.'
+  } else {
+    if (currentState !== 'production-verified') {
+      throw new Error('Release handoff approval requires a PRODUCTION-VERIFIED task')
+    }
+    const comments = await issueComments(repository, issueNumber)
+    const evidence = extractTaskEvidence(comments)
+    if (evidence.releaseReadiness?.ready !== true) {
+      throw new Error('Release handoff approval requires READY release-readiness evidence')
+    }
+    nextState = 'release-handoff-approved'
+    prefix = '[EVENTO TASK][RELEASE-HANDOFF-APPROVED]'
+    auditText = 'Release handoff approved from EVENTO Admin Android. This is an approval marker only; no release action was performed.'
   }
 
   const suffix = title.replace(/^\[EVENTO TASK\]\[[^\]]+\]\s*/, '')
