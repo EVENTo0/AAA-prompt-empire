@@ -473,7 +473,9 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][PREVIEW-VERIFIED]") {
+    if title.starts_with("[EVENTO TASK][PREVIEW-ACCEPTED]") {
+        Some("preview-accepted")
+    } else if title.starts_with("[EVENTO TASK][PREVIEW-VERIFIED]") {
         Some("preview-verified")
     } else if title.starts_with("[EVENTO TASK][MERGED-VERIFIED]") {
         Some("merged-verified")
@@ -2014,6 +2016,130 @@ fn remote_task_preview_deploy(
     Ok(result)
 }
 
+
+
+#[tauri::command]
+fn remote_task_production_readiness(
+    issue_number: u64,
+    project_id: String,
+) -> Result<serde_json::Value, String> {
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    let mut blockers: Vec<String> = Vec::new();
+
+    if task_state != "preview-accepted" {
+        blockers.push("preview_not_accepted".to_string());
+    }
+
+    let registry = deploy_registry()?;
+    let production_policy = registry
+        .get("policy")
+        .and_then(|v| v.get("production_deploy"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    if !production_policy {
+        blockers.push("production_deploy_policy_disabled".to_string());
+    }
+
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned();
+
+    let Some(project) = project else {
+        blockers.push("deploy_target_not_registered".to_string());
+        let result = serde_json::json!({
+            "evento_production_readiness_version": 1,
+            "issue_number": issue_number,
+            "project_id": project_id,
+            "task_state": task_state,
+            "ready": false,
+            "status": "PRODUCTION BLOCKED",
+            "blockers": blockers,
+            "deploy": false,
+            "production": false,
+            "release": false
+        });
+        post_task_audit(
+            issue_number,
+            "EVENTO production readiness",
+            "EVENTO_PRODUCTION_READINESS_JSON",
+            &result,
+        )?;
+        return Ok(result);
+    };
+
+    let binding_verified = project
+        .get("binding_verified")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let production_supported = project
+        .get("production_supported")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let release_enabled = project
+        .get("release")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let provider = project.get("provider").and_then(|v| v.as_str()).unwrap_or("");
+    let target = project.get("deploy_target").and_then(|v| v.as_str()).unwrap_or("");
+
+    if !binding_verified {
+        blockers.push("deploy_binding_not_verified".to_string());
+    }
+    if !production_supported {
+        blockers.push("production_not_supported".to_string());
+    }
+    if release_enabled {
+        blockers.push("release_flag_must_remain_false_in_readiness".to_string());
+    }
+
+    if provider == "vercel" {
+        match credential_value("vercel") {
+            Ok(secret) => {
+                if probe_json(
+                    "https://api.vercel.com/v2/user",
+                    ("Authorization", format!("Bearer {secret}")),
+                ).is_err() {
+                    blockers.push("vercel_auth_failed".to_string());
+                }
+            }
+            Err(_) => blockers.push("vercel_credential_missing".to_string()),
+        }
+    } else if !provider.is_empty() {
+        blockers.push("production_provider_not_allowlisted".to_string());
+    } else {
+        blockers.push("production_provider_missing".to_string());
+    }
+
+    let ready = blockers.is_empty();
+    let result = serde_json::json!({
+        "evento_production_readiness_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "task_state": task_state,
+        "provider": provider,
+        "target": target,
+        "binding_verified": binding_verified,
+        "production_supported": production_supported,
+        "production_policy": production_policy,
+        "ready": ready,
+        "status": if ready { "READY FOR PRODUCTION HANDOFF" } else { "PRODUCTION BLOCKED" },
+        "blockers": blockers,
+        "deploy": false,
+        "production": false,
+        "release": false
+    });
+
+    post_task_audit(
+        issue_number,
+        "EVENTO production readiness",
+        "EVENTO_PRODUCTION_READINESS_JSON",
+        &result,
+    )?;
+    Ok(result)
+}
+
 #[tauri::command]
 fn remote_task_plan(
     state: State<'_, DaemonState>,
@@ -2203,6 +2329,7 @@ pub fn run() {
             remote_task_post_merge_verify,
             remote_task_deploy_readiness,
             remote_task_preview_deploy,
+            remote_task_production_readiness,
             autostart_status,
             set_autostart
         ])
@@ -2267,6 +2394,12 @@ mod tests {
         assert_eq!(split_github_repository("EVENTo0/Evento-One").unwrap(), ("EVENTo0", "Evento-One"));
         assert!(split_github_repository("Evento-One").is_err());
         assert!(split_github_repository("EVENTo0/Evento-One/extra").is_err());
+    }
+
+    #[test]
+    fn preview_acceptance_state_is_not_release() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][PREVIEW-ACCEPTED] x"), Some("preview-accepted"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
     }
 
     #[test]
