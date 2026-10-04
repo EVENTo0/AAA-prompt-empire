@@ -2472,7 +2472,7 @@ fn remote_task_protected_production_deploy(
         vercel_project_id, deployment_id, team_id
     );
     let promote_status = vercel_post_no_content(&promote_url, &vercel_token)?;
-    if !matches!(promote_status, 200 | 201 | 202) {
+    if !matches!(promote_status, 200..=202) {
         return Err(format!("Vercel promote returned HTTP {promote_status}"));
     }
 
@@ -2516,7 +2516,7 @@ fn remote_task_protected_production_deploy(
         match vercel_post_no_content(&rollback_url, &vercel_token) {
             Ok(status) => {
                 rollback_http_status = Some(status);
-                rollback_succeeded = matches!(status, 200 | 201 | 202);
+                rollback_succeeded = matches!(status, 200..=202);
             }
             Err(_) => {
                 rollback_succeeded = false;
