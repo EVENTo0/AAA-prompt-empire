@@ -136,6 +136,7 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const releaseReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release readiness'))
   const releasePackageComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release handoff package'))
   const releaseSealComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected release seal'))
+  const releaseChannelComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release channel readiness'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -227,6 +228,15 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
       try { releaseSeal = JSON.parse(raw) } catch {}
     }
   }
+  let releaseChannel: any = null
+  if (releaseChannelComment) {
+    const marker = 'EVENTO_RELEASE_CHANNEL_JSON='
+    const index = releaseChannelComment.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = releaseChannelComment.body.slice(index + marker.length).split('\n')[0]
+      try { releaseChannel = JSON.parse(raw) } catch {}
+    }
+  }
   return {
     evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
     evidenceAt: evidence?.createdAt ?? null,
@@ -254,6 +264,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     releasePackageAt: releasePackageComment?.createdAt ?? null,
     releaseSeal,
     releaseSealAt: releaseSealComment?.createdAt ?? null,
+    releaseChannel,
+    releaseChannelAt: releaseChannelComment?.createdAt ?? null,
   }
 }
 
