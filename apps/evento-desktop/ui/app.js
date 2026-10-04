@@ -271,6 +271,7 @@ async function refreshRemoteTasks() {
           '<button data-remote-previewdeploy="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" data-remote-repository="'+escapeHtml(task.repository)+'" '+(task.state!=='merged-verified'?'disabled':'')+'>Preview Deploy + Smoke</button>' +
           '<button data-remote-productionreadiness="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(task.state!=='preview-accepted'?'disabled':'')+'>Production Readiness</button>' +
           '<button data-remote-rollbackreadiness="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(task.state!=='production-handoff-approved'?'disabled':'')+'>Rollback Readiness</button>' +
+          '<button data-remote-productiondeploy="'+task.number+'" data-remote-project="'+escapeHtml(task.project_id)+'" '+(!operatorEnabled||task.state!=='production-handoff-approved'?'disabled':'')+'>Protected Production Deploy</button>' +
         '</div>' +
       '</article>'
     ).join('')
@@ -280,7 +281,7 @@ async function refreshRemoteTasks() {
 }
 
 remoteTasksEl.addEventListener('click', async event => {
-  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness],button[data-remote-merge],button[data-remote-postmerge],button[data-remote-deployreadiness],button[data-remote-previewdeploy],button[data-remote-productionreadiness],button[data-remote-rollbackreadiness]')
+  const button = event.target.closest('button[data-remote-plan],button[data-remote-execute],button[data-remote-review],button[data-remote-publish],button[data-remote-pipeline],button[data-remote-readiness],button[data-remote-merge],button[data-remote-postmerge],button[data-remote-deployreadiness],button[data-remote-previewdeploy],button[data-remote-productionreadiness],button[data-remote-rollbackreadiness],button[data-remote-productiondeploy]')
   if (!button) return
   button.disabled = true
   const projectId = button.dataset.remoteProject
@@ -297,12 +298,22 @@ remoteTasksEl.addEventListener('click', async event => {
   const previewDeploy = Boolean(button.dataset.remotePreviewdeploy)
   const productionReadiness = Boolean(button.dataset.remoteProductionreadiness)
   const rollbackReadiness = Boolean(button.dataset.remoteRollbackreadiness)
-  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness || button.dataset.remoteMerge || button.dataset.remotePostmerge || button.dataset.remoteDeployreadiness || button.dataset.remotePreviewdeploy || button.dataset.remoteProductionreadiness || button.dataset.remoteRollbackreadiness)
-  const actionLabel = rollbackReadiness ? 'Checking rollback readiness for' : productionReadiness ? 'Checking production readiness for' : previewDeploy ? 'Deploying preview for' : deployReadiness ? 'Checking deploy readiness for' : postMerge ? 'Verifying main CI for' : protectedMerge ? 'Protected merge for' : readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
+  const productionDeploy = Boolean(button.dataset.remoteProductiondeploy)
+  const issueNumber = Number(button.dataset.remoteExecute || button.dataset.remotePlan || button.dataset.remoteReview || button.dataset.remotePublish || button.dataset.remotePipeline || button.dataset.remoteReadiness || button.dataset.remoteMerge || button.dataset.remotePostmerge || button.dataset.remoteDeployreadiness || button.dataset.remotePreviewdeploy || button.dataset.remoteProductionreadiness || button.dataset.remoteRollbackreadiness || button.dataset.remoteProductiondeploy)
+  const actionLabel = productionDeploy ? 'Protected production deploy for' : rollbackReadiness ? 'Checking rollback readiness for' : productionReadiness ? 'Checking production readiness for' : previewDeploy ? 'Deploying preview for' : deployReadiness ? 'Checking deploy readiness for' : postMerge ? 'Verifying main CI for' : protectedMerge ? 'Protected merge for' : readiness ? 'Checking merge readiness for' : pipeline ? 'Running safe pipeline for' : publish ? 'Publishing draft PR for' : review ? 'Reviewing' : execute ? 'Executing' : 'Planning'
   log.textContent = actionLabel + ' approved task #' + issueNumber + '…'
   try {
     let result
-    if (rollbackReadiness) {
+    if (productionDeploy) {
+      const expected = 'PRODUCTION #' + issueNumber
+      const confirmation = window.prompt('Type ' + expected + ' to deploy production. Release remains separate.')
+      if (confirmation !== expected) throw new Error('Protected production confirmation did not match.')
+      result = await invoke('remote_task_protected_production_deploy', {
+        issueNumber,
+        projectId,
+        confirmation,
+      })
+    } else if (rollbackReadiness) {
       result = await invoke('remote_task_rollback_readiness', {
         issueNumber,
         projectId,
@@ -365,7 +376,7 @@ remoteTasksEl.addEventListener('click', async event => {
       result = await invoke('remote_task_plan', { projectId, objective, preferredAgent })
     }
     log.textContent = result.output || result.agent_summary || JSON.stringify(result, null, 2)
-    if (execute || review || publish || pipeline || readiness || protectedMerge || postMerge || deployReadiness || previewDeploy || productionReadiness || rollbackReadiness) await refreshRemoteTasks()
+    if (execute || review || publish || pipeline || readiness || protectedMerge || postMerge || deployReadiness || previewDeploy || productionReadiness || rollbackReadiness || productionDeploy) await refreshRemoteTasks()
   } catch (error) {
     log.textContent = String(error)
   } finally {
