@@ -178,3 +178,13 @@ test('protected release seal is local evidence only', async () => {
   assert.match(lib, /releaseSealAt/)
   assert.ok(!lib.includes('external_release_execute'))
 })
+
+
+test('release channel readiness is default-deny and external-action free', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /EVENTO release channel readiness/)
+  assert.match(lib, /EVENTO_RELEASE_CHANNEL_JSON=/)
+  assert.match(lib, /releaseChannel/)
+  assert.match(lib, /releaseChannelAt/)
+  assert.ok(!lib.includes('external_release_execute'))
+})
