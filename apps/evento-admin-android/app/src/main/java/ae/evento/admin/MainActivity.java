@@ -178,7 +178,9 @@ public final class MainActivity extends AppCompatActivity {
                         card.setLayoutParams(params);
                         card.setBackgroundColor(0xFF0B151E);
                         String state = row.optString("state", "approved");
-                        int stateColor = "merged-verified".equals(state)
+                        int stateColor = "preview-verified".equals(state)
+                                ? 0xFF68E4A2
+                                : "merged-verified".equals(state)
                                 ? 0xFF68E4A2
                                 : "merged".equals(state)
                                 ? 0xFF4FD4FF
@@ -221,6 +223,22 @@ public final class MainActivity extends AppCompatActivity {
                                     detail,
                                     11,
                                     verified ? 0xFF68E4A2 : 0xFFFFBF62));
+                        }
+
+                        JSONObject previewDeploy = row.optJSONObject("previewDeploy");
+                        if (previewDeploy != null) {
+                            boolean previewVerified = previewDeploy.optBoolean("verified", false);
+                            String previewUrl = previewDeploy.optString("deployment_url", "");
+                            String previewDetail = previewVerified
+                                    ? "PREVIEW VERIFIED"
+                                    : "PREVIEW " + previewDeploy.optString("ready_state", "UNKNOWN");
+                            if (!previewUrl.isEmpty()) {
+                                previewDetail += " · https://" + previewUrl.replace("https://", "");
+                            }
+                            card.addView(text(
+                                    previewDetail,
+                                    11,
+                                    previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
                         JSONObject deployReadiness = row.optJSONObject("deployReadiness");
