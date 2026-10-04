@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "policy": {
+    "default": "deny",
+    "release": false,
+    "require_signed_artifacts": true,
+    "require_release_evidence": true
+  },
+  "contracts": {
+    "web-production": {
+      "required_task_state": "production-verified",
+      "requires_code_signing": false,
+      "requires_signed_artifact": false,
+      "requires_release_approval": true,
+      "release_enabled": false
+    },
+    "android-store": {
+      "required_task_state": null,
+      "requires_code_signing": true,
+      "requires_signed_artifact": true,
+      "artifact_types": ["aab", "apk"],
+      "requires_release_approval": true,
+      "release_enabled": false
+    },
+    "desktop-installer": {
+      "required_task_state": null,
+      "requires_code_signing": true,
+      "requires_signed_artifact": true,
+      "artifact_types": ["msi", "nsis"],
+      "requires_release_approval": true,
+      "release_enabled": false
+    }
+  },
+  "projects": {
+    "evento-one": {
+      "contract": "web-production",
+      "release_enabled": false,
+      "release_channel": null,
+      "signing_evidence": false
+    },
+    "evento-acquisition": {
+      "contract": "web-production",
+      "release_enabled": false,
+      "release_channel": null,
+      "signing_evidence": false
+    },
+    "evento-mobile": {
+      "contract": "android-store",
+      "release_enabled": false,
+      "release_channel": null,
+      "signed_artifact_evidence": false,
+      "signing_evidence": false
+    },
+    "evento-admin-android": {
+      "contract": "android-store",
+      "release_enabled": false,
+      "release_channel": null,
+      "signed_artifact_evidence": false,
+      "signing_evidence": false
+    },
+    "aaa-empire": {
+      "contract": "desktop-installer",
+      "release_enabled": false,
+      "release_channel": null,
+      "signed_artifact_evidence": false,
+      "signing_evidence": false
+    }
+  }
+}
