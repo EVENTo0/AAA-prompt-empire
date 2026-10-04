@@ -2251,6 +2251,25 @@ mod tests {
     }
 
     #[test]
+    fn deploy_registry_is_default_deny() {
+        let registry = deploy_registry().expect("deploy registry");
+        assert_eq!(registry["policy"]["default"], "deny");
+        assert_eq!(registry["policy"]["production_deploy"], false);
+        assert_eq!(registry["policy"]["release"], false);
+        assert_eq!(registry["projects"]["evento-one"]["deploy_target"], "vercel-preview");
+        assert_eq!(registry["projects"]["evento-one"]["binding_verified"], true);
+        assert_eq!(registry["projects"]["evento-one"]["production_supported"], false);
+        assert_eq!(registry["projects"]["evento-acquisition"]["binding_verified"], false);
+    }
+
+    #[test]
+    fn github_repository_binding_is_strict() {
+        assert_eq!(split_github_repository("EVENTo0/Evento-One").unwrap(), ("EVENTo0", "Evento-One"));
+        assert!(split_github_repository("Evento-One").is_err());
+        assert!(split_github_repository("EVENTo0/Evento-One/extra").is_err());
+    }
+
+    #[test]
     fn protected_merge_requires_exact_confirmation() {
         assert_eq!(expected_merge_confirmation(42), "MERGE #42");
         assert_ne!(expected_merge_confirmation(42), "MERGE 42");
