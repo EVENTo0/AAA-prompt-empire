@@ -141,3 +141,13 @@ test('protected production deploy remains separate from release', async () => {
   assert.match(lib, /productionDeployAt/)
   assert.ok(!lib.includes('release_execute'))
 })
+
+
+test('release readiness is evidence-only and default deny', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /EVENTO release readiness/)
+  assert.match(lib, /EVENTO_RELEASE_READINESS_JSON=/)
+  assert.match(lib, /releaseReadiness/)
+  assert.match(lib, /releaseReadinessAt/)
+  assert.ok(!lib.includes('release_execute'))
+})
