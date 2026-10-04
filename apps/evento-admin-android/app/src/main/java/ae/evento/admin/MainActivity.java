@@ -249,6 +249,14 @@ public final class MainActivity extends AppCompatActivity {
                                     previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
+                        JSONObject releasePackage = row.optJSONObject("releasePackage");
+                        if (releasePackage != null) {
+                            card.addView(text(
+                                    "RELEASE PACKAGE READY · " + releasePackage.optString("contract", "unknown"),
+                                    11,
+                                    0xFFD6AB63));
+                        }
+
                         JSONObject releaseReadiness = row.optJSONObject("releaseReadiness");
                         if (releaseReadiness != null) {
                             boolean releaseReady = releaseReadiness.optBoolean("ready", false);
@@ -350,6 +358,12 @@ public final class MainActivity extends AppCompatActivity {
                         }
                         if ("preview-verified".equals(state)) {
                             card.addView(button("ACCEPT PREVIEW", v -> taskDecision(issueNumber, "accept-preview")));
+                        }
+                        if ("production-verified".equals(state)) {
+                            JSONObject release = row.optJSONObject("releaseReadiness");
+                            if (release != null && release.optBoolean("ready", false)) {
+                                card.addView(button("APPROVE RELEASE HANDOFF", v -> taskDecision(issueNumber, "approve-release-handoff")));
+                            }
                         }
                         if ("preview-accepted".equals(state)) {
                             JSONObject production = row.optJSONObject("productionReadiness");
