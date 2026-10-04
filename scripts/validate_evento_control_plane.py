@@ -25,6 +25,9 @@ REQUIRED = [
     "apps/mobile-control-plane/data/evento-modernization-pilots.json",
     "tools/memory/build_context.py",
     "supabase/migrations/20261001190000_evento_memory_v1.sql",
+    "registry/evento-release-contracts.json",
+    "registry/evento-release-evidence.json",
+    "docs/release/EVENTO_RELEASE_EVIDENCE_V1.md",
 ]
 
 MEMORY_TYPES = {"fact","decision","lesson","pattern","anti_pattern","rule","source_claim","asset_knowledge"}
@@ -188,6 +191,56 @@ def validate_context_builder(errors: list[str]) -> None:
         if not rules or rules[0].get("id") != "verified-blender-rule":
             fail(errors, "context builder did not rank exact-domain Blender memory first")
 
+def validate_release_evidence(errors: list[str]) -> None:
+    contracts = load("registry/evento-release-contracts.json")
+    evidence = load("registry/evento-release-evidence.json")
+
+    policy = contracts.get("policy", {})
+    if policy.get("default") != "deny":
+        fail(errors, "release contracts must remain default-deny")
+    if policy.get("release") is not False:
+        fail(errors, "global release policy must remain disabled in this gate")
+    if policy.get("require_signed_artifacts") is not True:
+        fail(errors, "release policy must require signed artifacts")
+
+    for name, contract in contracts.get("contracts", {}).items():
+        if contract.get("release_enabled") is not False:
+            fail(errors, f"release contract {name} unexpectedly enabled")
+
+    for project_id, project in contracts.get("projects", {}).items():
+        if project.get("release_enabled") is not False:
+            fail(errors, f"{project_id}: release must remain disabled")
+        if project.get("signing_evidence") is not False:
+            fail(errors, f"{project_id}: signing evidence cannot be true without a signed release lane")
+        if "signed_artifact_evidence" in project and project.get("signed_artifact_evidence") is not False:
+            fail(errors, f"{project_id}: signed artifact evidence cannot be true for development artifacts")
+
+    if evidence.get("classification") != "development-evidence":
+        fail(errors, "release evidence must remain classified as development-evidence")
+    if evidence.get("release_authority") is not False:
+        fail(errors, "development evidence must not grant release authority")
+
+    artifacts = evidence.get("artifacts", [])
+    if len(artifacts) < 2:
+        fail(errors, "release evidence must record baseline Windows and Android development artifacts")
+
+    platforms = set()
+    for artifact in artifacts:
+        platforms.add(artifact.get("platform"))
+        digest = artifact.get("sha256", "")
+        if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+            fail(errors, f"{artifact.get('id')}: invalid sha256")
+        if artifact.get("signed") is not False:
+            fail(errors, f"{artifact.get('id')}: development artifact must not be marked signed")
+        if artifact.get("release_evidence") is not False:
+            fail(errors, f"{artifact.get('id')}: development artifact must not count as release evidence")
+        if artifact.get("platform") == "android" and artifact.get("build_variant") != "debug":
+            fail(errors, f"{artifact.get('id')}: current Android evidence must remain debug-only")
+
+    if not {"windows", "android"} <= platforms:
+        fail(errors, "release evidence must include Windows and Android development artifacts")
+
+
 def validate_sql_guardrails(errors: list[str]) -> None:
     sql = (ROOT / "supabase/migrations/20261001190000_evento_memory_v1.sql").read_text(encoding="utf-8").lower()
     for table in ("evento_memory_items","evento_memory_evidence"):
@@ -206,6 +259,7 @@ def main() -> int:
         validate_control_plane_mirrors(errors)
         validate_pilots(errors)
         validate_context_builder(errors)
+        validate_release_evidence(errors)
         validate_sql_guardrails(errors)
 
     if errors:
@@ -215,7 +269,7 @@ def main() -> int:
         return 1
 
     print("EVENTO CONTROL PLANE GATE 1: PASSED")
-    print("Validated schemas, provider-neutral agent registry, 3-project pilot chain, authoritative-only memory retrieval, domain ranking, and Supabase RLS guardrails.")
+    print("Validated schemas, provider-neutral agent registry, pilot chain, release evidence boundaries, authoritative memory retrieval, and Supabase RLS guardrails.")
     return 0
 
 if __name__ == "__main__":
