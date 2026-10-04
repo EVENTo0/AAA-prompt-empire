@@ -178,7 +178,9 @@ public final class MainActivity extends AppCompatActivity {
                         card.setLayoutParams(params);
                         card.setBackgroundColor(0xFF0B151E);
                         String state = row.optString("state", "approved");
-                        int stateColor = "preview-accepted".equals(state)
+                        int stateColor = "production-handoff-approved".equals(state)
+                                ? 0xFFD6AB63
+                                : "preview-accepted".equals(state)
                                 ? 0xFF68E4A2
                                 : "preview-verified".equals(state)
                                 ? 0xFF4FD4FF
@@ -243,6 +245,22 @@ public final class MainActivity extends AppCompatActivity {
                                     previewVerified ? 0xFF68E4A2 : 0xFFFF6F7D));
                         }
 
+                        JSONObject rollbackReadiness = row.optJSONObject("rollbackReadiness");
+                        if (rollbackReadiness != null) {
+                            boolean rollbackReady = rollbackReadiness.optBoolean("ready", false);
+                            JSONArray rollbackBlockers = rollbackReadiness.optJSONArray("blockers");
+                            String rollbackDetail = rollbackReadiness.optString(
+                                    "status",
+                                    rollbackReady ? "ROLLBACK READY" : "ROLLBACK BLOCKED");
+                            if (!rollbackReady && rollbackBlockers != null) {
+                                rollbackDetail += " · " + rollbackBlockers.toString();
+                            }
+                            card.addView(text(
+                                    rollbackDetail,
+                                    11,
+                                    rollbackReady ? 0xFF68E4A2 : 0xFFFF6F7D));
+                        }
+
                         JSONObject productionReadiness = row.optJSONObject("productionReadiness");
                         if (productionReadiness != null) {
                             boolean productionReady = productionReadiness.optBoolean("ready", false);
@@ -297,6 +315,12 @@ public final class MainActivity extends AppCompatActivity {
                         }
                         if ("preview-verified".equals(state)) {
                             card.addView(button("ACCEPT PREVIEW", v -> taskDecision(issueNumber, "accept-preview")));
+                        }
+                        if ("preview-accepted".equals(state)) {
+                            JSONObject production = row.optJSONObject("productionReadiness");
+                            if (production != null && production.optBoolean("ready", false)) {
+                                card.addView(button("APPROVE PRODUCTION HANDOFF", v -> taskDecision(issueNumber, "approve-production-handoff")));
+                            }
                         }
                         remoteTasks.addView(card);
                     }
