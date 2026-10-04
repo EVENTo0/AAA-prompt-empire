@@ -166,3 +166,15 @@ test('release handoff approval requires readiness and package is not release exe
   assert.match(lib, /releasePackageAt/)
   assert.ok(!lib.includes('release_execute'))
 })
+
+
+test('protected release seal is local evidence only', async () => {
+  const lib = await text('lib/remote-task-queue.ts')
+  assert.match(lib, /RELEASE-SEALED/)
+  assert.match(lib, /release-sealed/)
+  assert.match(lib, /EVENTO protected release seal/)
+  assert.match(lib, /EVENTO_RELEASE_SEAL_JSON=/)
+  assert.match(lib, /releaseSeal/)
+  assert.match(lib, /releaseSealAt/)
+  assert.ok(!lib.includes('external_release_execute'))
+})
