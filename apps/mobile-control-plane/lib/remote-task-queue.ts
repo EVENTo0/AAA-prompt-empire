@@ -2,7 +2,7 @@ import { getProjectRegistry } from '@/lib/project-registry'
 
 export type RemoteTaskMode = 'build' | 'verify' | 'preview'
 export type RemoteTaskAgent = 'auto' | 'codex' | 'claude-code'
-export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved' | 'production-verified' | 'production-rolled-back' | 'release-handoff-approved' | 'release-package-ready'
+export type RemoteTaskState = 'approved' | 'local-built' | 'pr-open' | 'revision-requested' | 'merge-handoff-approved' | 'merged' | 'merged-verified' | 'preview-verified' | 'preview-accepted' | 'production-handoff-approved' | 'production-verified' | 'production-rolled-back' | 'release-handoff-approved' | 'release-package-ready' | 'release-sealed'
 
 export type RemoteTaskEnvelope = {
   evento_task_version: 1
@@ -18,6 +18,7 @@ export type RemoteTaskEnvelope = {
 }
 
 function taskStateFromTitle(title: string): RemoteTaskState | null {
+  if (title.startsWith('[EVENTO TASK][RELEASE-SEALED]')) return 'release-sealed'
   if (title.startsWith('[EVENTO TASK][RELEASE-PACKAGE-READY]')) return 'release-package-ready'
   if (title.startsWith('[EVENTO TASK][RELEASE-HANDOFF-APPROVED]')) return 'release-handoff-approved'
   if (title.startsWith('[EVENTO TASK][PRODUCTION-VERIFIED]')) return 'production-verified'
@@ -134,6 +135,7 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
   const productionDeployComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected production deploy'))
   const releaseReadinessComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release readiness'))
   const releasePackageComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO release handoff package'))
+  const releaseSealComment = [...comments].reverse().find((comment) => comment.body.includes('EVENTO protected release seal'))
   const prMatch = handoff?.body.match(/https:\/\/github\.com\/[^\s)]+\/pull\/\d+/)
   let mergeReadiness: any = null
   if (readiness) {
@@ -216,6 +218,15 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
       try { releasePackage = JSON.parse(raw) } catch {}
     }
   }
+  let releaseSeal: any = null
+  if (releaseSealComment) {
+    const marker = 'EVENTO_RELEASE_SEAL_JSON='
+    const index = releaseSealComment.body.indexOf(marker)
+    if (index >= 0) {
+      const raw = releaseSealComment.body.slice(index + marker.length).split('\n')[0]
+      try { releaseSeal = JSON.parse(raw) } catch {}
+    }
+  }
   return {
     evidenceSummary: evidence ? evidence.body.slice(0, 2400) : null,
     evidenceAt: evidence?.createdAt ?? null,
@@ -241,6 +252,8 @@ function extractTaskEvidence(comments: Array<{ body: string; createdAt: string }
     releaseReadinessAt: releaseReadinessComment?.createdAt ?? null,
     releasePackage,
     releasePackageAt: releasePackageComment?.createdAt ?? null,
+    releaseSeal,
+    releaseSealAt: releaseSealComment?.createdAt ?? null,
   }
 }
 
