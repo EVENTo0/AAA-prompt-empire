@@ -473,7 +473,11 @@ struct RemoteTask {
 }
 
 fn remote_task_state_from_title(title: &str) -> Option<&'static str> {
-    if title.starts_with("[EVENTO TASK][PRODUCTION-HANDOFF-APPROVED]") {
+    if title.starts_with("[EVENTO TASK][PRODUCTION-VERIFIED]") {
+        Some("production-verified")
+    } else if title.starts_with("[EVENTO TASK][PRODUCTION-ROLLED-BACK]") {
+        Some("production-rolled-back")
+    } else if title.starts_with("[EVENTO TASK][PRODUCTION-HANDOFF-APPROVED]") {
         Some("production-handoff-approved")
     } else if title.starts_with("[EVENTO TASK][PREVIEW-ACCEPTED]") {
         Some("preview-accepted")
@@ -2029,7 +2033,7 @@ fn remote_task_production_readiness(
     let task_state = github_task_state(issue_number, &token)?;
     let mut blockers: Vec<String> = Vec::new();
 
-    if task_state != "preview-accepted" {
+    if !matches!(task_state.as_str(), "preview-accepted" | "production-handoff-approved") {
         blockers.push("preview_not_accepted".to_string());
     }
 
@@ -2284,9 +2288,276 @@ fn remote_task_rollback_readiness(
     Ok(result)
 }
 
-#[cfg(test)]
 fn expected_production_confirmation(issue_number: u64) -> String {
     format!("PRODUCTION #{issue_number}")
+}
+
+
+
+fn task_preview_deploy_evidence(issue_number: u64, token: &str) -> Result<serde_json::Value, String> {
+    for comment in task_comments(issue_number, token)?.iter().rev() {
+        let body = comment.get("body").and_then(|v| v.as_str()).unwrap_or("");
+        if !body.contains("EVENTO preview deploy") {
+            continue;
+        }
+        let marker = "EVENTO_PREVIEW_DEPLOY_JSON=";
+        if let Some(index) = body.find(marker) {
+            let raw = body[index + marker.len()..].lines().next().unwrap_or("");
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(raw) {
+                return Ok(value);
+            }
+        }
+    }
+    Err("Preview deploy evidence not found".to_string())
+}
+
+fn vercel_post_no_content(url: &str, token: &str) -> Result<u16, String> {
+    let response = ureq::post(url)
+        .header("Authorization", &format!("Bearer {token}"))
+        .header("Accept", "application/json")
+        .send_empty()
+        .map_err(|error| error.to_string())?;
+    Ok(response.status().as_u16())
+}
+
+fn vercel_promote_aliases(
+    project_id: &str,
+    team_id: &str,
+    token: &str,
+) -> Result<Vec<String>, String> {
+    let url = format!(
+        "https://api.vercel.com/v1/projects/{}/promote/aliases?teamId={}&limit=100",
+        project_id, team_id
+    );
+    let payload = vercel_api_json("GET", &url, token, None)?;
+    let aliases = payload
+        .get("aliases")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    Ok(aliases
+        .iter()
+        .filter_map(|item| {
+            item.get("alias")
+                .or_else(|| item.get("domain"))
+                .or_else(|| item.get("url"))
+                .and_then(|v| v.as_str())
+                .map(str::to_string)
+        })
+        .filter(|value| !value.is_empty())
+        .collect())
+}
+
+fn smoke_urls(urls: &[String], paths: &[String]) -> Vec<serde_json::Value> {
+    let mut results = Vec::new();
+    for url in urls {
+        results.extend(smoke_preview_url(url, paths));
+    }
+    results
+}
+
+fn choose_rollback_candidate(readiness: &serde_json::Value) -> Result<String, String> {
+    readiness
+        .get("rollback_candidates")
+        .and_then(|v| v.as_array())
+        .and_then(|items| items.first())
+        .and_then(|item| item.get("id"))
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .map(str::to_string)
+        .ok_or_else(|| "Rollback candidate ID missing".to_string())
+}
+
+fn mark_production_state(issue_number: u64, state: &str) -> Result<(), String> {
+    match state {
+        "PRODUCTION-VERIFIED" | "PRODUCTION-ROLLED-BACK" => set_task_state(issue_number, state),
+        _ => Err("Invalid production task state".to_string()),
+    }
+}
+
+#[tauri::command]
+fn remote_task_protected_production_deploy(
+    issue_number: u64,
+    project_id: String,
+    confirmation: String,
+) -> Result<serde_json::Value, String> {
+    if confirmation != expected_production_confirmation(issue_number) {
+        return Err(format!(
+            "Explicit confirmation required: {}",
+            expected_production_confirmation(issue_number)
+        ));
+    }
+
+    let token = credential_value("github")?;
+    let task_state = github_task_state(issue_number, &token)?;
+    if task_state != "production-handoff-approved" {
+        return Err("Production deploy requires PRODUCTION-HANDOFF-APPROVED".to_string());
+    }
+
+    let production_readiness = remote_task_production_readiness(issue_number, project_id.clone())?;
+    if production_readiness.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Err(format!(
+            "Production readiness blocked: {}",
+            production_readiness
+                .get("blockers")
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "unknown".to_string())
+        ));
+    }
+
+    let rollback_readiness = remote_task_rollback_readiness(issue_number, project_id.clone())?;
+    if rollback_readiness.get("ready").and_then(|v| v.as_bool()) != Some(true) {
+        return Err(format!(
+            "Rollback readiness blocked: {}",
+            rollback_readiness
+                .get("blockers")
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "unknown".to_string())
+        ));
+    }
+
+    let rollback_candidate = choose_rollback_candidate(&rollback_readiness)?;
+    let registry = deploy_registry()?;
+    let project = registry
+        .get("projects")
+        .and_then(|v| v.get(&project_id))
+        .cloned()
+        .ok_or_else(|| "Production project binding missing".to_string())?;
+
+    if project.get("provider").and_then(|v| v.as_str()) != Some("vercel") {
+        return Err("Only Vercel production promotion is allowlisted in v1".to_string());
+    }
+    if project.get("binding_verified").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Production binding is not verified".to_string());
+    }
+    if project.get("production_supported").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Production support is disabled for this project".to_string());
+    }
+    if registry
+        .get("policy")
+        .and_then(|v| v.get("production_deploy"))
+        .and_then(|v| v.as_bool()) != Some(true)
+    {
+        return Err("Global production deploy policy is disabled".to_string());
+    }
+    if project.get("release").and_then(|v| v.as_bool()) != Some(false) {
+        return Err("Release flag must remain false for production deploy contract".to_string());
+    }
+
+    let team_id = project
+        .get("vercel_team_id")
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| "Vercel team ID missing".to_string())?;
+    let vercel_project_id = project
+        .get("vercel_project_id")
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| "Vercel project ID missing".to_string())?;
+
+    let preview = task_preview_deploy_evidence(issue_number, &token)?;
+    if preview.get("verified").and_then(|v| v.as_bool()) != Some(true) {
+        return Err("Latest preview deployment is not verified".to_string());
+    }
+    let deployment_id = preview
+        .get("deployment_id")
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| "Preview deployment ID missing".to_string())?;
+
+    let vercel_token = credential_value("vercel")?;
+    let promote_url = format!(
+        "https://api.vercel.com/v10/projects/{}/promote/{}?teamId={}",
+        vercel_project_id, deployment_id, team_id
+    );
+    let promote_status = vercel_post_no_content(&promote_url, &vercel_token)?;
+    if !matches!(promote_status, 200 | 201 | 202) {
+        return Err(format!("Vercel promote returned HTTP {promote_status}"));
+    }
+
+    let mut aliases: Vec<String> = Vec::new();
+    for _ in 0..24 {
+        std::thread::sleep(Duration::from_secs(5));
+        aliases = vercel_promote_aliases(vercel_project_id, team_id, &vercel_token)?;
+        if !aliases.is_empty() {
+            break;
+        }
+    }
+
+    let smoke_paths = project
+        .get("smoke_paths")
+        .and_then(|v| v.as_array())
+        .map(|items| {
+            items.iter()
+                .filter_map(|v| v.as_str())
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_else(|| vec!["/".to_string()]);
+
+    let smoke = smoke_urls(&aliases, &smoke_paths);
+    let health_verified = !aliases.is_empty()
+        && !smoke.is_empty()
+        && smoke
+            .iter()
+            .all(|item| item.get("ok").and_then(|v| v.as_bool()) == Some(true));
+
+    let mut rollback_attempted = false;
+    let mut rollback_succeeded = false;
+    let mut rollback_http_status: Option<u16> = None;
+
+    if !health_verified {
+        rollback_attempted = true;
+        let rollback_url = format!(
+            "https://api.vercel.com/v1/projects/{}/rollback/{}?teamId={}&description=EVENTO_auto_health_failure",
+            vercel_project_id, rollback_candidate, team_id
+        );
+        match vercel_post_no_content(&rollback_url, &vercel_token) {
+            Ok(status) => {
+                rollback_http_status = Some(status);
+                rollback_succeeded = matches!(status, 200 | 201 | 202);
+            }
+            Err(_) => {
+                rollback_succeeded = false;
+            }
+        }
+    }
+
+    let result = serde_json::json!({
+        "evento_production_deploy_version": 1,
+        "issue_number": issue_number,
+        "project_id": project_id,
+        "provider": "vercel",
+        "preview_deployment_id": deployment_id,
+        "promote_http_status": promote_status,
+        "production_aliases": aliases,
+        "smoke": smoke,
+        "health_verified": health_verified,
+        "rollback_candidate": rollback_candidate,
+        "rollback_attempted": rollback_attempted,
+        "rollback_http_status": rollback_http_status,
+        "rollback_succeeded": rollback_succeeded,
+        "production": true,
+        "release": false
+    });
+
+    post_task_audit(
+        issue_number,
+        "EVENTO protected production deploy",
+        "EVENTO_PRODUCTION_DEPLOY_JSON",
+        &result,
+    )?;
+
+    if health_verified {
+        mark_production_state(issue_number, "PRODUCTION-VERIFIED")?;
+    } else if rollback_succeeded {
+        mark_production_state(issue_number, "PRODUCTION-ROLLED-BACK")?;
+    } else {
+        return Err("Production health verification failed and automatic rollback did not succeed".to_string());
+    }
+
+    Ok(result)
 }
 
 #[tauri::command]
@@ -2480,6 +2751,7 @@ pub fn run() {
             remote_task_preview_deploy,
             remote_task_production_readiness,
             remote_task_rollback_readiness,
+            remote_task_protected_production_deploy,
             autostart_status,
             set_autostart
         ])
@@ -2556,6 +2828,13 @@ mod tests {
     fn production_confirmation_is_distinct_from_merge() {
         assert_eq!(expected_production_confirmation(42), "PRODUCTION #42");
         assert_ne!(expected_production_confirmation(42), expected_merge_confirmation(42));
+    }
+
+    #[test]
+    fn production_states_remain_separate_from_release() {
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][PRODUCTION-VERIFIED] x"), Some("production-verified"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][PRODUCTION-ROLLED-BACK] x"), Some("production-rolled-back"));
+        assert_eq!(remote_task_state_from_title("[EVENTO TASK][RELEASED] x"), None);
     }
 
     #[test]
