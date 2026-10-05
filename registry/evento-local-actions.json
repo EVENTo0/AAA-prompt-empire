@@ -1,0 +1,85 @@
+{
+  "version": "1.0",
+  "policy": {
+    "default": "deny",
+    "arbitrary_shell": false,
+    "mutations": false
+  },
+  "actions": [
+    {
+      "id": "git-status",
+      "kind": "diagnostic",
+      "command": [
+        "git",
+        "status",
+        "--short",
+        "--branch"
+      ]
+    },
+    {
+      "id": "python-version",
+      "kind": "diagnostic",
+      "command": [
+        "python",
+        "--version"
+      ]
+    },
+    {
+      "id": "blender-version",
+      "kind": "diagnostic",
+      "command": [
+        "blender",
+        "--version"
+      ]
+    },
+    {
+      "id": "unity-version",
+      "kind": "diagnostic",
+      "command": [
+        "Unity",
+        "-version"
+      ]
+    },
+    {
+      "id": "android-adb-version",
+      "kind": "diagnostic",
+      "command": [
+        "adb",
+        "version"
+      ]
+    },
+    {
+      "id": "xcode-version",
+      "kind": "diagnostic",
+      "command": [
+        "xcodebuild",
+        "-version"
+      ]
+    },
+    {
+      "id": "android-adb-devices",
+      "kind": "diagnostic",
+      "command": [
+        "adb",
+        "devices",
+        "-l"
+      ]
+    },
+    {
+      "id": "codex-version",
+      "kind": "diagnostic",
+      "command": [
+        "codex",
+        "--version"
+      ]
+    },
+    {
+      "id": "claude-version",
+      "kind": "diagnostic",
+      "command": [
+        "claude",
+        "--version"
+      ]
+    }
+  ]
+}

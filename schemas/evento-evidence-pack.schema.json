@@ -1,0 +1,32 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://evento.local/schemas/evento-evidence-pack.schema.json",
+  "title":"EVENTO Evidence Pack v1",
+  "type":"object",
+  "required":["task_id","project_id","status","evidence"],
+  "properties":{
+    "task_id":{"type":"string"},
+    "project_id":{"type":"string"},
+    "status":{"enum":["pass","fail","blocked","partial"]},
+    "head_sha":{"type":["string","null"]},
+    "pr":{"type":["string","null"]},
+    "evidence":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "required":["type","ref"],
+        "properties":{
+          "type":{"enum":["ci","unit_test","integration_test","e2e","security","database","authenticated","device","preview","build","simulation","source","manual_review"]},
+          "ref":{"type":"string"},
+          "summary":{"type":["string","null"]},
+          "verified_by":{"type":["string","null"]}
+        },
+        "additionalProperties":false
+      }
+    },
+    "remaining_gates":{"type":"array","items":{"type":"string"}},
+    "next_action":{"type":["string","null"]},
+    "learning_candidates":{"type":"array","items":{"type":"string"}}
+  },
+  "additionalProperties":false
+}

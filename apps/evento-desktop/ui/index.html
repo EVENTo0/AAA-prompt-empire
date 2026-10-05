@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>EVENTO Control Plane</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">EVENTO · NATIVE CONTROL PLANE</p>
+        <h1>Desktop Operator</h1>
+      </div>
+      <span id="status" class="pill quiet">CHECKING</span>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="kicker">LOCAL-FIRST</p>
+        <h2>Your projects. One command surface.</h2>
+        <p>EVENTO Desktop is the native shell for Memory, Agent Contract, workspaces, Blender, Unity, Android and local/open model execution.</p>
+      </div>
+      <div class="mark">E</div>
+    </section>
+
+    <section class="grid">
+      <article>
+        <span>Daemon</span>
+        <strong id="daemonState">—</strong>
+        <small id="daemonUrl">127.0.0.1 only</small>
+      </article>
+      <article>
+        <span>Mode</span>
+        <strong id="operatorMode">READ ONLY</strong>
+        <small>Bounded writes require Operator Mode</small>
+      </article>
+      <article>
+        <span>Provider</span>
+        <strong>INDEPENDENT</strong>
+        <small>No single AI vendor required</small>
+      </article>
+      <article>
+        <span>Release</span>
+        <strong>PROTECTED</strong>
+        <small>Never implied by build</small>
+      </article>
+    </section>
+
+    <section class="panel">
+      <p class="kicker">RUNTIME</p>
+      <h3>EVENTO Local Daemon</h3>
+      <p class="muted">The native Rust backend starts the Python daemon with an ephemeral session token. The browser UI never receives that token.</p>
+      <div class="actions">
+        <button id="start">Start local engine</button>
+        <button id="stop" class="secondary">Stop engine</button>
+        <button id="refresh" class="secondary">Refresh status</button>
+      </div>
+      <pre id="log">Ready.</pre>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">PROJECTS</p><h3>Local Workspaces</h3></div>
+        <button id="refreshProjects" class="secondary">Refresh projects</button>
+      </div>
+      <div class="operatorBar">
+        <label><span>Worktree suffix</span><input id="branchSuffix" value="next" maxlength="48" /></label>
+        <label><span>Blender / Unity relative path</span><input id="projectToolPath" value="." /></label>
+        <label><span>APK relative path</span><input id="apkPath" value="build/app/outputs/flutter-apk/app-debug.apk" /></label>
+        <button id="enableOperator">Enable Operator Mode</button>
+        <button id="disableOperator" class="secondary">Disable Operator Mode</button>
+      </div>
+      <div id="projects" class="projectGrid"><p class="muted">Loading local project registry…</p></div>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">TOOLS</p><h3>Local Capabilities</h3></div>
+        <button id="refreshTools" class="secondary">Refresh tools</button>
+      </div>
+      <div id="tools" class="lanes"><span>Checking…</span></div>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">REMOTE APPROVALS</p><h3>Approved Task Inbox</h3></div>
+        <button id="refreshRemoteTasks" class="secondary">Refresh tasks</button>
+      </div>
+      <p class="muted">Tasks approved from EVENTO Admin Android are read from the audited GitHub task queue. PLAN TASK is read-only. EXECUTE BUILD writes only to an isolated worktree. REVIEW + GATE uses independent Claude review plus the registered project gate. PUBLISH DRAFT PR is a separate handoff step; merge, deploy and release remain prohibited.</p>
+      <div id="remoteTasks" class="projectGrid"><p class="muted">Load approved tasks to begin.</p></div>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">AGENTS</p><h3>Codex + Claude Planning</h3></div>
+        <span class="pill quiet">READ ONLY</span>
+      </div>
+      <p class="muted">Runs against a registered local project with a read-only planning contract. No Release authority and no Operator Mode required.</p>
+      <div class="agentPlanner">
+        <select id="agentProvider"><option value="codex">Codex</option><option value="claude-code">Claude Code</option></select>
+        <select id="agentProject"></select>
+        <textarea id="agentPrompt" rows="4" placeholder="Describe the planning/review task"></textarea>
+        <button id="runAgentPlan">Run plan</button>
+      </div>
+      <pre id="agentOutput">Agent planner ready.</pre>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">SECURITY</p><h3>Local Credential Store</h3></div>
+        <span class="pill quiet">OS PROTECTED</span>
+      </div>
+      <p class="muted">Secrets are stored in the operating-system credential store. EVENTO only reports whether a key exists; stored values are never displayed back to the webview.</p>
+      <div class="credentialGrid" id="credentials"></div>
+      <div class="credentialEditor">
+        <select id="credentialName">
+          <option value="github">GitHub</option>
+          <option value="supabase">Supabase</option>
+          <option value="vercel">Vercel</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="google">Google</option>
+          <option value="generic-llm">Generic LLM</option>
+        </select>
+        <input id="credentialSecret" type="password" autocomplete="off" placeholder="Paste secret — never shown again" />
+        <button id="saveCredential">Save securely</button>
+        <button id="deleteCredential" class="secondary">Delete</button>
+      </div>
+      <pre id="credentialLog">Credential store ready.</pre>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">CONNECTORS</p><h3>Live Connector Health</h3></div>
+        <button id="refreshConnectors" class="secondary">Probe connectors</button>
+      </div>
+      <p class="muted">Probes run in Rust using the OS credential store. Secret values are never returned to the webview.</p>
+      <div id="connectors" class="credentialGrid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="sectionRow">
+        <div><p class="kicker">STARTUP</p><h3>Windows Startup</h3></div>
+        <span id="autostartState" class="pill quiet">CHECKING</span>
+      </div>
+      <p class="muted">Optional. EVENTO does not register itself for startup unless you explicitly enable it.</p>
+      <div class="actions">
+        <button id="enableAutostart">Enable auto-start</button>
+        <button id="disableAutostart" class="secondary">Disable auto-start</button>
+      </div>
+    </section>
+
+    <section class="panel roadmap">
+      <p class="kicker">NEXT NATIVE LANES</p>
+      <div class="lanes">
+        <span>Git / Worktrees</span>
+        <span>Filesystem</span>
+        <span>Python</span>
+        <span>Blender</span>
+        <span>Unity</span>
+        <span>Android</span>
+        <span>Xcode</span>
+        <span>Local Models</span>
+      </div>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>

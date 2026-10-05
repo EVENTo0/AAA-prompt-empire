@@ -1,0 +1,138 @@
+{
+  "version": 2,
+  "policy": {
+    "default": "deny",
+    "external_release": false,
+    "require_verified_binding": true,
+    "require_signing_evidence": true,
+    "handoff_only": true,
+    "require_signed_artifacts_for_binary_channels": true,
+    "require_provider_health": true
+  },
+  "channel_types": {
+    "web-production": {
+      "provider": "vercel",
+      "credential": "vercel",
+      "external_action": "publish-stable",
+      "enabled": false,
+      "handoff_only": true,
+      "execution_enabled": false,
+      "required_binding_fields": [
+        "channel_id",
+        "binding_verified"
+      ],
+      "required_evidence": [
+        "production_verified",
+        "provider_health"
+      ],
+      "final_action": "vercel-production-publish"
+    },
+    "android-store": {
+      "provider": "google-play",
+      "credential": "google-play",
+      "external_action": "upload-signed-bundle",
+      "enabled": false,
+      "handoff_only": true,
+      "execution_enabled": false,
+      "required_binding_fields": [
+        "channel_id",
+        "binding_verified"
+      ],
+      "required_evidence": [
+        "signed_apk",
+        "signed_aab",
+        "signature_verification",
+        "provider_health"
+      ],
+      "signing_secrets": [
+        "EVENTO_ANDROID_KEYSTORE_B64",
+        "EVENTO_ANDROID_KEYSTORE_PASSWORD",
+        "EVENTO_ANDROID_KEY_ALIAS",
+        "EVENTO_ANDROID_KEY_PASSWORD"
+      ],
+      "final_action": "google-play-upload"
+    },
+    "desktop-installer": {
+      "provider": "github-release",
+      "credential": "github",
+      "external_action": "publish-signed-installer",
+      "enabled": false,
+      "handoff_only": true,
+      "execution_enabled": false,
+      "required_binding_fields": [
+        "channel_id",
+        "binding_verified"
+      ],
+      "required_evidence": [
+        "signed_msi",
+        "signed_nsis",
+        "signature_verification",
+        "provider_health"
+      ],
+      "signing_secrets": [
+        "EVENTO_WINDOWS_PFX_B64",
+        "EVENTO_WINDOWS_PFX_PASSWORD"
+      ],
+      "final_action": "github-release-publish"
+    }
+  },
+  "projects": {
+    "evento-one": {
+      "channel_type": "web-production",
+      "channel_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
+      "binding_verified": false,
+      "enabled": false,
+      "binding_descriptor": {
+        "provider": "vercel",
+        "team_id": "team_vZEWFqCEnXIaNzJl22F0lkG8",
+        "project_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
+        "project_name": "evento-one-web",
+        "production_target": "stable"
+      }
+    },
+    "evento-acquisition": {
+      "channel_type": "web-production",
+      "channel_id": null,
+      "binding_verified": false,
+      "enabled": false,
+      "binding_descriptor": {
+        "provider": "vercel",
+        "project_id": null,
+        "production_target": "stable"
+      }
+    },
+    "evento-mobile": {
+      "channel_type": "android-store",
+      "channel_id": null,
+      "binding_verified": false,
+      "enabled": false,
+      "binding_descriptor": {
+        "provider": "google-play",
+        "application_id": null,
+        "track": null
+      }
+    },
+    "evento-admin-android": {
+      "channel_type": "android-store",
+      "channel_id": "ae.evento.admin",
+      "binding_verified": false,
+      "enabled": false,
+      "binding_descriptor": {
+        "provider": "google-play",
+        "application_id": "ae.evento.admin",
+        "track": null
+      }
+    },
+    "aaa-empire": {
+      "channel_type": "desktop-installer",
+      "channel_id": "EVENTo0/AAA-prompt-empire",
+      "binding_verified": false,
+      "enabled": false,
+      "binding_descriptor": {
+        "provider": "github-release",
+        "repository": "EVENTo0/AAA-prompt-empire",
+        "release_mode": "draft-before-publish"
+      }
+    }
+  }
+}

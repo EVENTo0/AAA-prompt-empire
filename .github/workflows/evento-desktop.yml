@@ -1,0 +1,32 @@
+name: EVENTO Desktop Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'apps/evento-desktop/**'
+      - 'registry/evento-connectors.json'
+      - 'registry/evento-local-actions.json'
+      - 'registry/evento-local-write-actions.json'
+      - 'registry/evento-project-workspaces.json'
+      - 'registry/evento-project-test-gates.json'
+      - '.github/workflows/evento-desktop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  daemon-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run EVENTO daemon policy tests
+        run: python -m unittest apps/evento-desktop/daemon/test_evento_daemon.py
+      - name: Syntax check daemon
+        run: python -m py_compile apps/evento-desktop/daemon/evento_daemon.py

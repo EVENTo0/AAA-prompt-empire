@@ -1,0 +1,120 @@
+name: EVENTO Admin Android
+
+on:
+  pull_request:
+    paths:
+      - 'apps/evento-admin-android/**'
+      - 'apps/mobile-control-plane/app/api/evento/mobile-admin/**'
+      - 'apps/mobile-control-plane/lib/mobile-admin.ts'
+      - 'apps/mobile-control-plane/tests/mobile-admin-contract.test.mjs'
+      - '.github/workflows/evento-admin-android.yml'
+  workflow_dispatch:
+    inputs:
+      signed_release_candidate:
+        description: 'Build signed APK/AAB handoff artifacts only (no Play upload)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/evento-admin-android
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Build debug APK
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Upload EVENTO Admin APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: evento-admin-android-debug
+          path: apps/evento-admin-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+
+  android-signed-release-candidate:
+    if: github.event_name == 'workflow_dispatch' && inputs.signed_release_candidate == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/evento-admin-android
+    env:
+      EVENTO_ANDROID_KEYSTORE_B64: ${{ secrets.EVENTO_ANDROID_KEYSTORE_B64 }}
+      EVENTO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.EVENTO_ANDROID_KEYSTORE_PASSWORD }}
+      EVENTO_ANDROID_KEY_ALIAS: ${{ secrets.EVENTO_ANDROID_KEY_ALIAS }}
+      EVENTO_ANDROID_KEY_PASSWORD: ${{ secrets.EVENTO_ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Require protected signing inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in EVENTO_ANDROID_KEYSTORE_B64 EVENTO_ANDROID_KEYSTORE_PASSWORD EVENTO_ANDROID_KEY_ALIAS EVENTO_ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing protected secret: ${name}"
+              exit 1
+            fi
+          done
+      - name: Materialize release keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          keystore="${RUNNER_TEMP}/evento-admin-release.jks"
+          printf '%s' "${EVENTO_ANDROID_KEYSTORE_B64}" | base64 --decode > "${keystore}"
+          chmod 600 "${keystore}"
+          echo "EVENTO_ANDROID_KEYSTORE_PATH=${keystore}" >> "${GITHUB_ENV}"
+      - name: Build signed APK and AAB
+        run: gradle --no-daemon :app:assembleRelease :app:bundleRelease
+      - name: Verify signed Android artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
+          jarsigner -verify -strict -verbose app/build/outputs/bundle/release/app-release.aab >/dev/null
+          sha256sum app/build/outputs/apk/release/app-release.apk app/build/outputs/bundle/release/app-release.aab | tee release-sha256.txt
+      - name: Upload signed Android handoff artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: evento-admin-android-signed-release-candidate
+          path: |
+            apps/evento-admin-android/app/build/outputs/apk/release/app-release.apk
+            apps/evento-admin-android/app/build/outputs/bundle/release/app-release.aab
+            apps/evento-admin-android/release-sha256.txt
+          if-no-files-found: error
+          retention-days: 14

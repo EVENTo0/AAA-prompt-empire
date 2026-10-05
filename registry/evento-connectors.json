@@ -1,0 +1,20 @@
+{
+  "version":"1.0",
+  "policy":{
+    "raw_secrets_in_browser":false,
+    "default_permission":"read",
+    "unknown_connector":"deny"
+  },
+  "connectors":[
+    {"id":"github","category":"source","auth":"token_or_app","permissions":["read","branch","pr","workflow"],"release":false},
+    {"id":"supabase","category":"data","auth":"access_token","permissions":["read","sql-test","migration-proposal"],"release":false},
+    {"id":"vercel","category":"preview","auth":"token","permissions":["read","preview"],"release":false},
+    {"id":"filesystem","category":"local","auth":"os","permissions":["read","workspace-write"],"release":false},
+    {"id":"python","category":"local","auth":"none","permissions":["execute-sandboxed"],"release":false},
+    {"id":"blender","category":"3d","auth":"local","permissions":["open","script","export"],"release":false},
+    {"id":"unity","category":"simulation","auth":"local","permissions":["open-project","test","build-preview"],"release":false},
+    {"id":"android","category":"mobile","auth":"local","permissions":["sdk","emulator","adb","build"],"release":false},
+    {"id":"xcode","category":"mobile","auth":"local-macos","permissions":["simulator","build","archive"],"release":false},
+    {"id":"llm","category":"agent","auth":"provider-specific","permissions":["plan","code","review"],"release":false}
+  ]
+}

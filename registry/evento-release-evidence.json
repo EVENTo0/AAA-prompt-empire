@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "source_head": "fc7b82b5b8ca08fda28579e46b48f300524618b9",
+  "classification": "development-evidence",
+  "release_authority": false,
+  "artifacts": [
+    {
+      "id": "evento-desktop-windows-dev",
+      "workflow": "EVENTO Desktop Shell",
+      "run_id": 37217500135,
+      "artifact_id": 11308374301,
+      "artifact_name": "evento-desktop-windows",
+      "sha256": "9b924f83b078036a8a9fb0151cf54190de43aab8c1dbc05ddf8571b7dc5c37ec",
+      "platform": "windows",
+      "artifact_types": ["msi", "nsis"],
+      "signed": false,
+      "release_evidence": false,
+      "expires_at": "2026-10-18T16:49:16Z"
+    },
+    {
+      "id": "evento-admin-android-debug-dev",
+      "workflow": "EVENTO Admin Android",
+      "run_id": 37217500137,
+      "artifact_id": 11308464763,
+      "artifact_name": "evento-admin-android-debug",
+      "sha256": "d2bb6227bde3aa2b0718339de5ca7c044fbaa1f9222838dc69751b087574ec2f",
+      "platform": "android",
+      "artifact_types": ["apk"],
+      "build_variant": "debug",
+      "signed": false,
+      "release_evidence": false,
+      "expires_at": "2026-10-18T16:40:09Z"
+    }
+  ],
+  "release_blockers": [
+    "windows_code_signing_not_configured",
+    "android_release_signing_not_configured",
+    "android_play_distribution_not_configured",
+    "release_policy_disabled"
+  ]
+}

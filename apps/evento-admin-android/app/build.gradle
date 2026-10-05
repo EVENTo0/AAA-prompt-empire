@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+final String releaseKeystorePath = System.getenv('EVENTO_ANDROID_KEYSTORE_PATH')
+final String releaseStorePassword = System.getenv('EVENTO_ANDROID_KEYSTORE_PASSWORD')
+final String releaseKeyAlias = System.getenv('EVENTO_ANDROID_KEY_ALIAS')
+final String releaseKeyPassword = System.getenv('EVENTO_ANDROID_KEY_PASSWORD')
+
+android {
+    namespace 'ae.evento.admin'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'ae.evento.admin'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+    }
+
+    signingConfigs {
+        release {
+            if (releaseKeystorePath) {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.activity:activity:1.11.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.material:material:1.13.0'
+}

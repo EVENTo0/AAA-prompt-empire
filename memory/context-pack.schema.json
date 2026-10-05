@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evento.local/schemas/context-pack.schema.json",
+  "title": "EVENTO Context Pack v1",
+  "type": "object",
+  "required": ["task","facts","decisions","rules","lessons","anti_patterns"],
+  "properties": {
+    "task": {"type":"string"},
+    "project_id": {"type":["string","null"]},
+    "domain": {"type":["string","null"]},
+    "facts": {"type":"array","items":{"type":"object"}},
+    "decisions": {"type":"array","items":{"type":"object"}},
+    "rules": {"type":"array","items":{"type":"object"}},
+    "lessons": {"type":"array","items":{"type":"object"}},
+    "patterns": {"type":"array","items":{"type":"object"}},
+    "anti_patterns": {"type":"array","items":{"type":"object"}},
+    "generated_at": {"type":["string","null"],"format":"date-time"}
+  },
+  "additionalProperties": false
+}

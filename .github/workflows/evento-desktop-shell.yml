@@ -1,0 +1,129 @@
+name: EVENTO Desktop Shell
+
+on:
+  pull_request:
+    paths:
+      - 'apps/evento-desktop/src-tauri/**'
+      - 'apps/evento-desktop/ui/**'
+      - 'apps/evento-desktop/rust-toolchain.toml'
+      - '.github/workflows/evento-desktop-shell.yml'
+  workflow_dispatch:
+    inputs:
+      signed_release_candidate:
+        description: 'Sign MSI/NSIS handoff artifacts only (no GitHub Release publish)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  rust-check:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/evento-desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install Rust 1.99
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal
+          rustup default 1.99.0
+          rustc --version
+          cargo --version
+      - name: Cargo check
+        run: cargo check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Cargo unit tests
+        run: cargo test --lib
+
+
+  windows-bundle:
+    name: windows-installer
+    needs: rust-check
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: apps/evento-desktop
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install Rust 1.99
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal
+          rustup default 1.99.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install Tauri CLI
+        run: npm install --ignore-scripts
+      - name: Build EVENTO Windows installers
+        run: npx tauri build --bundles nsis,msi
+      - name: Upload EVENTO installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evento-desktop-windows
+          path: |
+            apps/evento-desktop/src-tauri/target/release/bundle/nsis/**
+            apps/evento-desktop/src-tauri/target/release/bundle/msi/**
+            apps/evento-desktop/src-tauri/Cargo.lock
+          if-no-files-found: error
+          retention-days: 14
+
+
+  windows-signed-release-candidate:
+    if: github.event_name == 'workflow_dispatch' && inputs.signed_release_candidate == true
+    needs: windows-bundle
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      EVENTO_WINDOWS_PFX_B64: ${{ secrets.EVENTO_WINDOWS_PFX_B64 }}
+      EVENTO_WINDOWS_PFX_PASSWORD: ${{ secrets.EVENTO_WINDOWS_PFX_PASSWORD }}
+    steps:
+      - name: Require protected signing inputs
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:EVENTO_WINDOWS_PFX_B64)) { throw "Missing protected secret: EVENTO_WINDOWS_PFX_B64" }
+          if ([string]::IsNullOrWhiteSpace($env:EVENTO_WINDOWS_PFX_PASSWORD)) { throw "Missing protected secret: EVENTO_WINDOWS_PFX_PASSWORD" }
+      - uses: actions/download-artifact@v5
+        with:
+          name: evento-desktop-windows
+          path: unsigned
+      - name: Materialize signing certificate
+        shell: pwsh
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'evento-windows-signing.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:EVENTO_WINDOWS_PFX_B64))
+          "EVENTO_WINDOWS_PFX_PATH=$pfx" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Sign and verify MSI/NSIS artifacts
+        shell: pwsh
+        run: |
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $signtool) { throw "signtool.exe not found" }
+          $files = Get-ChildItem unsigned -Recurse -File | Where-Object { $_.Extension -in '.msi', '.exe' }
+          if (-not $files) { throw "No MSI/NSIS artifacts found" }
+          foreach ($file in $files) {
+            & $signtool.FullName sign /fd SHA256 /f $env:EVENTO_WINDOWS_PFX_PATH /p $env:EVENTO_WINDOWS_PFX_PASSWORD /tr http://timestamp.digicert.com /td SHA256 $file.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Signing failed: $($file.FullName)" }
+            & $signtool.FullName verify /pa /v $file.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Signature verification failed: $($file.FullName)" }
+          }
+          $files | Get-FileHash -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $($_.Path)" } | Set-Content unsigned\release-sha256.txt
+      - name: Upload signed Windows handoff artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: evento-desktop-windows-signed-release-candidate
+          path: unsigned/**
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "policy": {
+    "default": "deny",
+    "production_deploy": false,
+    "release": false
+  },
+  "projects": {
+    "aaa-empire": {
+      "kind": "internal-control-plane",
+      "deploy_target": null,
+      "preview_supported": false,
+      "production_supported": false,
+      "binding_verified": false,
+      "release": false
+    },
+    "evento-mobile": {
+      "kind": "mobile-artifact",
+      "deploy_target": null,
+      "preview_supported": false,
+      "production_supported": false,
+      "binding_verified": false,
+      "release": false
+    },
+    "evento-one": {
+      "kind": "web-saas",
+      "deploy_target": "vercel-preview",
+      "preview_supported": true,
+      "production_supported": false,
+      "binding_verified": true,
+      "release": false,
+      "repository": "EVENTo0/Evento-One",
+      "provider": "vercel",
+      "vercel_team_id": "team_vZEWFqCEnXIaNzJl22F0lkG8",
+      "vercel_project_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
+      "vercel_project_name": "evento-one-web",
+      "smoke_paths": [
+        "/"
+      ],
+      "smoke_mode": "http-reachable"
+    },
+    "evento-acquisition": {
+      "kind": "web-acquisition",
+      "deploy_target": "vercel-preview",
+      "preview_supported": true,
+      "production_supported": false,
+      "binding_verified": false,
+      "release": false,
+      "repository": "EVENTo0/Evento-project-development-v1",
+      "provider": "vercel",
+      "vercel_team_id": null,
+      "vercel_project_id": null,
+      "vercel_project_name": null,
+      "smoke_paths": [
+        "/"
+      ],
+      "smoke_mode": "http-reachable"
+    }
+  }
+}
