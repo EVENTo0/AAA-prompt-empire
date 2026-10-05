@@ -28,6 +28,8 @@ REQUIRED = [
     "registry/evento-release-contracts.json",
     "registry/evento-release-evidence.json",
     "docs/release/EVENTO_RELEASE_EVIDENCE_V1.md",
+    "registry/evento-release-channels.json",
+    "docs/architecture/EVENTO_RELEASE_CHANNEL_V1.md",
 ]
 
 MEMORY_TYPES = {"fact","decision","lesson","pattern","anti_pattern","rule","source_claim","asset_knowledge"}
@@ -241,6 +243,101 @@ def validate_release_evidence(errors: list[str]) -> None:
         fail(errors, "release evidence must include Windows and Android development artifacts")
 
 
+def validate_release_channels(errors: list[str]) -> None:
+    channels = load("registry/evento-release-channels.json")
+    policy = channels.get("policy", {})
+
+    if policy.get("default") != "deny":
+        fail(errors, "release-channel policy must remain default-deny")
+    if policy.get("external_release") is not False:
+        fail(errors, "external release must remain disabled before final approval")
+    if policy.get("handoff_only") is not True:
+        fail(errors, "release-channel stage must be handoff-only")
+
+    required_types = {"web-production", "android-store", "desktop-installer"}
+    channel_types = channels.get("channel_types", {})
+    if set(channel_types) != required_types:
+        fail(errors, "release channel type set drifted")
+
+    for name, channel in channel_types.items():
+        if channel.get("enabled") is not False:
+            fail(errors, f"{name}: channel type must remain disabled")
+        if channel.get("execution_enabled") is not False:
+            fail(errors, f"{name}: external execution must remain disabled")
+        if channel.get("handoff_only") is not True:
+            fail(errors, f"{name}: channel must remain handoff-only")
+        fields = set(channel.get("required_binding_fields", []))
+        if not {"channel_id", "binding_verified"} <= fields:
+            fail(errors, f"{name}: missing binding readiness requirements")
+
+    android = channel_types["android-store"]
+    if not {"signed_apk", "signed_aab", "signature_verification"} <= set(android.get("required_evidence", [])):
+        fail(errors, "android channel must require signed APK/AAB verification evidence")
+    if set(android.get("signing_secrets", [])) != {
+        "EVENTO_ANDROID_KEYSTORE_B64",
+        "EVENTO_ANDROID_KEYSTORE_PASSWORD",
+        "EVENTO_ANDROID_KEY_ALIAS",
+        "EVENTO_ANDROID_KEY_PASSWORD",
+    }:
+        fail(errors, "android signing secret contract drifted")
+
+    desktop = channel_types["desktop-installer"]
+    if not {"signed_msi", "signed_nsis", "signature_verification"} <= set(desktop.get("required_evidence", [])):
+        fail(errors, "desktop channel must require signed MSI/NSIS verification evidence")
+    if set(desktop.get("signing_secrets", [])) != {
+        "EVENTO_WINDOWS_PFX_B64",
+        "EVENTO_WINDOWS_PFX_PASSWORD",
+    }:
+        fail(errors, "desktop signing secret contract drifted")
+
+    projects = channels.get("projects", {})
+    for project_id, project in projects.items():
+        if project.get("enabled") is not False:
+            fail(errors, f"{project_id}: project release channel must remain disabled")
+        if project.get("binding_verified") is not False:
+            fail(errors, f"{project_id}: binding cannot be verified without external evidence")
+        if project.get("channel_id") is not None:
+            fail(errors, f"{project_id}: channel_id must remain unset until verified binding")
+
+    android_gradle = (ROOT / "apps/evento-admin-android/app/build.gradle").read_text(encoding="utf-8")
+    for secret in android.get("signing_secrets", []):
+        if secret not in android_gradle and secret != "EVENTO_ANDROID_KEYSTORE_B64":
+            fail(errors, f"android build does not consume signing input {secret}")
+
+    android_workflow = (ROOT / ".github/workflows/evento-admin-android.yml").read_text(encoding="utf-8")
+    for marker_text in (
+        "signed_release_candidate",
+        ":app:assembleRelease",
+        ":app:bundleRelease",
+        "apksigner",
+        "jarsigner -verify",
+        "evento-admin-android-signed-release-candidate",
+    ):
+        if marker_text not in android_workflow:
+            fail(errors, f"android release-candidate lane missing marker: {marker_text}")
+
+    desktop_workflow = (ROOT / ".github/workflows/evento-desktop-shell.yml").read_text(encoding="utf-8")
+    for marker_text in (
+        "signed_release_candidate",
+        "signtool",
+        "verify /pa",
+        "evento-desktop-windows-signed-release-candidate",
+    ):
+        if marker_text not in desktop_workflow:
+            fail(errors, f"desktop release-candidate lane missing marker: {marker_text}")
+
+    forbidden_publish_markers = (
+        "play.google.com",
+        "googleapis.com/androidpublisher",
+        "gh release create",
+        "vercel --prod",
+    )
+    combined = android_workflow.lower() + "\n" + desktop_workflow.lower()
+    for publish_marker in forbidden_publish_markers:
+        if publish_marker in combined:
+            fail(errors, f"release-candidate workflow contains external publish marker: {publish_marker}")
+
+
 def validate_sql_guardrails(errors: list[str]) -> None:
     sql = (ROOT / "supabase/migrations/20261001190000_evento_memory_v1.sql").read_text(encoding="utf-8").lower()
     for table in ("evento_memory_items","evento_memory_evidence"):
@@ -260,6 +357,7 @@ def main() -> int:
         validate_pilots(errors)
         validate_context_builder(errors)
         validate_release_evidence(errors)
+        validate_release_channels(errors)
         validate_sql_guardrails(errors)
 
     if errors:
