@@ -74,13 +74,16 @@ jobs:
           mkdir -p "${work_dir}"
           cd "${work_dir}"
           supabase init
+          # Use a dedicated non-default DB port so this isolated proof cannot
+          # collide with another Supabase stack on the runner.
+          sed -i 's/^port = 54322$/port = 55432/' supabase/config.toml
           mkdir -p supabase/migrations
           cp "${GITHUB_WORKSPACE}/supabase/migrations/20261001190000_evento_memory_v1.sql" supabase/migrations/
 
           supabase db start
 
           PGPASSWORD=postgres psql \
-            "postgresql://postgres@127.0.0.1:54322/postgres" \
+            "postgresql://postgres@127.0.0.1:55432/postgres" \
             -X \
             -v ON_ERROR_STOP=1 \
             -f "${GITHUB_WORKSPACE}/supabase/tests/evento_memory_v1_security.sql"
