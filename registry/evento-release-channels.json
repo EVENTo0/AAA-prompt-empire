@@ -79,12 +79,14 @@
   "projects": {
     "evento-one": {
       "channel_type": "web-production",
-      "channel_id": null,
+      "channel_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
       "binding_verified": false,
       "enabled": false,
       "binding_descriptor": {
         "provider": "vercel",
-        "project_id": null,
+        "team_id": "team_vZEWFqCEnXIaNzJl22F0lkG8",
+        "project_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
+        "project_name": "evento-one-web",
         "production_target": "stable"
       }
     },
@@ -112,7 +114,7 @@
     },
     "evento-admin-android": {
       "channel_type": "android-store",
-      "channel_id": null,
+      "channel_id": "ae.evento.admin",
       "binding_verified": false,
       "enabled": false,
       "binding_descriptor": {
@@ -123,7 +125,7 @@
     },
     "aaa-empire": {
       "channel_type": "desktop-installer",
-      "channel_id": null,
+      "channel_id": "EVENTo0/AAA-prompt-empire",
       "binding_verified": false,
       "enabled": false,
       "binding_descriptor": {
