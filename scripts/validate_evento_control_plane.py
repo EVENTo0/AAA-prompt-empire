@@ -296,8 +296,21 @@ def validate_release_channels(errors: list[str]) -> None:
             fail(errors, f"{project_id}: project release channel must remain disabled")
         if project.get("binding_verified") is not False:
             fail(errors, f"{project_id}: binding cannot be verified without external evidence")
-        if project.get("channel_id") is not None:
-            fail(errors, f"{project_id}: channel_id must remain unset until verified binding")
+        channel_id = project.get("channel_id")
+        descriptor = project.get("binding_descriptor", {})
+        if channel_id is not None and not isinstance(channel_id, str):
+            fail(errors, f"{project_id}: channel_id must be null or a string")
+        if channel_id and not descriptor:
+            fail(errors, f"{project_id}: configured channel_id requires a binding descriptor")
+
+    known = {
+        "evento-one": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
+        "evento-admin-android": "ae.evento.admin",
+        "aaa-empire": "EVENTo0/AAA-prompt-empire",
+    }
+    for project_id, expected_channel_id in known.items():
+        if projects.get(project_id, {}).get("channel_id") != expected_channel_id:
+            fail(errors, f"{project_id}: known release channel identifier drifted")
 
     android_gradle = (ROOT / "apps/evento-admin-android/app/build.gradle").read_text(encoding="utf-8")
     for secret in android.get("signing_secrets", []):
