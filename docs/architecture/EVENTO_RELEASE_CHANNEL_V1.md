@@ -76,9 +76,20 @@ Current policy intentionally remains fail-closed:
 - `external_release=false`;
 - all channel types `enabled=false`;
 - all project channels `enabled=false`;
-- channel bindings remain unverified;
+- known destination identifiers may be prebound, but release bindings remain unverified;
 - signed release-candidate evidence is not yet recorded.
 
 Therefore the expected state before final signing/binding evidence is **RELEASE CHANNEL BLOCKED**.
 
 This is correct and must not be interpreted as a failure of the readiness architecture. It is the guard that prevents an unsigned or unbound artifact from being published.
+
+## Prebound destination identifiers
+
+The readiness registry may record a destination identifier before the external binding is verified. This is configuration, not release authority.
+
+Currently prebound:
+- `evento-one` → Vercel project `prj_15JeGkRMsh6pvc2OAE902mkAB3Z6` (`evento-one-web`);
+- `evento-admin-android` → Android application ID `ae.evento.admin`;
+- `aaa-empire` → GitHub repository `EVENTo0/AAA-prompt-empire`.
+
+All three remain `binding_verified=false` for the external release channel until provider/credential and destination evidence is captured.
