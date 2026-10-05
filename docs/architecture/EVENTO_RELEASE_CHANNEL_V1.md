@@ -1,20 +1,84 @@
 # EVENTO Release Channel Contract v1
 
-Release channel readiness is separate from Release Readiness, Release Handoff Package, and Release Seal.
+Release Channel Readiness is separate from Release Readiness, Release Handoff Package, Release Seal, and the final external release itself.
 
-## Rule
+## Non-negotiable boundary
 
-A sealed package is not publishable until its external channel is explicitly configured and verified.
+This stage may prepare and verify the destination channel and may produce signed release-candidate artifacts. It must not publish to Vercel production, Google Play, GitHub Releases, or any other external destination.
 
-### Web
-Requires a verified stable/publish channel binding.
+The global external-release policy remains deny-by-default until owner approval and channel evidence are complete.
 
-### Android
-Requires a verified Google Play application/channel binding plus signed artifact evidence.
+## Channel matrix
 
-### Desktop
-Requires a verified distribution channel plus signed installer evidence.
+### Web — production/release handoff
 
-## Current policy
+Target class: `web-production` / Vercel stable production channel.
 
-All external channels are disabled and unverified. This contract is readiness-only and cannot execute release publication.
+Readiness requires:
+- task/package state already production-verified and release-sealed where applicable;
+- the Vercel project/channel binding recorded in `registry/evento-release-channels.json`;
+- `binding_verified=true`;
+- provider/credential health evidence;
+- external-release policy explicitly enabled only at the final release gate.
+
+No production deploy is executed by this PR.
+
+### Android — signed AAB/APK + Play handoff
+
+Target class: `android-store` / Google Play.
+
+The repository now contains a protected manual release-candidate lane that can build:
+- signed APK;
+- signed AAB;
+- signature verification evidence;
+- SHA-256 evidence.
+
+Required protected secrets:
+- `EVENTO_ANDROID_KEYSTORE_B64`
+- `EVENTO_ANDROID_KEYSTORE_PASSWORD`
+- `EVENTO_ANDROID_KEY_ALIAS`
+- `EVENTO_ANDROID_KEY_PASSWORD`
+
+The lane intentionally performs no Play upload. A Play application/track binding must still be selected and verified before the channel can become ready.
+
+### Desktop — signed MSI/NSIS + release handoff
+
+Target class: `desktop-installer` / GitHub Release or another approved distributor.
+
+The repository now contains a protected manual release-candidate lane that can:
+- sign MSI/NSIS artifacts with the configured PFX;
+- verify Authenticode signatures;
+- generate SHA-256 evidence.
+
+Required protected secrets:
+- `EVENTO_WINDOWS_PFX_B64`
+- `EVENTO_WINDOWS_PFX_PASSWORD`
+
+The lane intentionally performs no GitHub Release publication. The repository/distributor binding must be verified before the channel can become ready.
+
+## Readiness decision
+
+A channel is READY only when all of the following are true:
+1. the release package is sealed;
+2. global external-release policy is enabled;
+3. the channel type is enabled;
+4. the project channel is enabled;
+5. `channel_id` is configured;
+6. `binding_verified=true`;
+7. required signing evidence exists for binary channels;
+8. provider/credential health is proven.
+
+Otherwise the result is `RELEASE CHANNEL BLOCKED`.
+
+## Current expected result
+
+Current policy intentionally remains fail-closed:
+- `external_release=false`;
+- all channel types `enabled=false`;
+- all project channels `enabled=false`;
+- channel bindings remain unverified;
+- signed release-candidate evidence is not yet recorded.
+
+Therefore the expected state before final signing/binding evidence is **RELEASE CHANNEL BLOCKED**.
+
+This is correct and must not be interpreted as a failure of the readiness architecture. It is the guard that prevents an unsigned or unbound artifact from being published.
