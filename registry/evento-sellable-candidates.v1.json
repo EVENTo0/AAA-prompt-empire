@@ -1,0 +1,279 @@
+{
+  "schema_version": "1.0",
+  "audited_at": "2026-10-06",
+  "policy": "Protected EVENTO core/control-plane is not extracted into Ready Projects. SELLABLE requires score>=90, P0=0 and current evidence.",
+  "repositories": [
+    {
+      "repository": "EVENTo0/EVENTo0",
+      "audited_ref": "f870cfc0a090ba8b43ee4fdb705677a3c3d39740",
+      "role": "COMPANY_CORE",
+      "category": "LEGACY_EVENTO_CORE",
+      "initial_score": null,
+      "next_gate": "PROTECT_MIGRATE_ONLY"
+    },
+    {
+      "repository": "EVENTo0/aetheris-studios",
+      "audited_ref": "20a2f86d31c0d61a456b39000a4db850007c718f",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "CREATIVE_GAME_STUDIO",
+      "initial_score": 35,
+      "next_gate": "AUDIT_IDENTITY"
+    },
+    {
+      "repository": "EVENTo0/Evx",
+      "audited_ref": "9b2a10f488dd4d787adfb2a6f2463f5528a47736",
+      "role": "DUPLICATE_MERGE",
+      "category": "EVEX_PLACEHOLDER",
+      "initial_score": 10,
+      "next_gate": "MERGE_INTO_EVEX_CANON"
+    },
+    {
+      "repository": "EVENTo0/evx-health-coach",
+      "audited_ref": "b073489ed5c7cb8bb4e4a64c842a6d3ec364a407",
+      "role": "DUPLICATE_MERGE",
+      "category": "EVEX_HEALTH",
+      "initial_score": 48,
+      "next_gate": "MERGE_INTO_EVEX_CANON"
+    },
+    {
+      "repository": "EVENTo0/evex-coach",
+      "audited_ref": "e8cd99d04443128433a3ffae8330254d4b6630f2",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVEX_WELLNESS_MODULE",
+      "initial_score": 58,
+      "next_gate": "MERGE_FIRST"
+    },
+    {
+      "repository": "EVENTo0/evex-lab",
+      "audited_ref": "db828b4b7f6c7533ce4fddf243970883d633c4ce",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVEX_ANALYTICS_MODULE",
+      "initial_score": 52,
+      "next_gate": "MERGE_FIRST"
+    },
+    {
+      "repository": "EVENTo0/evex-fit",
+      "audited_ref": "5e243b47d578118cead5e106d2729073f4a04e18",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVEX_FITNESS_MODULE",
+      "initial_score": 58,
+      "next_gate": "MERGE_FIRST"
+    },
+    {
+      "repository": "EVENTo0/evex-mobile",
+      "audited_ref": "3b999dfd051b97beeaf388799137f05b255353a7",
+      "role": "DUPLICATE_MERGE",
+      "category": "EVEX_CLIENT",
+      "initial_score": 40,
+      "next_gate": "MERGE_INTO_EVEX_CANON"
+    },
+    {
+      "repository": "EVENTo0/AAA-prompt-empire",
+      "audited_ref": "32437dec9ff2cf47a33b9ca1073415026110d116",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "ENGINEERING_FACTORY",
+      "initial_score": null,
+      "next_gate": "PROTECT"
+    },
+    {
+      "repository": "EVENTo0/AAA-prompt",
+      "audited_ref": "17481a7296b153d786ed40209bd625cf1f236155",
+      "role": "SHARED_CAPABILITY",
+      "category": "ENGINEERING_CORE",
+      "initial_score": null,
+      "next_gate": "PROTECT"
+    },
+    {
+      "repository": "EVENTo0/evento-mobile",
+      "audited_ref": "8c378d29b15bc25465a9b993879e00f997d8ce55",
+      "role": "COMPANY_CORE",
+      "category": "EVENTO_MOBILE_INTERFACE",
+      "initial_score": null,
+      "next_gate": "PROTECT"
+    },
+    {
+      "repository": "EVENTo0/omniform-nexus-professor-ai",
+      "audited_ref": "e9f85b571bebdb8453320745ccbfc63d82f48f00",
+      "role": "SHARED_CAPABILITY",
+      "category": "DESIGN_INTELLIGENCE",
+      "initial_score": null,
+      "next_gate": "PROTECT_EXPORTS_ONLY"
+    },
+    {
+      "repository": "EVENTo0/familyos",
+      "audited_ref": "19403a061eca8cfff030a86e17534a613d4f0fba",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "FAMILY_APP",
+      "initial_score": 62,
+      "next_gate": "P0_PRIVACY_RELEASE"
+    },
+    {
+      "repository": "EVENTo0/OCTORIMAL",
+      "audited_ref": "189ecdcc5e2f817a571e06d5a4f6f262d2e83ab4",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "GAME",
+      "initial_score": 28,
+      "next_gate": "FINISH_VERTICAL_SLICE"
+    },
+    {
+      "repository": "EVENTo0/History-Med-1",
+      "audited_ref": "dae3e9f08cde22da1bc7ae4ce43392dc69526d1b",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "MEDICAL_EDUCATION_CONTENT",
+      "initial_score": 38,
+      "next_gate": "P0_MEDICAL_REVIEW"
+    },
+    {
+      "repository": "EVENTo0/empire-mobile-control-plane",
+      "audited_ref": "f8f0b122ff2faa48cd195e12a8e90d16a78520fc",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "MOBILE_COMMAND_CENTER",
+      "initial_score": null,
+      "next_gate": "PROTECT"
+    },
+    {
+      "repository": "EVENTo0/Evento-project-2",
+      "audited_ref": "c77e6d06721bf8da9036c79a6c393ff4d4e8a19d",
+      "role": "COMPANY_CORE",
+      "category": "LEGACY_EVENTO_WORKSPACE",
+      "initial_score": null,
+      "next_gate": "MERGE_ARCHIVE_REVIEW"
+    },
+    {
+      "repository": "EVENTo0/Smart-OS-Generate-Any-Project-From-Title",
+      "audited_ref": "2279c7fbc575164f4b7f3eb346c25c90a51cfab6",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "PROJECT_GENERATOR",
+      "initial_score": null,
+      "next_gate": "PROTECT"
+    },
+    {
+      "repository": "EVENTo0/Evento-project-development-v1",
+      "audited_ref": "e66a0513926c0bec00f79081f08ffea9ff9dc31d",
+      "role": "COMPANY_CORE",
+      "category": "ACQUISITION_DELIVERY_PATH",
+      "initial_score": null,
+      "next_gate": "PROTECT"
+    },
+    {
+      "repository": "EVENTo0/AEGIS-AI-Security",
+      "audited_ref": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "DEFENSIVE_SECURITY_TOOLKIT",
+      "initial_score": 72,
+      "next_gate": "PACKAGE_SAFE_FEATURE_SET"
+    },
+    {
+      "repository": "EVENTo0/Ev-Bot",
+      "audited_ref": "756c4b700af163252af75f29b6a4fe28a28fbe0f",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "AI_BOT_PLATFORM",
+      "initial_score": 84,
+      "next_gate": "PROVE_HOSTED_EXTERNAL_PAPER_E2E"
+    },
+    {
+      "repository": "EVENTo0/MiniBella",
+      "audited_ref": "eeca7c76154992133736db37e80a93ab9b9f3843",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVENT_SERVICE_PACKAGE",
+      "initial_score": 73,
+      "next_gate": "PATCH_SECURITY_AND_COMPLETE_PILOT_GATE"
+    },
+    {
+      "repository": "EVENTo0/OCTOPUS",
+      "audited_ref": "1b66f5cab6c737b25b2d5428d2e7fe1aec51875a",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "GAME",
+      "initial_score": 32,
+      "next_gate": "FINISH_ENGINE_VERTICAL_SLICE"
+    },
+    {
+      "repository": "EVENTo0/Evento-octa-v10",
+      "audited_ref": "259b18b54c988518477832dbbaeee0a3fec4e8a5",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "OWNER_ORCHESTRATION",
+      "initial_score": null,
+      "next_gate": "PROTECT"
+    },
+    {
+      "repository": "EVENTo0/OCTA-VOICE",
+      "audited_ref": "0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+      "role": "SHARED_CAPABILITY",
+      "category": "VOICE_LAB",
+      "initial_score": null,
+      "next_gate": "PROTECT_UNTIL_VOICE_LICENSE_GATE"
+    },
+    {
+      "repository": "EVENTo0/Evento-One",
+      "audited_ref": "e6d2e6a91ced6eb06ae0c5a276652496c4778954",
+      "role": "COMPANY_CORE",
+      "category": "CUSTOMER_SAAS",
+      "initial_score": null,
+      "next_gate": "COMMERCIAL_CORE_NOT_PACKAGE_EXTRACTION"
+    },
+    {
+      "repository": "EVENTo0/saeed-game",
+      "audited_ref": "7f26dc6a1d86d2085572b0ef7339fecd9bb1b81d",
+      "role": "DUPLICATE_MERGE",
+      "category": "SAEED_GAME_LEGACY",
+      "initial_score": 55,
+      "next_gate": "MERGE_INTO_GAME_1_SAEED_OCTA"
+    },
+    {
+      "repository": "EVENTo0/Game-1-Saeed-octa",
+      "audited_ref": "80da36e95274d372b1c7ddebf5d0d0717f298110",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "GAME_WEB_PACKAGE",
+      "initial_score": 82,
+      "next_gate": "CANONICALIZE_AND_PRODUCTIZE"
+    },
+    {
+      "repository": "EVENTo0/AithenaX",
+      "audited_ref": "bb861e94945e55cf3c6b560e753845422f7bbdb0",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "MARKET_INTELLIGENCE_SAAS",
+      "initial_score": 69,
+      "next_gate": "PATCH_SECURITY_AND_COMMERCIAL_BOUNDARY"
+    },
+    {
+      "repository": "EVENTo0/octa-xr-webar",
+      "audited_ref": "dbd9319a27291728b810f71b60c80b799daa8880",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "XR_EXPERIENCE_ENGINE",
+      "initial_score": 78,
+      "next_gate": "FIX_CI_THEN_HOSTED_BACKEND_DEVICE_PROOF"
+    },
+    {
+      "repository": "EVENTo0/Evx-Mawasem-wheel",
+      "audited_ref": "da5b42c13163f1f4881748627caf829a39436bf3",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "DATA_CONTENT_PWA",
+      "initial_score": 70,
+      "next_gate": "PATCH_SECURITY_AND_PACKAGE_DATA_BOUNDARY"
+    },
+    {
+      "repository": "EVENTo0/UAE-Seed-Dataset",
+      "audited_ref": "06f4f6290eed41fd249a25cafedbe2b10502caf0",
+      "role": "SHARED_DATA",
+      "category": "MAWASEM_EVIDENCE_DATASET",
+      "initial_score": null,
+      "next_gate": "PROTECT_VERIFIED_EXPORTS_ONLY"
+    },
+    {
+      "repository": "EVENTo0/EVENTO-MODURA",
+      "audited_ref": "529daa1d4a7ad2b8e6a0bc03992c15f9c3dd8455",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "PHYSICAL_DIGITAL_CONFIGURATOR",
+      "initial_score": 76,
+      "next_gate": "CLOSE_ORDER_PERSISTENCE_AND_ENGINEERING_BOUNDARY"
+    },
+    {
+      "repository": "EVENTo0/3D-Al-Dhafra-V1",
+      "audited_ref": "0cab4ff882c168bd339e4d04664aac36f10075ea",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "INTERACTIVE_HERITAGE_WORLD",
+      "initial_score": 68,
+      "next_gate": "CLOSE_UNITY_HANDOFF_AND_RELEASE_EVIDENCE"
+    }
+  ]
+}
