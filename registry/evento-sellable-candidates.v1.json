@@ -17,7 +17,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "CREATIVE_GAME_STUDIO",
       "initial_score": 35,
-      "next_gate": "AUDIT_IDENTITY"
+      "next_gate": "AUDIT_IDENTITY",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #2",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/Evx",
@@ -41,7 +46,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "EVEX_WELLNESS_MODULE",
       "initial_score": 58,
-      "next_gate": "MERGE_FIRST"
+      "next_gate": "MERGE_FIRST",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "security/next15-lts-20260928 / PR #3",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/evex-lab",
@@ -49,7 +59,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "EVEX_ANALYTICS_MODULE",
       "initial_score": 52,
-      "next_gate": "MERGE_FIRST"
+      "next_gate": "MERGE_FIRST",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "security/next15-lts-20260928 / PR #3",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/evex-fit",
@@ -57,7 +72,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "EVEX_FITNESS_MODULE",
       "initial_score": 58,
-      "next_gate": "MERGE_FIRST"
+      "next_gate": "MERGE_FIRST",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "security/next15-lts-20260928 / PR #3",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/evex-mobile",
@@ -105,7 +125,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "FAMILY_APP",
       "initial_score": 62,
-      "next_gate": "P0_PRIVACY_RELEASE"
+      "next_gate": "P0_PRIVACY_RELEASE",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #5",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/OCTORIMAL",
@@ -113,7 +138,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "GAME",
       "initial_score": 28,
-      "next_gate": "FINISH_VERTICAL_SLICE"
+      "next_gate": "FINISH_VERTICAL_SLICE",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #6",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/History-Med-1",
@@ -121,7 +151,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "MEDICAL_EDUCATION_CONTENT",
       "initial_score": 38,
-      "next_gate": "P0_MEDICAL_REVIEW"
+      "next_gate": "P0_MEDICAL_REVIEW",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #4",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/empire-mobile-control-plane",
@@ -161,7 +196,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "DEFENSIVE_SECURITY_TOOLKIT",
       "initial_score": 72,
-      "next_gate": "PACKAGE_SAFE_FEATURE_SET"
+      "next_gate": "PACKAGE_SAFE_FEATURE_SET",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #12",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/Ev-Bot",
@@ -169,7 +209,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "AI_BOT_PLATFORM",
       "initial_score": 84,
-      "next_gate": "PROVE_HOSTED_EXTERNAL_PAPER_E2E"
+      "next_gate": "PROVE_HOSTED_EXTERNAL_PAPER_E2E",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #12",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/MiniBella",
@@ -177,7 +222,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "EVENT_SERVICE_PACKAGE",
       "initial_score": 73,
-      "next_gate": "PATCH_SECURITY_AND_COMPLETE_PILOT_GATE"
+      "next_gate": "PATCH_SECURITY_AND_COMPLETE_PILOT_GATE",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #8",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/OCTOPUS",
@@ -185,7 +235,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "GAME",
       "initial_score": 32,
-      "next_gate": "FINISH_ENGINE_VERTICAL_SLICE"
+      "next_gate": "FINISH_ENGINE_VERTICAL_SLICE",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #3",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/Evento-octa-v10",
@@ -225,7 +280,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "GAME_WEB_PACKAGE",
       "initial_score": 82,
-      "next_gate": "CANONICALIZE_AND_PRODUCTIZE"
+      "next_gate": "CANONICALIZE_AND_PRODUCTIZE",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #1",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/AithenaX",
@@ -233,7 +293,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "MARKET_INTELLIGENCE_SAAS",
       "initial_score": 69,
-      "next_gate": "PATCH_SECURITY_AND_COMMERCIAL_BOUNDARY"
+      "next_gate": "PATCH_SECURITY_AND_COMMERCIAL_BOUNDARY",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #3",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/octa-xr-webar",
@@ -241,7 +306,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "XR_EXPERIENCE_ENGINE",
       "initial_score": 78,
-      "next_gate": "FIX_CI_THEN_HOSTED_BACKEND_DEVICE_PROOF"
+      "next_gate": "FIX_CI_THEN_HOSTED_BACKEND_DEVICE_PROOF",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "security/nextjs-20260929 / PR #1",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/Evx-Mawasem-wheel",
@@ -249,7 +319,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "DATA_CONTENT_PWA",
       "initial_score": 70,
-      "next_gate": "PATCH_SECURITY_AND_PACKAGE_DATA_BOUNDARY"
+      "next_gate": "PATCH_SECURITY_AND_PACKAGE_DATA_BOUNDARY",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #13",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/UAE-Seed-Dataset",
@@ -265,7 +340,12 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "PHYSICAL_DIGITAL_CONFIGURATOR",
       "initial_score": 76,
-      "next_gate": "CLOSE_ORDER_PERSISTENCE_AND_ENGINEERING_BOUNDARY"
+      "next_gate": "CLOSE_ORDER_PERSISTENCE_AND_ENGINEERING_BOUNDARY",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #4",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     },
     {
       "repository": "EVENTo0/3D-Al-Dhafra-V1",
@@ -273,7 +353,19 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "INTERACTIVE_HERITAGE_WORLD",
       "initial_score": 68,
-      "next_gate": "CLOSE_UNITY_HANDOFF_AND_RELEASE_EVIDENCE"
+      "next_gate": "CLOSE_UNITY_HANDOFF_AND_RELEASE_EVIDENCE",
+      "manifest_applied": true,
+      "manifest_path": ".evento/product-manifest.v1.json",
+      "manifest_ref": "productization/evento-package-v1 / PR #2",
+      "sellable": false,
+      "lifecycle_state": "BLOCKED_P0"
     }
-  ]
+  ],
+  "summary": {
+    "total_repositories": 34,
+    "sellable_candidates": 17,
+    "manifests_applied": 17,
+    "sellable_now": 0,
+    "rule": "No candidate is SELLABLE while any P0/mandatory-gate/evidence gap remains."
+  }
 }
