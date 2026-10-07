@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "generated_from": "EVENTO Productization Governor v1",
+  "projects": [
+    {
+      "id": "saeed-royale-web-v1",
+      "name": "SAEED ROYALE",
+      "status": "for-sale",
+      "category": "Arabic-first customizable web game",
+      "price": "Custom Quote · AED",
+      "previewUrl": "https://saeed-royale.vercel.app",
+      "updatedAt": "2026-10-07",
+      "sku": "SAEED-ROYALE-WEB-V1",
+      "repository": "EVENTo0/Game-1-Saeed-octa",
+      "sourceRef": "c70c43c641565253e68b3a8a2382efb92c840695",
+      "readinessScore": 96,
+      "p0": 0,
+      "p1": 0,
+      "lifecycleState": "SELLABLE",
+      "deliveryModel": "Build → Customize → Deploy → Handoff → Customer Owns & Operates",
+      "evidence": {
+        "sellableVerificationRun": 37628207185,
+        "productionDeployment": "dpl_B9BxVztMK9Wfco2j4rhDoKyguHCS",
+        "productionStatus": "READY"
+      }
+    }
+  ]
+}
