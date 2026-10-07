@@ -30,3 +30,19 @@ Release remains fail-closed:
 A development artifact can prove that the build lane works. It cannot authorize release. Any later release must provide new signed-artifact evidence and pass the separate Release Readiness and Release Approval contracts.
 
 PR #28 can be reviewed for merge as a control-plane implementation while Production Release remains disabled.
+
+
+## Signing Evidence Gate
+
+Signed release-candidate artifacts are verified by a separate workflow that **does not receive signing secrets**.
+
+`.github/workflows/evento-signing-evidence.yml` accepts a successful source workflow run ID, downloads the already-signed candidate artifact, reruns platform-native signature verification, resolves the source run's Git SHA from GitHub, and produces a machine-readable `signing-evidence.json`.
+
+The manifest records source SHA, source run ID, verification method, artifact type, byte size, and SHA-256 while enforcing:
+- `verified=true`;
+- `signed=true` for every artifact;
+- `release_authority=false`.
+
+Android evidence must contain both a signed APK and signed AAB. Windows evidence must contain both a signed MSI and signed NSIS/EXE.
+
+This verifier has read-only GitHub permissions and contains no Play upload, GitHub Release publication, Vercel production promotion, or rollback action.
