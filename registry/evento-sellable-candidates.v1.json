@@ -309,19 +309,19 @@
     },
     {
       "repository": "EVENTo0/Game-1-Saeed-octa",
-      "audited_ref": "80da36e95274d372b1c7ddebf5d0d0717f298110",
+      "audited_ref": "acfd9fcd127c5b02e1101d8372a7816063c2b02e",
       "role": "SELLABLE_CANDIDATE",
       "category": "GAME_WEB_PACKAGE",
       "initial_score": 82,
-      "next_gate": "CANONICALIZE_AND_PRODUCTIZE",
+      "next_gate": "PASS_FINAL_COMMERCIAL_HANDOFF_VERIFIER_THEN_PROMOTE",
       "manifest_applied": true,
       "manifest_path": ".evento/product-manifest.v1.json",
       "manifest_ref": "productization/evento-package-v1 / PR #1",
       "sellable": false,
-      "lifecycle_state": "BLOCKED_P0",
-      "current_score": 82,
-      "p0_count": 1,
-      "p1_count": 3
+      "lifecycle_state": "PRODUCTIZED",
+      "current_score": 90,
+      "p0_count": 0,
+      "p1_count": 1
     },
     {
       "repository": "EVENTo0/AithenaX",
