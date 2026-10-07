@@ -233,15 +233,15 @@
       "role": "SELLABLE_CANDIDATE",
       "category": "AI_BOT_PLATFORM",
       "initial_score": 84,
-      "next_gate": "PROVE_HOSTED_EXTERNAL_PAPER_E2E",
+      "next_gate": "RUN_REAL_CUSTOMER_OWNED_GATE11H_EXTERNAL_PAPER_E2E",
       "manifest_applied": true,
       "manifest_path": ".evento/product-manifest.v1.json",
-      "manifest_ref": "productization/evento-package-v1 / PR #12",
+      "manifest_ref": "ui/sellable-console-v1 / PR #16",
       "sellable": false,
       "lifecycle_state": "BLOCKED_P0",
-      "current_score": 84,
+      "current_score": 90,
       "p0_count": 1,
-      "p1_count": 3
+      "p1_count": 0
     },
     {
       "repository": "EVENTo0/MiniBella",
@@ -420,8 +420,10 @@
     "rule": "No candidate is SELLABLE while any P0/mandatory-gate/evidence gap remains.",
     "highest_readiness": {
       "repository": "EVENTo0/Ev-Bot",
-      "score": 84,
-      "lifecycle_state": "BLOCKED_P0"
+      "score": 90,
+      "lifecycle_state": "BLOCKED_P0",
+      "p0": 1,
+      "p1": 0
     }
   }
 }
