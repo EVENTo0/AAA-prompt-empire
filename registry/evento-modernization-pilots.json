@@ -70,7 +70,7 @@
         "memory",
         "evidence"
       ],
-      "status": "green-awaiting-independent-review",
+      "status": "reviewed-ready-for-merge",
       "pilot_pr": "EVENTo0/evento-mobile#12",
       "pilot_head": "2e2cfe5ad0eadcf07873f3f4309d19a76bbf6591",
       "evidence": {
@@ -79,11 +79,16 @@
         "conclusion": "success"
       },
       "remaining_gates": [
-        "independent review before merge",
+        "owner merge decision for PR #12",
         "configured hosted Mobile to ONE Auth/tenant journey",
         "physical-device AR/EN lifecycle/logout acceptance",
         "signing evidence and separate owner approval before store release"
-      ]
+      ],
+      "review": {
+        "type": "independent-control-plane-review",
+        "review_id": "5442903884",
+        "result": "no-blocking-issues"
+      }
     }
   ]
 }
