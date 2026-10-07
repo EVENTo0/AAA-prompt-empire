@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evento.local/schemas/evento-product-manifest-readiness-v1.schema.json",
+  "title": "EVENTO Product Manifest + Readiness Schema v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "identity",
+    "classification",
+    "product",
+    "deployment",
+    "customer_ownership",
+    "support_boundary",
+    "readiness",
+    "evidence",
+    "decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "identity": {
+      "type": "object",
+      "required": [
+        "project_id",
+        "name",
+        "canonical_repository",
+        "canonical_ref"
+      ]
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "role",
+        "product_type",
+        "category",
+        "commercial_model",
+        "duplicate_merge_decision"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "SELLABLE_CANDIDATE",
+            "COMPANY_CORE",
+            "INTERNAL_CONTROL_PLANE",
+            "SHARED_CAPABILITY",
+            "SHARED_DATA",
+            "DUPLICATE_MERGE",
+            "CONCEPT_ONLY"
+          ]
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": [
+        "target_segment",
+        "value_proposition",
+        "repeatable_core",
+        "configurable_options",
+        "private_exclusions"
+      ]
+    },
+    "deployment": {
+      "type": "object",
+      "required": [
+        "mode",
+        "hosting",
+        "domain_plan",
+        "release_path",
+        "rollback_path"
+      ]
+    },
+    "customer_ownership": {
+      "type": "object",
+      "required": [
+        "isolated",
+        "customer_owns_domain",
+        "customer_owns_data",
+        "customer_owns_secrets",
+        "customer_admin",
+        "evento_private_dependencies"
+      ]
+    },
+    "support_boundary": {
+      "type": "object",
+      "required": [
+        "default_delivery_model",
+        "allowed_post_sale",
+        "daily_business_management"
+      ],
+      "properties": {
+        "default_delivery_model": {
+          "const": "Build → Customize → Deploy → Handoff → Customer Owns & Operates"
+        },
+        "daily_business_management": {
+          "const": false
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "score",
+        "p0",
+        "p1",
+        "lifecycle_state",
+        "gates"
+      ],
+      "properties": {
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "p0": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "p1": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lifecycle_state": {
+          "enum": [
+            "AUDITING",
+            "BLOCKED_P0",
+            "FIXING",
+            "TECHNICALLY_COMPLETE",
+            "SECURITY_VERIFIED",
+            "DEPLOYABLE",
+            "PRODUCTIZED",
+            "CUSTOMER_ISOLATED",
+            "HANDOFF_READY",
+            "COMMERCIAL_READY",
+            "SELLABLE",
+            "CATALOG_PUBLISHED"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "ref",
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "BLOCKED",
+              "UNVERIFIED",
+              "IN_PROGRESS"
+            ]
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "sellable",
+        "reason",
+        "next_action"
+      ]
+    }
+  }
+}
