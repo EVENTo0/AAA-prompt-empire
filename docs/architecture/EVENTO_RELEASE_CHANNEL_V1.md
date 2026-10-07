@@ -92,4 +92,8 @@ Currently prebound:
 - `evento-admin-android` → Android application ID `ae.evento.admin`;
 - `aaa-empire` → GitHub repository `EVENTo0/AAA-prompt-empire`.
 
-All three remain `binding_verified=false` for the external release channel until provider/credential and destination evidence is captured.
+EVENTO ONE is now `binding_verified=true` because the connected Vercel account independently confirmed the exact Team / Vercel Project / GitHub repository mapping. This closes only the destination-binding evidence gap.
+
+Android and desktop release channels remain `binding_verified=false` until provider/distributor evidence is captured.
+
+The EVENTO ONE channel itself is still `enabled=false`, the web-production channel type is still `enabled=false`, and global `external_release=false`; therefore this verified binding grants no release authority.

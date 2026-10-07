@@ -105,9 +105,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
-          jarsigner -verify -strict -verbose app/build/outputs/bundle/release/app-release.aab >/dev/null
+          "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk | tee release-apk-signature.txt
+          jarsigner -verify -strict -verbose -certs app/build/outputs/bundle/release/app-release.aab | tee release-aab-signature.txt >/dev/null
           sha256sum app/build/outputs/apk/release/app-release.apk app/build/outputs/bundle/release/app-release.aab | tee release-sha256.txt
+      - name: Build signing evidence manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ../../scripts/release/build_signing_evidence.py \
+            --platform android \
+            --workflow "EVENTO Admin Android" \
+            --verification-method "apksigner+jarsigner" \
+            --out release-signing-evidence.json \
+            app/build/outputs/apk/release/app-release.apk \
+            app/build/outputs/bundle/release/app-release.aab
+          python ../../scripts/release/validate_signing_evidence.py release-signing-evidence.json
       - name: Upload signed Android handoff artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -116,5 +128,8 @@ jobs:
             apps/evento-admin-android/app/build/outputs/apk/release/app-release.apk
             apps/evento-admin-android/app/build/outputs/bundle/release/app-release.aab
             apps/evento-admin-android/release-sha256.txt
+            apps/evento-admin-android/release-apk-signature.txt
+            apps/evento-admin-android/release-aab-signature.txt
+            apps/evento-admin-android/release-signing-evidence.json
           if-no-files-found: error
           retention-days: 14

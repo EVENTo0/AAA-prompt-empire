@@ -29,7 +29,12 @@ REQUIRED = [
     "registry/evento-release-evidence.json",
     "docs/release/EVENTO_RELEASE_EVIDENCE_V1.md",
     "registry/evento-release-channels.json",
+    "registry/evento-release-channel-evidence.json",
     "docs/architecture/EVENTO_RELEASE_CHANNEL_V1.md",
+    "schemas/evento-signing-evidence.schema.json",
+    "scripts/release/build_signing_evidence.py",
+    "scripts/release/validate_signing_evidence.py",
+    ".github/workflows/evento-signing-evidence.yml",
 ]
 
 MEMORY_TYPES = {"fact","decision","lesson","pattern","anti_pattern","rule","source_claim","asset_knowledge"}
@@ -291,17 +296,36 @@ def validate_release_channels(errors: list[str]) -> None:
         fail(errors, "desktop signing secret contract drifted")
 
     projects = channels.get("projects", {})
+    channel_evidence = load("registry/evento-release-channel-evidence.json")
+    evidence_by_id = {item.get("id"): item for item in channel_evidence.get("evidence", [])}
+
     for project_id, project in projects.items():
         if project.get("enabled") is not False:
             fail(errors, f"{project_id}: project release channel must remain disabled")
-        if project.get("binding_verified") is not False:
-            fail(errors, f"{project_id}: binding cannot be verified without external evidence")
         channel_id = project.get("channel_id")
         descriptor = project.get("binding_descriptor", {})
         if channel_id is not None and not isinstance(channel_id, str):
             fail(errors, f"{project_id}: channel_id must be null or a string")
         if channel_id and not descriptor:
             fail(errors, f"{project_id}: configured channel_id requires a binding descriptor")
+
+        if project.get("binding_verified") is True:
+            evidence_id = project.get("binding_evidence_id")
+            evidence = evidence_by_id.get(evidence_id)
+            if not evidence or evidence.get("verified") is not True:
+                fail(errors, f"{project_id}: verified binding requires verified evidence")
+            elif evidence.get("release_authority") is not False:
+                fail(errors, f"{project_id}: binding evidence must not grant release authority")
+            else:
+                if evidence.get("project_id") != project_id:
+                    fail(errors, f"{project_id}: binding evidence project_id mismatch")
+                if evidence.get("channel_id") != channel_id:
+                    fail(errors, f"{project_id}: binding evidence channel_id mismatch")
+                provider = descriptor.get("provider")
+                if provider and evidence.get("provider") != provider:
+                    fail(errors, f"{project_id}: binding evidence provider mismatch")
+        elif project.get("binding_evidence_id"):
+            fail(errors, f"{project_id}: unverified binding must not reference verified evidence")
 
     known = {
         "evento-one": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
@@ -351,6 +375,83 @@ def validate_release_channels(errors: list[str]) -> None:
             fail(errors, f"release-candidate workflow contains external publish marker: {publish_marker}")
 
 
+
+def validate_signing_evidence_gate(errors: list[str]) -> None:
+    schema = load("schemas/evento-signing-evidence.schema.json")
+    required = set(schema.get("required", []))
+    expected_required = {
+        "version", "platform", "source_sha", "workflow",
+        "run_id", "verified", "release_authority", "artifacts"
+    }
+    if not expected_required <= required:
+        fail(errors, "signing evidence schema missing required fields")
+    props = schema.get("properties", {})
+    if props.get("verified", {}).get("const") is not True:
+        fail(errors, "signing evidence must require verified=true")
+    if props.get("release_authority", {}).get("const") is not False:
+        fail(errors, "signing evidence must never grant release authority")
+
+    workflow = (ROOT / ".github/workflows/evento-signing-evidence.yml").read_text(encoding="utf-8")
+    required_markers = (
+        "source_run_id",
+        "actions/download-artifact@v5",
+        "evento-admin-android-signed-release-candidate",
+        "evento-desktop-windows-signed-release-candidate",
+        "apksigner",
+        "jarsigner -verify",
+        "signtool",
+        "build_signing_evidence.py",
+        "validate_signing_evidence.py",
+        "evento-signing-evidence-android",
+        "evento-signing-evidence-windows",
+    )
+    for marker_text in required_markers:
+        if marker_text not in workflow:
+            fail(errors, f"signing evidence workflow missing marker: {marker_text}")
+
+    forbidden = (
+        "googleapis.com/androidpublisher",
+        "gh release create",
+        "vercel --prod",
+        "/promote/",
+        "/rollback/",
+    )
+    lower = workflow.lower()
+    for marker_text in forbidden:
+        if marker_text in lower:
+            fail(errors, f"signing evidence verifier must not publish or promote: {marker_text}")
+
+    good = {
+        "version": 1,
+        "platform": "android",
+        "source_sha": "a" * 40,
+        "workflow": "test",
+        "run_id": "1",
+        "verified": True,
+        "release_authority": False,
+        "verification_method": "test",
+        "artifacts": [
+            {"path": "app.apk", "artifact_type": "apk", "bytes": 1, "sha256": "b" * 64, "signed": True},
+            {"path": "app.aab", "artifact_type": "aab", "bytes": 1, "sha256": "c" * 64, "signed": True},
+        ],
+    }
+    bad = dict(good)
+    bad["release_authority"] = True
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        good_path = root / "good.json"
+        bad_path = root / "bad.json"
+        good_path.write_text(json.dumps(good), encoding="utf-8")
+        bad_path.write_text(json.dumps(bad), encoding="utf-8")
+        validator = ROOT / "scripts/release/validate_signing_evidence.py"
+        proc = subprocess.run([sys.executable, str(validator), str(good_path)], cwd=ROOT, text=True, capture_output=True)
+        if proc.returncode != 0:
+            fail(errors, "valid signing evidence fixture was rejected")
+        proc_bad = subprocess.run([sys.executable, str(validator), str(bad_path)], cwd=ROOT, text=True, capture_output=True)
+        if proc_bad.returncode == 0:
+            fail(errors, "signing evidence validator accepted release authority")
+
 def validate_sql_guardrails(errors: list[str]) -> None:
     sql = (ROOT / "supabase/migrations/20261001190000_evento_memory_v1.sql").read_text(encoding="utf-8").lower()
     for table in ("evento_memory_items","evento_memory_evidence"):
@@ -371,6 +472,7 @@ def main() -> int:
         validate_context_builder(errors)
         validate_release_evidence(errors)
         validate_release_channels(errors)
+        validate_signing_evidence_gate(errors)
         validate_sql_guardrails(errors)
 
     if errors:

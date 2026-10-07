@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "evidence": [
+    {
+      "id": "evento-one-vercel-binding-2026-10-07",
+      "project_id": "evento-one",
+      "channel_type": "web-production",
+      "provider": "vercel",
+      "channel_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
+      "repository": "EVENTo0/Evento-One",
+      "verified": true,
+      "verified_at": "2026-10-07T00:00:00Z",
+      "source": "connected-provider-context",
+      "release_authority": false
+    }
+  ]
+}

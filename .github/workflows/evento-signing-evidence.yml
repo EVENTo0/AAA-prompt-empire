@@ -1,0 +1,165 @@
+name: EVENTO Signing Evidence Verify
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Signed candidate platform'
+        required: true
+        type: choice
+        options:
+          - android
+          - windows
+      source_run_id:
+        description: 'Workflow run ID that produced the signed candidate artifact'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  resolve-source:
+    runs-on: ubuntu-latest
+    outputs:
+      head_sha: ${{ steps.meta.outputs.head_sha }}
+    steps:
+      - name: Resolve signed source run
+        id: meta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          run_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}")"
+          conclusion="$(printf '%s' "${run_json}" | jq -r '.conclusion // ""')"
+          head_sha="$(printf '%s' "${run_json}" | jq -r '.head_sha // ""')"
+          if [ "${conclusion}" != "success" ]; then
+            echo "::error::Source run must have conclusion=success"
+            exit 1
+          fi
+          if ! printf '%s' "${head_sha}" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::Source run head SHA is invalid"
+            exit 1
+          fi
+          echo "head_sha=${head_sha}" >> "${GITHUB_OUTPUT}"
+
+  android-evidence:
+    if: inputs.platform == 'android'
+    needs: resolve-source
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+      - name: Install Android signature verifier
+        run: sdkmanager "build-tools;36.0.0"
+      - uses: actions/download-artifact@v5
+        with:
+          name: evento-admin-android-signed-release-candidate
+          path: signed
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify Android signatures
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find signed -type f -name '*.apk' -print -quit)"
+          aab="$(find signed -type f -name '*.aab' -print -quit)"
+          test -n "${apk}" && test -n "${aab}"
+          "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --verbose --print-certs "${apk}" | tee android-apk-signature.txt
+          jarsigner -verify -strict -verbose -certs "${aab}" | tee android-aab-signature.txt >/dev/null
+          echo "apk=${apk}" >> "${GITHUB_OUTPUT}"
+          echo "aab=${aab}" >> "${GITHUB_OUTPUT}"
+      - name: Build and validate Android signing evidence
+        env:
+          SOURCE_SHA: ${{ needs.resolve-source.outputs.head_sha }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          python scripts/release/build_signing_evidence.py \
+            --platform android \
+            --workflow "EVENTO Admin Android" \
+            --verification-method "apksigner+jarsigner" \
+            --source-sha "${SOURCE_SHA}" \
+            --source-run-id "${SOURCE_RUN_ID}" \
+            --out signing-evidence.json \
+            "${{ steps.verify.outputs.apk }}" \
+            "${{ steps.verify.outputs.aab }}"
+          python scripts/release/validate_signing_evidence.py signing-evidence.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evento-signing-evidence-android
+          path: |
+            signing-evidence.json
+            android-apk-signature.txt
+            android-aab-signature.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-evidence:
+    if: inputs.platform == 'windows'
+    needs: resolve-source
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v5
+        with:
+          name: evento-desktop-windows-signed-release-candidate
+          path: signed
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify Windows signatures
+        id: verify
+        shell: pwsh
+        run: |
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $signtool) { throw "signtool.exe not found" }
+          $msi = Get-ChildItem signed -Recurse -File -Filter *.msi | Select-Object -First 1
+          $exe = Get-ChildItem signed -Recurse -File -Filter *.exe | Select-Object -First 1
+          if (-not $msi -or -not $exe) { throw "Signed MSI/NSIS artifacts are required" }
+          $verification = New-Object System.Collections.Generic.List[string]
+          foreach ($file in @($msi, $exe)) {
+            $output = & $signtool.FullName verify /pa /v $file.FullName 2>&1
+            if ($LASTEXITCODE -ne 0) { throw "Signature verification failed: $($file.FullName)" }
+            $verification.Add("=== $($file.FullName) ===")
+            $verification.Add(($output -join [Environment]::NewLine))
+          }
+          $verification | Set-Content windows-signature-verification.txt
+          "msi=$($msi.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "exe=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - name: Build and validate Windows signing evidence
+        shell: pwsh
+        env:
+          SOURCE_SHA: ${{ needs.resolve-source.outputs.head_sha }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          python scripts/release/build_signing_evidence.py --platform windows --workflow "EVENTO Desktop Shell" --verification-method "Authenticode-signtool" --source-sha $env:SOURCE_SHA --source-run-id $env:SOURCE_RUN_ID --out signing-evidence.json "${{ steps.verify.outputs.msi }}" "${{ steps.verify.outputs.exe }}"
+          if ($LASTEXITCODE -ne 0) { throw "Signing evidence build failed" }
+          python scripts/release/validate_signing_evidence.py signing-evidence.json
+          if ($LASTEXITCODE -ne 0) { throw "Signing evidence validation failed" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evento-signing-evidence-windows
+          path: |
+            signing-evidence.json
+            windows-signature-verification.txt
+          if-no-files-found: error
+          retention-days: 30
