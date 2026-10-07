@@ -36,3 +36,5 @@ jobs:
         run: npm run typecheck
       - name: Production build
         run: npm run build
+      - name: Isolated production HTTP auth smoke
+        run: python tests/continuity-http-smoke.py

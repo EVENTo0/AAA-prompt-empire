@@ -12,7 +12,17 @@ The dashboard's `data/evento-continuity.v1.json` is an exact build-time mirror. 
 
 Select project → select Codex/Claude Code/Antigravity → prepare next task → copy prompt or download Task + Context → execute on an authorized isolated workspace → return Evidence Pack → independently verify → checkpoint → one next action.
 
-The context compiler is pure and grants no execution rights. Existing privileged routes, allowed actions, confirmation tokens, auth, Memory tables and release policies are unchanged. The new panel is mounted only after the existing authenticated page guard. It makes no provider mutation and stores no client-side credentials. Runner attachment, hosted authentication/tenant proof, device acceptance and signing remain separate open gates.
+The context compiler is pure and grants no execution rights. Existing execution routes, allowed actions, auth, Memory tables and release policies are unchanged. The panel is mounted only after the existing authenticated page guard and stores no client-side credentials. Runner attachment, hosted authentication/tenant proof, device acceptance and signing remain separate open gates.
+
+## Private draft journal
+
+The authenticated `GET/POST /api/evento/continuity/drafts` bridge lets the operator persist the prepared Task/Context/prompt to a private owner GitHub repository. `CONTROL_PLANE_ENABLE_WRITES=true`, `EVENTO_CONTINUITY_DRAFTS_ENABLED=true`, a server-only token and explicit `EVENTO_CONTINUITY_TASK_REPOSITORY` are all required. Defaults remain disabled. Scope the token to repository metadata read and Issues read/write. The endpoint checks the repository's actual `private` flag and exact full name before writing; there is no public fallback or default destination.
+
+The browser sends only canonical project/adapter/task IDs and explicit save confirmation. The server regenerates the handoff from its source snapshot; it rejects arbitrary objectives, targets, release flags, extra fields, oversized bodies, unknown adapters/projects and cross-origin requests. The issue title is `[EVENTO CONTINUITY][DRAFT]`, the task remains `planning`, and execution remains `handoff-only`. Existing approved-task runners cannot mistake this title/envelope for execution approval. This is a draft journal, not a new execution engine or customer database.
+
+Recent repeated saves reuse an exact matching draft among the newest 100 issues; same-instance concurrent saves are coalesced. This is not distributed exactly-once delivery: separate server instances or older issues outside that window can duplicate a draft. After an ambiguous provider failure, inspect the journal by task ID before retrying. No automatic POST retries occur. Supabase authoritative memory, hosted wiring and real device/browser acceptance remain separate gates.
+
+Verify auth/origin/default-deny, privacy denial, canonical persistence, retry/conflict/concurrency and sanitized failure responses using `tests/continuity-drafts.test.mjs`. Tests inject provider transport. After building, `python tests/continuity-http-smoke.py` starts a temporary real Next production server with ephemeral auth secrets, proves login/401/403 and disabled writes over HTTP, and always stops its own server. CI runs this smoke after the build. Actual hosted private-repository write proof must be obtained after approved environment configuration. The standalone phone snapshot stays export-only until the authenticated app is hosted; its publication does not enable this endpoint.
 
 ## Authority
 

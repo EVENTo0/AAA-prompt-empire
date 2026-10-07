@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import snapshot from '@/data/evento-continuity.v1.json'
 import { createContinuityHandoff } from '@/lib/continuity-handoff.mjs'
 
@@ -19,6 +19,17 @@ export default function ContinuityPanel() {
   const [adapter, setAdapter] = useState('codex')
   const [handoff, setHandoff] = useState<ReturnType<typeof createContinuityHandoff> | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [journalEnabled, setJournalEnabled] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
+  const [savedIssue, setSavedIssue] = useState<{ url: string; taskId: string } | null>(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/evento/continuity/drafts', { cache: 'no-store', signal: controller.signal })
+      .then(async response => { if (response.ok) setJournalEnabled((await response.json()).enabled === true) })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
   const projects = useMemo(() => snapshot.projects.filter((p) => {
     const match = `${p.name} ${p.role} ${p.next_action}`.toLowerCase().includes(query.toLowerCase())
     return match && (group === 'all' || (group === 'candidates' ? p.role === 'SELLABLE_CANDIDATE' : group === 'ideas' ? !p.repository : ['COMPANY_CORE', 'INTERNAL_CONTROL_PLANE', 'SHARED_CAPABILITY', 'SHARED_DATA'].includes(p.role)))
@@ -26,6 +37,23 @@ export default function ContinuityPanel() {
   const prepare = () => {
     setHandoff(createContinuityHandoff(snapshot, projectId, adapter, `CONT-${crypto.randomUUID()}`))
     setFeedback('المهمة جاهزة للتسليم. التنفيذ يبدأ داخل الوكيل المتصل بعد فحص المصدر.')
+    setConfirmed(false); setSavedIssue(null)
+  }
+  async function saveDraft() {
+    if (!handoff || !confirmed || saving || !journalEnabled) return
+    const taskId = String(handoff.task.task_id)
+    setSaving(true)
+    try {
+      const response = await fetch('/api/evento/continuity/drafts', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-empire-action': '1' },
+        body: JSON.stringify({ projectId: handoff.context.project_id, adapter: (handoff.task.preferred_agents as string[])[0], taskId, confirmation: 'save_continuity_draft' }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error('save-failed')
+      setSavedIssue({ url: result.issue.url, taskId })
+      setFeedback('حُفظت مسودة المهمة في السجل الخاص. لم يبدأ التنفيذ.')
+    } catch { setFeedback('تعذر تأكيد الحفظ. افحص السجل الخاص قبل المحاولة مجددًا؛ يمكنك تنزيل الحزمة الآن.') }
+    finally { setSaving(false) }
   }
   async function copy() {
     if (!handoff) return
@@ -41,7 +69,18 @@ export default function ContinuityPanel() {
       <label>وكيل التسليم<select value={adapter} onChange={e => { setAdapter(e.target.value); setHandoff(null) }}><option value="codex">Codex</option><option value="claude-code">Claude Code</option><option value="antigravity">Antigravity</option></select></label>
       <button className="primaryButton" onClick={prepare}>تجهيز المهمة التالية</button>
     </div>
-    {handoff ? <div className="continuityHandoff"><div className="continuityActions"><button onClick={copy}>نسخ البرومت</button><button onClick={() => download(`${projectId}-handoff.json`, handoff)}>تنزيل Task + Context</button><button onClick={() => download(`${projectId}-prompt.md`, handoff.prompt)}>تنزيل البرومت</button></div><details><summary>عرض عقد المهمة</summary><pre dir="ltr">{handoff.prompt}</pre></details></div> : null}
+    {handoff ? <div className="continuityHandoff">
+      <div className="continuityActions"><button onClick={copy}>نسخ البرومت</button><button onClick={() => download(`${projectId}-handoff.json`, handoff)}>تنزيل Task + Context</button><button onClick={() => download(`${projectId}-prompt.md`, handoff.prompt)}>تنزيل البرومت</button></div>
+      <div className="continuityDraft">
+        {journalEnabled ? <>
+          <label><input type="checkbox" checked={confirmed} disabled={saving} onChange={e => setConfirmed(e.target.checked)} />أوافق على حفظ هذه المهمة كمسودة في سجل GitHub الخاص</label>
+          <button disabled={!confirmed || saving || savedIssue?.taskId === handoff.task.task_id} onClick={saveDraft}>{saving ? 'جارٍ حفظ المسودة…' : 'حفظ المهمة في السجل الخاص'}</button>
+        </> : <p>السجل الخاص غير موصول أو الحفظ معطّل. احتفظ بحزمة المهمة بالتنزيل حاليًا.</p>}
+        {savedIssue && savedIssue.taskId === handoff.task.task_id ? <a href={savedIssue.url} target="_blank" rel="noreferrer">فتح المهمة المحفوظة في GitHub</a> : null}
+        <p>المسودة تحفظ المصدر والسياق والبرومت. تشغيل الوكيل يحتاج مسار اعتماد وتنفيذ منفصلًا.</p>
+      </div>
+      <details><summary>عرض عقد المهمة</summary><pre dir="ltr">{handoff.prompt}</pre></details>
+    </div> : null}
     <p role="status" aria-live="polite" className="continuityFeedback">{feedback}</p>
     <div className="continuityFilters"><label>بحث<input value={query} onChange={e => setQuery(e.target.value)} placeholder="اسم المشروع أو الخطوة" type="search" /></label><label>العرض<select value={group} onChange={e => setGroup(e.target.value)}><option value="all">الكل</option><option value="candidates">مرشحو البيع</option><option value="protected">الشركة والقدرات الداخلية</option><option value="ideas">المراجع والأفكار</option></select></label><button onClick={() => download('EVENTO-current-state.json', snapshot)}>تنزيل سجل الحالة</button></div>
     <div className="continuityGrid">{projects.map(project => <article className="continuityCard" key={project.id}>
