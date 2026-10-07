@@ -20,7 +20,14 @@
         "memory",
         "evidence"
       ],
-      "status": "pending-isolated-branch"
+      "status": "merged-green",
+      "pilot_pr": "EVENTo0/Evento-project-development-v1#19",
+      "merged_revision": "e66a0513926c0bec00f79081f08ffea9ff9dc31d",
+      "evidence": {
+        "workflow": "EVENTO Control Plane Pilot",
+        "run_id": "37270087383",
+        "conclusion": "success"
+      }
     },
     {
       "project_id": "evento-one",
@@ -35,15 +42,20 @@
         "memory",
         "evidence"
       ],
-      "status": "contract-packs-added",
+      "status": "merged-green",
       "pilot_pr": "EVENTo0/Evento-One#9",
-      "pilot_head": "fa267a5820a57785da875a518c2f5ab28b4bc406",
+      "merged_revision": "e6d2e6a91ced6eb06ae0c5a276652496c4778954",
       "contract_packs": [
         "project",
         "task",
         "evidence",
         "memory-policy"
-      ]
+      ],
+      "evidence": {
+        "pilot_run_id": "37294262026",
+        "verification_run_id": "37294262157",
+        "conclusion": "success"
+      }
     },
     {
       "project_id": "evento-mobile",
@@ -58,7 +70,33 @@
         "memory",
         "evidence"
       ],
-      "status": "pending-isolated-branch"
+      "status": "merged-green",
+      "pilot_pr": "EVENTo0/evento-mobile#12",
+      "pilot_head": "2e2cfe5ad0eadcf07873f3f4309d19a76bbf6591",
+      "evidence": {
+        "pilot_pr_run_id": "37423601932",
+        "verification_pr_run_id": "37423601921",
+        "post_merge_pilot_run_id": "37688495428",
+        "conclusion": "success"
+      },
+      "remaining_gates": [
+        "dispatch configured EVENTO Mobile ONE Preview Build",
+        "complete hosted Mobile to ONE Auth/tenant proof",
+        "physical-device D1-D12 acceptance",
+        "signing evidence and separate owner approval before store release"
+      ],
+      "review": {
+        "type": "independent-control-plane-review",
+        "review_id": "5442903884",
+        "result": "no-blocking-issues"
+      },
+      "merged_revision": "06767e6dcc881360efff76faa8392d5e73482ab1",
+      "hosted_device_gate": {
+        "pr": "EVENTo0/evento-mobile#13",
+        "merged_revision": "fb96a00e4e57b07bfb1f2c21ecc35a2adba08f66",
+        "verification_run_id": "37586663813",
+        "conclusion": "success"
+      }
     }
   ]
 }
