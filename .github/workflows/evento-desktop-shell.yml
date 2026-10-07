@@ -98,6 +98,9 @@ jobs:
         with:
           name: evento-desktop-windows
           path: unsigned
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
       - name: Materialize signing certificate
         shell: pwsh
         run: |
@@ -113,13 +116,22 @@ jobs:
           if (-not $signtool) { throw "signtool.exe not found" }
           $files = Get-ChildItem unsigned -Recurse -File | Where-Object { $_.Extension -in '.msi', '.exe' }
           if (-not $files) { throw "No MSI/NSIS artifacts found" }
+          $verification = New-Object System.Collections.Generic.List[string]
           foreach ($file in $files) {
             & $signtool.FullName sign /fd SHA256 /f $env:EVENTO_WINDOWS_PFX_PATH /p $env:EVENTO_WINDOWS_PFX_PASSWORD /tr http://timestamp.digicert.com /td SHA256 $file.FullName
             if ($LASTEXITCODE -ne 0) { throw "Signing failed: $($file.FullName)" }
-            & $signtool.FullName verify /pa /v $file.FullName
+            $verifyOutput = & $signtool.FullName verify /pa /v $file.FullName 2>&1
             if ($LASTEXITCODE -ne 0) { throw "Signature verification failed: $($file.FullName)" }
+            $verification.Add("=== $($file.FullName) ===")
+            $verification.Add(($verifyOutput -join [Environment]::NewLine))
           }
+          $verification | Set-Content unsigned\release-signature-verification.txt
           $files | Get-FileHash -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $($_.Path)" } | Set-Content unsigned\release-sha256.txt
+          $artifactArgs = @($files | ForEach-Object { $_.FullName })
+          & python scripts/release/build_signing_evidence.py --platform windows --workflow "EVENTO Desktop Shell" --verification-method "Authenticode-signtool" --out unsigned/release-signing-evidence.json @artifactArgs
+          if ($LASTEXITCODE -ne 0) { throw "Signing evidence build failed" }
+          & python scripts/release/validate_signing_evidence.py unsigned/release-signing-evidence.json
+          if ($LASTEXITCODE -ne 0) { throw "Signing evidence validation failed" }
       - name: Upload signed Windows handoff artifacts
         uses: actions/upload-artifact@v4
         with:
