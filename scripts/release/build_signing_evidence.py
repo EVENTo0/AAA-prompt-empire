@@ -27,11 +27,13 @@ def main() -> int:
     parser.add_argument("--workflow", required=True)
     parser.add_argument("--verification-method", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--source-sha")
+    parser.add_argument("--source-run-id")
     parser.add_argument("artifacts", nargs="+")
     args = parser.parse_args()
 
-    source_sha = os.environ.get("GITHUB_SHA", "").strip().lower()
-    run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
+    source_sha = (args.source_sha or os.environ.get("GITHUB_SHA", "")).strip().lower()
+    run_id = (args.source_run_id or os.environ.get("GITHUB_RUN_ID", "")).strip()
     if len(source_sha) != 40 or any(ch not in "0123456789abcdef" for ch in source_sha):
         raise SystemExit("GITHUB_SHA must be a 40-character commit SHA")
     if not run_id:
