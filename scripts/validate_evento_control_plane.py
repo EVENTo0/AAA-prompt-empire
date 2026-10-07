@@ -316,16 +316,14 @@ def validate_release_channels(errors: list[str]) -> None:
                 fail(errors, f"{project_id}: verified binding requires verified evidence")
             elif evidence.get("release_authority") is not False:
                 fail(errors, f"{project_id}: binding evidence must not grant release authority")
-            elif project_id == "evento-one":
-                expected = {
-                    "team_id": "team_vZEWFqCEnXIaNzJl22F0lkG8",
-                    "vercel_project_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
-                    "vercel_project_name": "evento-one-web",
-                    "repository": "EVENTo0/Evento-One",
-                }
-                for key, value in expected.items():
-                    if evidence.get(key) != value:
-                        fail(errors, f"evento-one: binding evidence mismatch for {key}")
+            else:
+                if evidence.get("project_id") != project_id:
+                    fail(errors, f"{project_id}: binding evidence project_id mismatch")
+                if evidence.get("channel_id") != channel_id:
+                    fail(errors, f"{project_id}: binding evidence channel_id mismatch")
+                provider = descriptor.get("provider")
+                if provider and evidence.get("provider") != provider:
+                    fail(errors, f"{project_id}: binding evidence provider mismatch")
         elif project.get("binding_evidence_id"):
             fail(errors, f"{project_id}: unverified binding must not reference verified evidence")
 
