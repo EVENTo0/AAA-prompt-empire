@@ -54,6 +54,38 @@ button { color:inherit; }
 
 .offlineButton { display:grid; place-items:center; margin-top:20px; text-decoration:none; }
 
+/* Dated, source-linked continuity workspace; existing live provider cards stay separate. */
+.continuityPanel { font-size:16px; line-height:1.7; }
+.continuityPanel h2 { font-size:1.8rem; }
+.continuityPanel .sectionKicker { font-size:.8rem; letter-spacing:.12em; }
+.continuityCaption { color:#a7bbc9; font-size:.9rem; }
+.continuityBadge { border:1px solid #655432; padding:6px 12px; border-radius:9px; color:#f1cc8b; font-size:.9rem; }
+.continuityPanel .statCard span { font-size:.875rem; }
+.continuityComposer,.continuityFilters { display:grid; grid-template-columns:2fr 1fr auto; gap:12px; align-items:end; margin:20px 0; }
+.continuityPanel label { display:grid; gap:7px; color:#bacbd6; font-size:.9rem; }
+.continuityPanel select,.continuityPanel input { width:100%; min-height:48px; background:#07121c; color:var(--text); border:1px solid #355064; border-radius:11px; padding:10px 12px; font:inherit; }
+.continuityPanel button { min-height:48px; padding:10px 15px; font-size:.9rem; border:1px solid #355064; border-radius:11px; background:#102231; color:var(--text); cursor:pointer; }
+.continuityPanel button.primaryButton { color:#071018; background:var(--gold); }
+.continuityPanel :focus-visible { outline:3px solid var(--cyan); outline-offset:3px; }
+.continuityGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.continuityCard { padding:20px; border:1px solid #263d4e; border-radius:14px; background:#091722; overflow-wrap:anywhere; }
+.continuityCardHead { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+.continuityCard h3 { font-size:1.05rem; margin:0; }
+.continuityCi,.continuityRole { font-size:.8rem; }
+.continuityRole { color:#adc3d2; letter-spacing:.03em; }
+.continuityCard p { margin:12px 0; }
+.continuityMeta { display:flex; gap:10px; flex-wrap:wrap; color:#b9c9d2; font-size:.875rem; }
+.continuityPanel summary { min-height:44px; display:list-item; cursor:pointer; margin-top:14px; font-size:.9rem; }
+.continuityPanel details a { color:#7fdcff; text-decoration:underline; }
+.continuityPanel li { font-size:.9rem; margin:8px 0; }
+.continuityCardFoot { margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.continuityCardFoot code { color:#9bb5c7; font-size:.85rem; }
+.continuityActions { display:flex; gap:8px; flex-wrap:wrap; }
+.continuityHandoff { border:1px solid #355064; padding:15px; border-radius:12px; }
+.continuityHandoff pre { white-space:pre-wrap; font-family:inherit; overflow-wrap:anywhere; font-size:.9rem; }
+.continuityFeedback { color:#cde7d7; font-size:.9rem; min-height:24px; }
+@media(max-width:780px){.continuityGrid{grid-template-columns:1fr}.continuityComposer,.continuityFilters{grid-template-columns:1fr}.continuityPanel .sectionHead{align-items:flex-start;flex-direction:column}}
+
 
 /* EVENTO Command Console */
 .eventoConsole{margin:18px 0;padding:18px;border:1px solid #29404f;border-radius:20px;background:linear-gradient(135deg,rgba(214,171,99,.07),transparent 42%),#08131c}

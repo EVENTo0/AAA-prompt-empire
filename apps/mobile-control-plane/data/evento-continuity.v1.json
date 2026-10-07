@@ -1,0 +1,2826 @@
+{
+  "version": "1.0",
+  "snapshot_id": "EVENTO-CONTINUITY-2026-10-07",
+  "revision": 1,
+  "observed_at": "2026-10-07T10:07:54.672867+00:00",
+  "timezone": "Asia/Dubai",
+  "coverage": {
+    "owned_repositories": 34,
+    "registered_projects_and_ideas": 42,
+    "candidate_manifests_read": 17,
+    "source_packs_embedded": 17,
+    "conversation_coverage": "Relevant supplied history and retrieved files only; not a complete export of all chats",
+    "database_backup": "No new hosted Supabase backup taken",
+    "git_backup": "Pinned heads/PR references; full Git bundles require authorized clone access"
+  },
+  "policy": {
+    "remote_desktop_commander": "DEFERRED",
+    "max_active": 3,
+    "max_supporting": 5,
+    "active": [
+      "aaa-prompt-empire",
+      "evento-one",
+      "ev-bot"
+    ],
+    "supporting": [
+      "evento-project-development-v1",
+      "evento-mobile",
+      "al-dhafra-reference",
+      "uae-seed-dataset",
+      "athar-tayyib"
+    ],
+    "external_execution_enabled": false,
+    "production_release_enabled": false,
+    "core_extraction": false,
+    "customer_daily_operations": false,
+    "self_approval": false,
+    "principles": [
+      "Finish > Start",
+      "Reuse > Rebuild",
+      "Merge Before Build",
+      "Security Before Sale",
+      "Evidence Before Claim",
+      "Customer Ownership After Delivery"
+    ]
+  },
+  "authority": {
+    "acquisition": "EVENTo0/Evento-project-development-v1",
+    "customer_saas": "EVENTo0/Evento-One",
+    "mobile_interface": "EVENTo0/evento-mobile",
+    "engineering_control_plane": "EVENTo0/AAA-prompt-empire",
+    "owner_orchestration": "EVENTo0/Evento-octa-v10",
+    "sources": "Canonical repo/ref or hashed source pack; conversations are steering, not a database"
+  },
+  "projects": [
+    {
+      "id": "evento0",
+      "name": "EVENTo0",
+      "repository": "EVENTo0/EVENTo0",
+      "role": "COMPANY_CORE",
+      "category": "LEGACY_EVENTO_CORE",
+      "branch": "main",
+      "source_ref": "f870cfc0a090ba8b43ee4fdb705677a3c3d39740",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Legacy migration map"
+      ],
+      "next_action": "الحفاظ على المصدر القديم وتوثيق ما نُقل إلى موقع الاستحواذ وONE.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/EVENTo0/tree/f870cfc0a090ba8b43ee4fdb705677a3c3d39740",
+          "ref": "f870cfc0a090ba8b43ee4fdb705677a3c3d39740",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "aetheris-studios",
+      "name": "aetheris-studios",
+      "repository": "EVENTo0/aetheris-studios",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "CREATIVE_GAME_STUDIO",
+      "branch": "Alpha-Public",
+      "source_ref": "20a2f86d31c0d61a456b39000a4db850007c718f",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 35,
+      "score_ref": "d7b56372d3c5aca8342f501a0594e06fb3da6141",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "No current product/readiness documentation or reproducible release evidence was found in this audit.",
+        "No verified build/test/device/release gate evidence.",
+        "Commercial asset/license provenance is not evidenced."
+      ],
+      "p1": [
+        "README, SKU, handoff, support and sales package missing."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PARTIAL",
+        "tests": "BLOCKED_OR_INSUFFICIENT",
+        "security": "UNVERIFIED",
+        "deployment": "BLOCKED",
+        "productization": "BLOCKED",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "No current product/readiness documentation or reproducible release evidence was found in this audit.",
+        "No verified build/test/device/release gate evidence.",
+        "Commercial asset/license provenance is not evidenced.",
+        "README, SKU, handoff, support and sales package missing."
+      ],
+      "next_action": "تحديد المنتج والمحرك وحقوق الأصول قبل بناء حزمة الإصدار.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/aetheris-studios/pull/2",
+      "contract_ref": "d7b56372d3c5aca8342f501a0594e06fb3da6141",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/aetheris-studios/tree/20a2f86d31c0d61a456b39000a4db850007c718f",
+          "ref": "20a2f86d31c0d61a456b39000a4db850007c718f",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/aetheris-studios/blob/d7b56372d3c5aca8342f501a0594e06fb3da6141/.evento/product-manifest.v1.json",
+          "ref": "d7b56372d3c5aca8342f501a0594e06fb3da6141",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evx",
+      "name": "Evx",
+      "repository": "EVENTo0/Evx",
+      "role": "DUPLICATE_MERGE",
+      "category": "EVEX_PLACEHOLDER",
+      "branch": "main",
+      "source_ref": "9b2a10f488dd4d787adfb2a6f2463f5528a47736",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "MERGE_REVIEW",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Canonical source/merge decision"
+      ],
+      "next_action": "حسم المصدر الأساسي والتكرار قبل أي ترقية أو بيع.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Evx/tree/9b2a10f488dd4d787adfb2a6f2463f5528a47736",
+          "ref": "9b2a10f488dd4d787adfb2a6f2463f5528a47736",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evx-health-coach",
+      "name": "evx-health-coach",
+      "repository": "EVENTo0/evx-health-coach",
+      "role": "DUPLICATE_MERGE",
+      "category": "EVEX_HEALTH",
+      "branch": "main",
+      "source_ref": "b073489ed5c7cb8bb4e4a64c842a6d3ec364a407",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "MERGE_REVIEW",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Canonical source/merge decision"
+      ],
+      "next_action": "حسم المصدر الأساسي والتكرار قبل أي ترقية أو بيع.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/evx-health-coach/tree/b073489ed5c7cb8bb4e4a64c842a6d3ec364a407",
+          "ref": "b073489ed5c7cb8bb4e4a64c842a6d3ec364a407",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evx-health-coach/actions/runs/29040712967",
+          "ref": "b073489ed5c7cb8bb4e4a64c842a6d3ec364a407",
+          "verdict": "success",
+          "name": "Android Build (EAS)",
+          "run_id": 29040712967,
+          "created_at": "2026-07-09T18:27:16Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evex-coach",
+      "name": "evex-coach",
+      "repository": "EVENTo0/evex-coach",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVEX_WELLNESS_MODULE",
+      "branch": "main",
+      "source_ref": "e8cd99d04443128433a3ffae8330254d4b6630f2",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "FAIL",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 55,
+      "score_ref": "cca14e675b5c09d8702bb7f1c2c2ba7959230aa0",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current mandatory frontend dependency audit fails; security gate is not sale-ready.",
+        "EVEX product ownership/source-of-truth is fragmented across Coach/Fit/Lab/Mobile/Health.",
+        "No current evidence of one complete customer-isolated EVEX deployment and handoff.",
+        "Health/wellness data privacy and non-medical-claim release gate is not packaged."
+      ],
+      "p1": [
+        "Unified SKU/pricing/license and admin docs missing."
+      ],
+      "gates": {
+        "tests": "PASS_BUILD_AND_BACKEND_COMPOSITION_EXCEPT_SECURITY_AUDIT",
+        "security": "FAIL_DEPENDENCY_AUDIT",
+        "duplicate_merge": "FAIL",
+        "deployment": "BLOCKED",
+        "commercial": "BLOCKED"
+      },
+      "open_gates": [
+        "Current mandatory frontend dependency audit fails; security gate is not sale-ready.",
+        "EVEX product ownership/source-of-truth is fragmented across Coach/Fit/Lab/Mobile/Health.",
+        "No current evidence of one complete customer-isolated EVEX deployment and handoff.",
+        "Health/wellness data privacy and non-medical-claim release gate is not packaged.",
+        "Unified SKU/pricing/license and admin docs missing."
+      ],
+      "next_action": "توحيد EVEX وحسم العقد ثم إغلاق audit الأمني في الفرع الحالي.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/evex-coach/pull/3",
+      "contract_ref": "cca14e675b5c09d8702bb7f1c2c2ba7959230aa0",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/evex-coach/tree/e8cd99d04443128433a3ffae8330254d4b6630f2",
+          "ref": "e8cd99d04443128433a3ffae8330254d4b6630f2",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-coach/actions/runs/29692462981",
+          "ref": "e8cd99d04443128433a3ffae8330254d4b6630f2",
+          "verdict": "success",
+          "name": "Sentry Code Review - Find Bugs",
+          "run_id": 29692462981,
+          "created_at": "2026-07-19T15:15:12Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-coach/actions/runs/29692462968",
+          "ref": "e8cd99d04443128433a3ffae8330254d4b6630f2",
+          "verdict": "failure",
+          "name": "CI - API Tests & Reliability",
+          "run_id": 29692462968,
+          "created_at": "2026-07-19T15:15:12Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-coach/actions/runs/29692462989",
+          "ref": "e8cd99d04443128433a3ffae8330254d4b6630f2",
+          "verdict": "failure",
+          "name": "Deploy evex-coach to Hostinger VPS",
+          "run_id": 29692462989,
+          "created_at": "2026-07-19T15:15:12Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/evex-coach/blob/cca14e675b5c09d8702bb7f1c2c2ba7959230aa0/.evento/product-manifest.v1.json",
+          "ref": "cca14e675b5c09d8702bb7f1c2c2ba7959230aa0",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evex-lab",
+      "name": "evex-lab",
+      "repository": "EVENTo0/evex-lab",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVEX_ANALYTICS_MODULE",
+      "branch": "main",
+      "source_ref": "db828b4b7f6c7533ce4fddf243970883d633c4ce",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "FAIL",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 49,
+      "score_ref": "5e38d30578a525744b7ab9dccd71fdbc43a24c77",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current mandatory frontend dependency audit fails; security gate is not sale-ready.",
+        "EVEX source-of-truth is fragmented.",
+        "Revenue dashboard/subscription concerns overlap EVENTO/ONE authority and must be removed or explicitly bounded before customer sale.",
+        "No complete isolated customer deployment/handoff evidence."
+      ],
+      "p1": [
+        "Unified SKU/license/admin docs missing."
+      ],
+      "gates": {
+        "tests": "PASS_BUILD_AND_BACKEND_COMPOSITION_EXCEPT_SECURITY_AUDIT",
+        "security": "FAIL_DEPENDENCY_AUDIT",
+        "duplicate_merge": "FAIL",
+        "authority_boundary": "FAIL",
+        "deployment": "BLOCKED"
+      },
+      "open_gates": [
+        "Current mandatory frontend dependency audit fails; security gate is not sale-ready.",
+        "EVEX source-of-truth is fragmented.",
+        "Revenue dashboard/subscription concerns overlap EVENTO/ONE authority and must be removed or explicitly bounded before customer sale.",
+        "No complete isolated customer deployment/handoff evidence.",
+        "Unified SKU/license/admin docs missing."
+      ],
+      "next_action": "حسم التكرار وحدود billing مع ONE ثم إغلاق audit الأمني.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/evex-lab/pull/3",
+      "contract_ref": "5e38d30578a525744b7ab9dccd71fdbc43a24c77",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/evex-lab/tree/db828b4b7f6c7533ce4fddf243970883d633c4ce",
+          "ref": "db828b4b7f6c7533ce4fddf243970883d633c4ce",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-lab/actions/runs/29692462838",
+          "ref": "db828b4b7f6c7533ce4fddf243970883d633c4ce",
+          "verdict": "success",
+          "name": "Sentry Code Review - Find Bugs",
+          "run_id": 29692462838,
+          "created_at": "2026-07-19T15:15:12Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-lab/actions/runs/29692462890",
+          "ref": "db828b4b7f6c7533ce4fddf243970883d633c4ce",
+          "verdict": "failure",
+          "name": "CI - API Tests & Reliability",
+          "run_id": 29692462890,
+          "created_at": "2026-07-19T15:15:12Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-lab/actions/runs/29692462880",
+          "ref": "db828b4b7f6c7533ce4fddf243970883d633c4ce",
+          "verdict": "failure",
+          "name": "Deploy evex-lab to Hostinger VPS",
+          "run_id": 29692462880,
+          "created_at": "2026-07-19T15:15:12Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/evex-lab/blob/5e38d30578a525744b7ab9dccd71fdbc43a24c77/.evento/product-manifest.v1.json",
+          "ref": "5e38d30578a525744b7ab9dccd71fdbc43a24c77",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evex-fit",
+      "name": "evex-fit",
+      "repository": "EVENTo0/evex-fit",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVEX_FITNESS_MODULE",
+      "branch": "main",
+      "source_ref": "5e243b47d578118cead5e106d2729073f4a04e18",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "FAIL",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 55,
+      "score_ref": "6001a982fa339b361498acf367700d4fdeac6a1e",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current mandatory frontend dependency audit fails; security gate is not sale-ready.",
+        "EVEX source-of-truth fragmented across sibling services.",
+        "No evidenced complete customer-isolated EVEX deployment/handoff.",
+        "Fitness/health data privacy and safety boundary not commercially packaged."
+      ],
+      "p1": [
+        "Unified SKU/pricing/license/admin docs missing."
+      ],
+      "gates": {
+        "tests": "PASS_BUILD_AND_BACKEND_COMPOSITION_EXCEPT_SECURITY_AUDIT",
+        "security": "FAIL_DEPENDENCY_AUDIT",
+        "duplicate_merge": "FAIL",
+        "deployment": "BLOCKED",
+        "commercial": "BLOCKED"
+      },
+      "open_gates": [
+        "Current mandatory frontend dependency audit fails; security gate is not sale-ready.",
+        "EVEX source-of-truth fragmented across sibling services.",
+        "No evidenced complete customer-isolated EVEX deployment/handoff.",
+        "Fitness/health data privacy and safety boundary not commercially packaged.",
+        "Unified SKU/pricing/license/admin docs missing."
+      ],
+      "next_action": "توحيد EVEX وحسم العقد ثم إغلاق audit الأمني في الفرع الحالي.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/evex-fit/pull/3",
+      "contract_ref": "6001a982fa339b361498acf367700d4fdeac6a1e",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/evex-fit/tree/5e243b47d578118cead5e106d2729073f4a04e18",
+          "ref": "5e243b47d578118cead5e106d2729073f4a04e18",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-fit/actions/runs/29692854866",
+          "ref": "5e243b47d578118cead5e106d2729073f4a04e18",
+          "verdict": "failure",
+          "name": "CI - API Tests & Reliability",
+          "run_id": 29692854866,
+          "created_at": "2026-07-19T15:26:51Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-fit/actions/runs/29692854880",
+          "ref": "5e243b47d578118cead5e106d2729073f4a04e18",
+          "verdict": "success",
+          "name": "Sentry Code Review - Find Bugs",
+          "run_id": 29692854880,
+          "created_at": "2026-07-19T15:26:51Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/evex-fit/actions/runs/29692854878",
+          "ref": "5e243b47d578118cead5e106d2729073f4a04e18",
+          "verdict": "failure",
+          "name": "Deploy evex-fit to Hostinger VPS",
+          "run_id": 29692854878,
+          "created_at": "2026-07-19T15:26:51Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/evex-fit/blob/6001a982fa339b361498acf367700d4fdeac6a1e/.evento/product-manifest.v1.json",
+          "ref": "6001a982fa339b361498acf367700d4fdeac6a1e",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evex-mobile",
+      "name": "evex-mobile",
+      "repository": "EVENTo0/evex-mobile",
+      "role": "DUPLICATE_MERGE",
+      "category": "EVEX_CLIENT",
+      "branch": "main",
+      "source_ref": "3b999dfd051b97beeaf388799137f05b255353a7",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "MERGE_REVIEW",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Canonical source/merge decision"
+      ],
+      "next_action": "حسم المصدر الأساسي والتكرار قبل أي ترقية أو بيع.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/evex-mobile/tree/3b999dfd051b97beeaf388799137f05b255353a7",
+          "ref": "3b999dfd051b97beeaf388799137f05b255353a7",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "aaa-prompt-empire",
+      "name": "AAA-prompt-empire",
+      "repository": "EVENTo0/AAA-prompt-empire",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "ENGINEERING_FACTORY",
+      "branch": "main",
+      "source_ref": "32437dec9ff2cf47a33b9ca1073415026110d116",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "هوية مشغّل ومعاينة محمية مثبتتان",
+        "سجل تنفيذ موحّد وربط مستضاف",
+        "إثبات توقيع Android/Windows وقنوات الإصدار"
+      ],
+      "next_action": "تثبيت نقطة الاستئناف واختبار اللوحة، ثم إغلاق إثبات الربط المستضاف للوكلاء.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/AAA-prompt-empire/tree/32437dec9ff2cf47a33b9ca1073415026110d116",
+          "ref": "32437dec9ff2cf47a33b9ca1073415026110d116",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/37269802753",
+          "ref": "32437dec9ff2cf47a33b9ca1073415026110d116",
+          "verdict": "success",
+          "name": "Empire Guard",
+          "run_id": 37269802753,
+          "created_at": "2026-10-05T05:53:50Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "aaa-prompt",
+      "name": "AAA-prompt",
+      "repository": "EVENTo0/AAA-prompt",
+      "role": "SHARED_CAPABILITY",
+      "category": "ENGINEERING_CORE",
+      "branch": "main",
+      "source_ref": "17481a7296b153d786ed40209bd625cf1f236155",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "No automatic Core promotion"
+      ],
+      "next_action": "ترقية قاعدة عامة صغيرة فقط بعد إثباتها في Empire وتقييم انحدارها.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/AAA-prompt/tree/17481a7296b153d786ed40209bd625cf1f236155",
+          "ref": "17481a7296b153d786ed40209bd625cf1f236155",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/AAA-prompt/actions/runs/36489032902",
+          "ref": "17481a7296b153d786ed40209bd625cf1f236155",
+          "verdict": "success",
+          "name": "AAA Guard",
+          "run_id": 36489032902,
+          "created_at": "2026-09-28T21:53:24Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evento-mobile",
+      "name": "evento-mobile",
+      "repository": "EVENTo0/evento-mobile",
+      "role": "COMPANY_CORE",
+      "category": "EVENTO_MOBILE_INTERFACE",
+      "branch": "main",
+      "source_ref": "8c378d29b15bc25465a9b993879e00f997d8ce55",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Current pilot review",
+        "Signed release/device acceptance",
+        "iOS macOS build/signing proof"
+      ],
+      "next_action": "مراجعة Pilot PR #12 على رأسه، ثم خطة Android API36 وإثبات جهاز فعلي.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/evento-mobile/tree/8c378d29b15bc25465a9b993879e00f997d8ce55",
+          "ref": "8c378d29b15bc25465a9b993879e00f997d8ce55",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "omniform-nexus-professor-ai",
+      "name": "omniform-nexus-professor-ai",
+      "repository": "EVENTo0/omniform-nexus-professor-ai",
+      "role": "SHARED_CAPABILITY",
+      "category": "DESIGN_INTELLIGENCE",
+      "branch": "main",
+      "source_ref": "e9f85b571bebdb8453320745ccbfc63d82f48f00",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Private shared capability boundary"
+      ],
+      "next_action": "تثبيت حدود تصدير التصميم والحقوق دون استخراج المحرك الخاص.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/omniform-nexus-professor-ai/tree/e9f85b571bebdb8453320745ccbfc63d82f48f00",
+          "ref": "e9f85b571bebdb8453320745ccbfc63d82f48f00",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "familyos",
+      "name": "familyos",
+      "repository": "EVENTo0/familyos",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "FAMILY_APP",
+      "branch": "main",
+      "source_ref": "19403a061eca8cfff030a86e17534a613d4f0fba",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 62,
+      "score_ref": "e3d0364fe34a40d610f7d986e9beda7b57bea655",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Staging preview run 1 on the latest demo PR failed even though Flutter CI passed.",
+        "Child/family privacy and age-appropriate data handling require independent release evidence before sale.",
+        "Current monetization hypothesis is consumer subscription; customer-owned operating model is not yet explicitly reconciled/approved."
+      ],
+      "p1": [
+        "Signed Android/iOS artifacts and physical-device acceptance missing.",
+        "Store/privacy/legal package and customer admin/handoff docs missing."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_FLUTTER_CI",
+        "security": "PARTIAL",
+        "deployment": "FAIL_STAGING",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Staging preview run 1 on the latest demo PR failed even though Flutter CI passed.",
+        "Child/family privacy and age-appropriate data handling require independent release evidence before sale.",
+        "Current monetization hypothesis is consumer subscription; customer-owned operating model is not yet explicitly reconciled/approved.",
+        "Signed Android/iOS artifacts and physical-device acceptance missing.",
+        "Store/privacy/legal package and customer admin/handoff docs missing."
+      ],
+      "next_action": "إصلاح Staging وإغلاق الخصوصية قبل إعداد حزمة العميل.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/familyos/pull/5",
+      "contract_ref": "e3d0364fe34a40d610f7d986e9beda7b57bea655",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/familyos/tree/19403a061eca8cfff030a86e17534a613d4f0fba",
+          "ref": "19403a061eca8cfff030a86e17534a613d4f0fba",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/familyos/blob/e3d0364fe34a40d610f7d986e9beda7b57bea655/.evento/product-manifest.v1.json",
+          "ref": "e3d0364fe34a40d610f7d986e9beda7b57bea655",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "octorimal",
+      "name": "OCTORIMAL",
+      "repository": "EVENTo0/OCTORIMAL",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "GAME",
+      "branch": "main",
+      "source_ref": "189ecdcc5e2f817a571e06d5a4f6f262d2e83ab4",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 28,
+      "score_ref": "52e26315e2784de5b79d75750740e9acc7247095",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Repository is still Phase 0/bootstrap; baseline explicitly records runtime build/test blocked before the engine milestone.",
+        "No playable vertical-slice release evidence.",
+        "No customer/distribution/release handoff package exists."
+      ],
+      "p1": [
+        "Commercial SKU/store/license/asset register missing."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PARTIAL",
+        "tests": "BLOCKED_OR_INSUFFICIENT",
+        "security": "UNVERIFIED",
+        "deployment": "BLOCKED",
+        "productization": "BLOCKED",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Repository is still Phase 0/bootstrap; baseline explicitly records runtime build/test blocked before the engine milestone.",
+        "No playable vertical-slice release evidence.",
+        "No customer/distribution/release handoff package exists.",
+        "Commercial SKU/store/license/asset register missing."
+      ],
+      "next_action": "تجهيز أصغر vertical slice قابل للاختبار في Unity مع مصادر الأصول.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/OCTORIMAL/pull/6",
+      "contract_ref": "52e26315e2784de5b79d75750740e9acc7247095",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/OCTORIMAL/tree/189ecdcc5e2f817a571e06d5a4f6f262d2e83ab4",
+          "ref": "189ecdcc5e2f817a571e06d5a4f6f262d2e83ab4",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/OCTORIMAL/actions/runs/31386827639",
+          "ref": "189ecdcc5e2f817a571e06d5a4f6f262d2e83ab4",
+          "verdict": "success",
+          "name": "OCTORIMAL Repo Guard",
+          "run_id": 31386827639,
+          "created_at": "2026-08-10T12:11:03Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/OCTORIMAL/blob/52e26315e2784de5b79d75750740e9acc7247095/.evento/product-manifest.v1.json",
+          "ref": "52e26315e2784de5b79d75750740e9acc7247095",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "history-med-1",
+      "name": "History-Med-1",
+      "repository": "EVENTo0/History-Med-1",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "MEDICAL_EDUCATION_CONTENT",
+      "branch": "main",
+      "source_ref": "dae3e9f08cde22da1bc7ae4ce43392dc69526d1b",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 38,
+      "score_ref": "2211ea5789c7f0263e048e5b8a83c5e7c4e93fe8",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Bootstrap/safety-first status: content is not approved for clinical use.",
+        "Medical-source validation and qualified review coverage are incomplete.",
+        "No deployable customer-facing release/handoff evidence."
+      ],
+      "p1": [
+        "Content licensing/attribution and update policy must be packaged."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PARTIAL",
+        "tests": "BLOCKED_OR_INSUFFICIENT",
+        "security": "UNVERIFIED",
+        "deployment": "BLOCKED",
+        "productization": "BLOCKED",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Bootstrap/safety-first status: content is not approved for clinical use.",
+        "Medical-source validation and qualified review coverage are incomplete.",
+        "No deployable customer-facing release/handoff evidence.",
+        "Content licensing/attribution and update policy must be packaged."
+      ],
+      "next_action": "إغلاق مراجعة مصادر المحتوى المؤهل قبل أي ادعاء أو نشر طبي.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/History-Med-1/pull/4",
+      "contract_ref": "2211ea5789c7f0263e048e5b8a83c5e7c4e93fe8",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/History-Med-1/tree/dae3e9f08cde22da1bc7ae4ce43392dc69526d1b",
+          "ref": "dae3e9f08cde22da1bc7ae4ce43392dc69526d1b",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/History-Med-1/blob/2211ea5789c7f0263e048e5b8a83c5e7c4e93fe8/.evento/product-manifest.v1.json",
+          "ref": "2211ea5789c7f0263e048e5b8a83c5e7c4e93fe8",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "empire-mobile-control-plane",
+      "name": "empire-mobile-control-plane",
+      "repository": "EVENTo0/empire-mobile-control-plane",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "MOBILE_COMMAND_CENTER",
+      "branch": "main",
+      "source_ref": "f8f0b122ff2faa48cd195e12a8e90d16a78520fc",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Canonical dashboard duplicate decision"
+      ],
+      "next_action": "مقارنة هذه اللوحة مع apps/mobile-control-plane وتوثيق التوحيد قبل أي توسّع.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/empire-mobile-control-plane/tree/f8f0b122ff2faa48cd195e12a8e90d16a78520fc",
+          "ref": "f8f0b122ff2faa48cd195e12a8e90d16a78520fc",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evento-project-2",
+      "name": "Evento-project-2",
+      "repository": "EVENTo0/Evento-project-2",
+      "role": "COMPANY_CORE",
+      "category": "LEGACY_EVENTO_WORKSPACE",
+      "branch": "main",
+      "source_ref": "c77e6d06721bf8da9036c79a6c393ff4d4e8a19d",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Legacy/canonical decision"
+      ],
+      "next_action": "تحديد ما يُرحّل إلى الشركة الحالية، ثم قرار archive مستقل دون حذف تلقائي.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Evento-project-2/tree/c77e6d06721bf8da9036c79a6c393ff4d4e8a19d",
+          "ref": "c77e6d06721bf8da9036c79a6c393ff4d4e8a19d",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "smart-os-generate-any-project-from-title",
+      "name": "Smart-OS-Generate-Any-Project-From-Title",
+      "repository": "EVENTo0/Smart-OS-Generate-Any-Project-From-Title",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "PROJECT_GENERATOR",
+      "branch": "main",
+      "source_ref": "2279c7fbc575164f4b7f3eb346c25c90a51cfab6",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Verified reusable template boundary"
+      ],
+      "next_action": "استخدامه كقدرة داخلية عبر عقد EVENTO Agent Contract وتوثيق مخرجاته.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Smart-OS-Generate-Any-Project-From-Title/tree/2279c7fbc575164f4b7f3eb346c25c90a51cfab6",
+          "ref": "2279c7fbc575164f4b7f3eb346c25c90a51cfab6",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evento-project-development-v1",
+      "name": "Evento-project-development-v1",
+      "repository": "EVENTo0/Evento-project-development-v1",
+      "role": "COMPANY_CORE",
+      "category": "ACQUISITION_DELIVERY_PATH",
+      "branch": "main",
+      "source_ref": "e66a0513926c0bec00f79081f08ffea9ff9dc31d",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Authenticated staff proof",
+        "Website → ONE handoff evidence"
+      ],
+      "next_action": "إغلاق دليل جلسة Staff Inbox المصرّح بها وإثبات مسار تسليم Lead إلى ONE.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Evento-project-development-v1/tree/e66a0513926c0bec00f79081f08ffea9ff9dc31d",
+          "ref": "e66a0513926c0bec00f79081f08ffea9ff9dc31d",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/Evento-project-development-v1/actions/runs/37270189977",
+          "ref": "e66a0513926c0bec00f79081f08ffea9ff9dc31d",
+          "verdict": "success",
+          "name": "EVENTO Control Plane Pilot",
+          "run_id": 37270189977,
+          "created_at": "2026-10-05T05:59:04Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "aegis-ai-security",
+      "name": "AEGIS-AI-Security",
+      "repository": "EVENTo0/AEGIS-AI-Security",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "DEFENSIVE_SECURITY_TOOLKIT",
+      "branch": "main",
+      "source_ref": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 72,
+      "score_ref": "8a992c07c4bfa49b10867eed3bca3dfa52c84eb2",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "No current signed/installable customer release artifact or deployment handoff evidence; repository evidence is primarily defensive tooling/skills.",
+        "Final sellable feature set and platform permissions must be frozen so capabilities are not overstated across iPhone/macOS/Windows/Android."
+      ],
+      "p1": [
+        "Vendor/license register and pinned external-rule inventory must be included in the package.",
+        "Customer operator/admin guide and sales SKU are missing."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_PR_HEAD",
+        "security": "PASS_PR_HEAD",
+        "deployment": "BLOCKED",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "PARTIAL",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "No current signed/installable customer release artifact or deployment handoff evidence; repository evidence is primarily defensive tooling/skills.",
+        "Final sellable feature set and platform permissions must be frozen so capabilities are not overstated across iPhone/macOS/Windows/Android.",
+        "Vendor/license register and pinned external-rule inventory must be included in the package.",
+        "Customer operator/admin guide and sales SKU are missing."
+      ],
+      "next_action": "تثبيت مجموعة الأدوات الدفاعية ثم حزمة تثبيت وحقوق وتسليم موثقة.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/AEGIS-AI-Security/pull/12",
+      "contract_ref": "8a992c07c4bfa49b10867eed3bca3dfa52c84eb2",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/AEGIS-AI-Security/tree/317bbda5cc8d4589e7dd99ef933ac301da92403b",
+          "ref": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/AEGIS-AI-Security/actions/runs/37522385483",
+          "ref": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+          "verdict": "success",
+          "name": "defensive-security-baseline",
+          "run_id": 37522385483,
+          "created_at": "2026-10-06T19:54:21Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/AEGIS-AI-Security/actions/runs/36791834124",
+          "ref": "317bbda5cc8d4589e7dd99ef933ac301da92403b",
+          "verdict": "success",
+          "name": "pip in /. - Update #1601082318",
+          "run_id": 36791834124,
+          "created_at": "2026-09-30T23:35:05Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/AEGIS-AI-Security/blob/8a992c07c4bfa49b10867eed3bca3dfa52c84eb2/.evento/product-manifest.v1.json",
+          "ref": "8a992c07c4bfa49b10867eed3bca3dfa52c84eb2",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "ev-bot",
+      "name": "Ev-Bot",
+      "repository": "EVENTo0/Ev-Bot",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "AI_BOT_PLATFORM",
+      "branch": "main",
+      "source_ref": "11904cd20ec8b4a266bfec196d55f58b14699804",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 84,
+      "score_ref": "ccd3481419f4e047f324b8b528936a6a5953b60d",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Gate 11H implementation is merged and CI-green, but no current evidence exists of a hosted customer-owned HTTPS runtime + customer-owned Supabase tenant/secrets completing the External Paper E2E and persisted audit proof."
+      ],
+      "p1": [
+        "Main README remains bootstrap-only.",
+        "Pricing/SKU/license/sales assets not packaged.",
+        "Customer admin/domain/secrets handoff checklist is not yet evidenced."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_RC_HEAD",
+        "security": "PASS_RC_HEAD",
+        "deployment": "BLOCKED_EXTERNAL_EVIDENCE",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "BLOCKED_EXTERNAL_EVIDENCE",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Gate 11H implementation is merged and CI-green, but no current evidence exists of a hosted customer-owned HTTPS runtime + customer-owned Supabase tenant/secrets completing the External Paper E2E and persisted audit proof.",
+        "Main README remains bootstrap-only.",
+        "Pricing/SKU/license/sales assets not packaged.",
+        "Customer admin/domain/secrets handoff checklist is not yet evidenced."
+      ],
+      "next_action": "إثبات External Paper E2E مستضاف بعزل وبيانات وأسرار يملكها نطاق العميل.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/Ev-Bot/pull/12",
+      "contract_ref": "ccd3481419f4e047f324b8b528936a6a5953b60d",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Ev-Bot/tree/11904cd20ec8b4a266bfec196d55f58b14699804",
+          "ref": "11904cd20ec8b4a266bfec196d55f58b14699804",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/Ev-Bot/blob/ccd3481419f4e047f324b8b528936a6a5953b60d/.evento/product-manifest.v1.json",
+          "ref": "ccd3481419f4e047f324b8b528936a6a5953b60d",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "minibella",
+      "name": "MiniBella",
+      "repository": "EVENTo0/MiniBella",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "EVENT_SERVICE_PACKAGE",
+      "branch": "main",
+      "source_ref": "eeca7c76154992133736db37e80a93ab9b9f3843",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 73,
+      "score_ref": "fd6de7ca1e1ac7550ce2de613ce53e69f351369b",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current security PR head pins Next.js 16.3.6, superseded by the 2026-09-30 security release 16.3.8.",
+        "The repository's own scale lock requires three successful pilots; current evidence does not prove that gate.",
+        "Customer-isolated Supabase/admin handoff is not evidenced."
+      ],
+      "p1": [
+        "Operational supplier/license/pricing pack incomplete.",
+        "Sales catalog/photos/acceptance checklist need productization."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_PR_HEAD",
+        "security": "FAIL_STALE_PATCH",
+        "deployment": "BLOCKED",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Current security PR head pins Next.js 16.3.6, superseded by the 2026-09-30 security release 16.3.8.",
+        "The repository's own scale lock requires three successful pilots; current evidence does not prove that gate.",
+        "Customer-isolated Supabase/admin handoff is not evidenced.",
+        "Operational supplier/license/pricing pack incomplete.",
+        "Sales catalog/photos/acceptance checklist need productization."
+      ],
+      "next_action": "إصلاح البوابة الأمنية الحالية ثم إثبات pilots وعزل العميل.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/MiniBella/pull/8",
+      "contract_ref": "fd6de7ca1e1ac7550ce2de613ce53e69f351369b",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/MiniBella/tree/eeca7c76154992133736db37e80a93ab9b9f3843",
+          "ref": "eeca7c76154992133736db37e80a93ab9b9f3843",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/MiniBella/actions/runs/36489047908",
+          "ref": "eeca7c76154992133736db37e80a93ab9b9f3843",
+          "verdict": "success",
+          "name": "MiniBella CI",
+          "run_id": 36489047908,
+          "created_at": "2026-09-28T21:53:32Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/MiniBella/blob/fd6de7ca1e1ac7550ce2de613ce53e69f351369b/.evento/product-manifest.v1.json",
+          "ref": "fd6de7ca1e1ac7550ce2de613ce53e69f351369b",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "octopus",
+      "name": "OCTOPUS",
+      "repository": "EVENTo0/OCTOPUS",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "GAME",
+      "branch": "main",
+      "source_ref": "1b66f5cab6c737b25b2d5428d2e7fe1aec51875a",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 32,
+      "score_ref": "94fb9af6e017e167ec176d3b6d6b402fed3c425f",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current gate is repository/bootstrap; UE5.8 foundation PR remains draft.",
+        "No compile/PIE/device evidence for a sellable vertical slice.",
+        "No release artifact/channel or commercial handoff exists."
+      ],
+      "p1": [
+        "Final licensing/store/SKU/sales assets missing."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PARTIAL",
+        "tests": "BLOCKED_OR_INSUFFICIENT",
+        "security": "UNVERIFIED",
+        "deployment": "BLOCKED",
+        "productization": "BLOCKED",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Current gate is repository/bootstrap; UE5.8 foundation PR remains draft.",
+        "No compile/PIE/device evidence for a sellable vertical slice.",
+        "No release artifact/channel or commercial handoff exists.",
+        "Final licensing/store/SKU/sales assets missing."
+      ],
+      "next_action": "إغلاق foundation compile/PIE عند توفر محرك مناسب؛ تجهيز المصدر الآن.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/OCTOPUS/pull/3",
+      "contract_ref": "94fb9af6e017e167ec176d3b6d6b402fed3c425f",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/OCTOPUS/tree/1b66f5cab6c737b25b2d5428d2e7fe1aec51875a",
+          "ref": "1b66f5cab6c737b25b2d5428d2e7fe1aec51875a",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/OCTOPUS/blob/94fb9af6e017e167ec176d3b6d6b402fed3c425f/.evento/product-manifest.v1.json",
+          "ref": "94fb9af6e017e167ec176d3b6d6b402fed3c425f",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evento-octa-v10",
+      "name": "Evento-octa-v10",
+      "repository": "EVENTo0/Evento-octa-v10",
+      "role": "INTERNAL_CONTROL_PLANE",
+      "category": "OWNER_ORCHESTRATION",
+      "branch": "main",
+      "source_ref": "259b18b54c988518477832dbbaeee0a3fec4e8a5",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Current hosted negative-access proof",
+        "Separate owner release decision"
+      ],
+      "next_action": "مراجعة Preview/Auth السلبية في PR #2 وتثبيت قبول لوحة المؤسس المستضافة.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Evento-octa-v10/tree/259b18b54c988518477832dbbaeee0a3fec4e8a5",
+          "ref": "259b18b54c988518477832dbbaeee0a3fec4e8a5",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "octa-voice",
+      "name": "OCTA-VOICE",
+      "repository": "EVENTo0/OCTA-VOICE",
+      "role": "SHARED_CAPABILITY",
+      "category": "VOICE_LAB",
+      "branch": "main",
+      "source_ref": "0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Voice identity and pronunciation evaluation",
+        "Source/voice license evidence"
+      ],
+      "next_action": "تثبيت corpus تقييم عربي خليجي وحقوق الصوت والقياسات قبل ترقية نموذج صوتي.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/OCTA-VOICE/tree/0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+          "ref": "0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/OCTA-VOICE/actions/runs/36489040865",
+          "ref": "0cf4dd9d3f993c9cd90e08df7de6760d6fd9108a",
+          "verdict": "success",
+          "name": "CI",
+          "run_id": 36489040865,
+          "created_at": "2026-09-28T21:53:28Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evento-one",
+      "name": "Evento-One",
+      "repository": "EVENTo0/Evento-One",
+      "role": "COMPANY_CORE",
+      "category": "CUSTOMER_SAAS",
+      "branch": "main",
+      "source_ref": "e6d2e6a91ced6eb06ae0c5a276652496c4778954",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Hosted Auth/tenant proof",
+        "Customer isolation acceptance",
+        "Pilot acceptance"
+      ],
+      "next_action": "إثبات Auth/tenant isolation على Preview مستضاف للرأس الحالي، ثم pilot محدود.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Evento-One/tree/e6d2e6a91ced6eb06ae0c5a276652496c4778954",
+          "ref": "e6d2e6a91ced6eb06ae0c5a276652496c4778954",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "saeed-game",
+      "name": "saeed-game",
+      "repository": "EVENTo0/saeed-game",
+      "role": "DUPLICATE_MERGE",
+      "category": "SAEED_GAME_LEGACY",
+      "branch": "main",
+      "source_ref": "7f26dc6a1d86d2085572b0ef7339fecd9bb1b81d",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "PASS",
+      "sale_state": "MERGE_REVIEW",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Canonical source/merge decision"
+      ],
+      "next_action": "حسم المصدر الأساسي والتكرار قبل أي ترقية أو بيع.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/saeed-game/tree/7f26dc6a1d86d2085572b0ef7339fecd9bb1b81d",
+          "ref": "7f26dc6a1d86d2085572b0ef7339fecd9bb1b81d",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/saeed-game/actions/runs/34770765742",
+          "ref": "7f26dc6a1d86d2085572b0ef7339fecd9bb1b81d",
+          "verdict": "success",
+          "name": "Running Copilot cloud agent",
+          "run_id": 34770765742,
+          "created_at": "2026-09-13T17:10:08Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "game-1-saeed-octa",
+      "name": "Game-1-Saeed-octa",
+      "repository": "EVENTo0/Game-1-Saeed-octa",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "GAME_WEB_PACKAGE",
+      "branch": "claude/saeed-royale-mobile-mvp-tmtzxi",
+      "source_ref": "80da36e95274d372b1c7ddebf5d0d0717f298110",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 82,
+      "score_ref": "895d09c912797c9ed725f3ecab130359fa1c5b44",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Unresolved duplicate source: EVENTo0/saeed-game remains a competing Saeed game repository and has not been formally migrated/archived."
+      ],
+      "p1": [
+        "Current README claims 87 unit tests and 64 browser checks but release evidence is not linked to a current CI run in this audit.",
+        "Commercial license register/SKU/sales handoff pack is missing.",
+        "Customer branding/config boundary is not documented as a reusable template."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "FAIL",
+        "tests": "PARTIAL_EVIDENCE",
+        "security": "UNVERIFIED",
+        "deployment": "PASS_DEMO",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "PASS_STATIC",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Unresolved duplicate source: EVENTo0/saeed-game remains a competing Saeed game repository and has not been formally migrated/archived.",
+        "Current README claims 87 unit tests and 64 browser checks but release evidence is not linked to a current CI run in this audit.",
+        "Commercial license register/SKU/sales handoff pack is missing.",
+        "Customer branding/config boundary is not documented as a reusable template."
+      ],
+      "next_action": "حسم المصدر الأساسي مع saeed-game وتوثيق قرار النقل قبل البيع.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/Game-1-Saeed-octa/pull/1",
+      "contract_ref": "895d09c912797c9ed725f3ecab130359fa1c5b44",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Game-1-Saeed-octa/tree/80da36e95274d372b1c7ddebf5d0d0717f298110",
+          "ref": "80da36e95274d372b1c7ddebf5d0d0717f298110",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/Game-1-Saeed-octa/blob/895d09c912797c9ed725f3ecab130359fa1c5b44/.evento/product-manifest.v1.json",
+          "ref": "895d09c912797c9ed725f3ecab130359fa1c5b44",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "aithenax",
+      "name": "AithenaX",
+      "repository": "EVENTo0/AithenaX",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "MARKET_INTELLIGENCE_SAAS",
+      "branch": "main",
+      "source_ref": "bb861e94945e55cf3c6b560e753845422f7bbdb0",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 69,
+      "score_ref": "1145c086f67626d42f531731702c4c557aaaeb09",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current security PR head still pins Next.js 16.3.6; official 2026-09-30 security release requires 16.3.8 on Active LTS.",
+        "Customer-isolated tenant/deployment and ownership handoff are not evidenced.",
+        "Commercial package must preserve DEMO/PAPER decision-support boundary and must not imply autonomous execution or regulated investment advice."
+      ],
+      "p1": [
+        "Pricing/SKU/license/sales assets missing.",
+        "Provider/data-source licensing register missing."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_SECURITY_PR",
+        "security": "FAIL_STALE_PATCH",
+        "deployment": "BLOCKED",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Current security PR head still pins Next.js 16.3.6; official 2026-09-30 security release requires 16.3.8 on Active LTS.",
+        "Customer-isolated tenant/deployment and ownership handoff are not evidenced.",
+        "Commercial package must preserve DEMO/PAPER decision-support boundary and must not imply autonomous execution or regulated investment advice.",
+        "Pricing/SKU/license/sales assets missing.",
+        "Provider/data-source licensing register missing."
+      ],
+      "next_action": "مراجعة الرأس والأمان وحدود PAPER/DEMO ثم إثبات عزل العميل.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/AithenaX/pull/3",
+      "contract_ref": "1145c086f67626d42f531731702c4c557aaaeb09",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/AithenaX/tree/bb861e94945e55cf3c6b560e753845422f7bbdb0",
+          "ref": "bb861e94945e55cf3c6b560e753845422f7bbdb0",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/AithenaX/blob/1145c086f67626d42f531731702c4c557aaaeb09/.evento/product-manifest.v1.json",
+          "ref": "1145c086f67626d42f531731702c4c557aaaeb09",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "octa-xr-webar",
+      "name": "octa-xr-webar",
+      "repository": "EVENTo0/octa-xr-webar",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "XR_EXPERIENCE_ENGINE",
+      "branch": "main",
+      "source_ref": "dbd9319a27291728b810f71b60c80b799daa8880",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 78,
+      "score_ref": "6a0b642bc7314ea77ef884154e12c77c8332d7fb",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Security CI run 16 fails production dependency audit: sharp 0.35.4 and source-map-js 1.2.1 have High advisories.",
+        "Supabase migration 0006 is not yet evidenced on an active customer-isolated project with live smoke/security-advisor proof.",
+        "Immersive WebXR happy path remains unverified on physical hardware."
+      ],
+      "p1": [
+        "Final production assets remain placeholders.",
+        "Rate limiting is in-memory and requires production-grade shared enforcement for scaled deployments.",
+        "Sales SKU/license/asset handoff pack is incomplete."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_RUN_16_EXCEPT_AUDIT",
+        "security": "FAIL_DEP_AUDIT",
+        "deployment": "BLOCKED",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Security CI run 16 fails production dependency audit: sharp 0.35.4 and source-map-js 1.2.1 have High advisories.",
+        "Supabase migration 0006 is not yet evidenced on an active customer-isolated project with live smoke/security-advisor proof.",
+        "Immersive WebXR happy path remains unverified on physical hardware.",
+        "Final production assets remain placeholders.",
+        "Rate limiting is in-memory and requires production-grade shared enforcement for scaled deployments.",
+        "Sales SKU/license/asset handoff pack is incomplete."
+      ],
+      "next_action": "إغلاق dependency audit في PR #1 ثم إثبات backend منعزل واختبار جهاز.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/octa-xr-webar/pull/1",
+      "contract_ref": "6a0b642bc7314ea77ef884154e12c77c8332d7fb",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/octa-xr-webar/tree/dbd9319a27291728b810f71b60c80b799daa8880",
+          "ref": "dbd9319a27291728b810f71b60c80b799daa8880",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/octa-xr-webar/blob/6a0b642bc7314ea77ef884154e12c77c8332d7fb/.evento/product-manifest.v1.json",
+          "ref": "6a0b642bc7314ea77ef884154e12c77c8332d7fb",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evx-mawasem-wheel",
+      "name": "Evx-Mawasem-wheel",
+      "repository": "EVENTo0/Evx-Mawasem-wheel",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "DATA_CONTENT_PWA",
+      "branch": "main",
+      "source_ref": "f4f60a6883e2daf851f0b497dcfa2964f392945a",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 70,
+      "score_ref": "29afa5efe8242b9406fc97f7f05aad81ca881245",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current security PR head still pins Next.js 16.3.6; official 2026-09-30 security release requires 16.3.8 on Active LTS.",
+        "Customer-owned deployment has not been proven end-to-end with a verified-data-only export boundary."
+      ],
+      "p1": [
+        "Commercial data/content license and attribution pack missing.",
+        "Sales preview/catalog assets incomplete."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_SECURITY_PR",
+        "security": "FAIL_STALE_PATCH",
+        "deployment": "BLOCKED",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Current security PR head still pins Next.js 16.3.6; official 2026-09-30 security release requires 16.3.8 on Active LTS.",
+        "Customer-owned deployment has not been proven end-to-end with a verified-data-only export boundary.",
+        "Commercial data/content license and attribution pack missing.",
+        "Sales preview/catalog assets incomplete."
+      ],
+      "next_action": "مراجعة الرأس المحدّث والأمان ثم تصدير بيانات موثقة إلى عميل منعزل.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/Evx-Mawasem-wheel/pull/13",
+      "contract_ref": "29afa5efe8242b9406fc97f7f05aad81ca881245",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/Evx-Mawasem-wheel/tree/f4f60a6883e2daf851f0b497dcfa2964f392945a",
+          "ref": "f4f60a6883e2daf851f0b497dcfa2964f392945a",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/Evx-Mawasem-wheel/blob/29afa5efe8242b9406fc97f7f05aad81ca881245/.evento/product-manifest.v1.json",
+          "ref": "29afa5efe8242b9406fc97f7f05aad81ca881245",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "uae-seed-dataset",
+      "name": "UAE-Seed-Dataset",
+      "repository": "EVENTo0/UAE-Seed-Dataset",
+      "role": "SHARED_DATA",
+      "category": "MAWASEM_EVIDENCE_DATASET",
+      "branch": "main",
+      "source_ref": "06f4f6290eed41fd249a25cafedbe2b10502caf0",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "PROTECTED",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Source/license review for exported records"
+      ],
+      "next_action": "التحقق من تصدير بيانات موثقة فقط إلى Mawasem مع المصدر والتاريخ ودرجة الثقة.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/UAE-Seed-Dataset/tree/06f4f6290eed41fd249a25cafedbe2b10502caf0",
+          "ref": "06f4f6290eed41fd249a25cafedbe2b10502caf0",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "evento-modura",
+      "name": "EVENTO-MODURA",
+      "repository": "EVENTo0/EVENTO-MODURA",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "PHYSICAL_DIGITAL_CONFIGURATOR",
+      "branch": "main",
+      "source_ref": "529daa1d4a7ad2b8e6a0bc03992c15f9c3dd8455",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "UNVERIFIED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 76,
+      "score_ref": "bd9fe9ca108821c6971c850f2153be67cd15b655",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Atomic order persistence fix remains draft in PR #3 and is not on main.",
+        "Current README binds the app to a specific Supabase project; customer-isolated tenant/handoff is not evidenced.",
+        "Physical estimates must be hard-blocked from being treated as engineering/manufacturing approval; licensed engineer/fabricator approval boundary is required in the sales package."
+      ],
+      "p1": [
+        "SKU/pricing/license package missing.",
+        "Customer admin/backup/restore runbook missing.",
+        "Demo catalog must not expose EVENTO private supplier/margin data."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_PR_HEAD",
+        "security": "PARTIAL",
+        "deployment": "BLOCKED",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "BLOCKED",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Atomic order persistence fix remains draft in PR #3 and is not on main.",
+        "Current README binds the app to a specific Supabase project; customer-isolated tenant/handoff is not evidenced.",
+        "Physical estimates must be hard-blocked from being treated as engineering/manufacturing approval; licensed engineer/fabricator approval boundary is required in the sales package.",
+        "SKU/pricing/license package missing.",
+        "Customer admin/backup/restore runbook missing.",
+        "Demo catalog must not expose EVENTO private supplier/margin data."
+      ],
+      "next_action": "مراجعة أصغر إصلاح لحفظ الطلب ذريًا في PR #3 ثم إثبات عميل منعزل.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/EVENTO-MODURA/pull/4",
+      "contract_ref": "bd9fe9ca108821c6971c850f2153be67cd15b655",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/EVENTO-MODURA/tree/529daa1d4a7ad2b8e6a0bc03992c15f9c3dd8455",
+          "ref": "529daa1d4a7ad2b8e6a0bc03992c15f9c3dd8455",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/EVENTO-MODURA/blob/bd9fe9ca108821c6971c850f2153be67cd15b655/.evento/product-manifest.v1.json",
+          "ref": "bd9fe9ca108821c6971c850f2153be67cd15b655",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "3d-al-dhafra-v1",
+      "name": "3D-Al-Dhafra-V1",
+      "repository": "EVENTo0/3D-Al-Dhafra-V1",
+      "role": "SELLABLE_CANDIDATE",
+      "category": "INTERACTIVE_HERITAGE_WORLD",
+      "branch": "main",
+      "source_ref": "0cab4ff882c168bd339e4d04664aac36f10075ea",
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "CANCELLED",
+      "sale_state": "BLOCKED_P0",
+      "sellable": false,
+      "catalog_published": false,
+      "score": 68,
+      "score_ref": "1e3029ca26ba81713c31d43e37096d138f4c140a",
+      "score_origin": "SOURCE_REPORTED",
+      "p0": [
+        "Current Android recorded APK is older v0.3 while source is v0.4; signed current artifact/device evidence is missing.",
+        "Unity handoff PR #1 is still draft; canonical Unity acceptance is not closed.",
+        "Real email delivery, physical-device performance and iOS packaging are explicitly unverified where those channels are promised."
+      ],
+      "p1": [
+        "Commercial asset/license register and customer content-approval checklist missing.",
+        "Sales catalog must separate verified heritage/reference facts from creative simulation."
+      ],
+      "gates": {
+        "audit": "PASS",
+        "classification": "PASS",
+        "duplicate_merge": "PASS",
+        "tests": "PASS_PR_HEAD",
+        "security": "PARTIAL",
+        "deployment": "BLOCKED",
+        "productization": "IN_PROGRESS",
+        "customer_isolation": "PARTIAL",
+        "handoff": "BLOCKED",
+        "commercial": "BLOCKED",
+        "catalog": "BLOCKED"
+      },
+      "open_gates": [
+        "Current Android recorded APK is older v0.3 while source is v0.4; signed current artifact/device evidence is missing.",
+        "Unity handoff PR #1 is still draft; canonical Unity acceptance is not closed.",
+        "Real email delivery, physical-device performance and iOS packaging are explicitly unverified where those channels are promised.",
+        "Commercial asset/license register and customer content-approval checklist missing.",
+        "Sales catalog must separate verified heritage/reference facts from creative simulation."
+      ],
+      "next_action": "ربط حزمة Unity V8.8.4 واختبار المها الحقيقي؛ إبقاء قبول تطبيق 3D مستقلًا.",
+      "can_do_now": [
+        "مراجعة المصدر والاختبارات السحابية",
+        "تحسين العقد والتوثيق والكاتلوج",
+        "إعداد تسليم الوكيل وإغلاق نقص قابل للاختبار دون محرّر"
+      ],
+      "deferred": [
+        "Unity/Blender editor or device proof when applicable",
+        "Signing/store/production evidence when applicable"
+      ],
+      "contract_pr": "https://github.com/EVENTo0/3D-Al-Dhafra-V1/pull/2",
+      "contract_ref": "1e3029ca26ba81713c31d43e37096d138f4c140a",
+      "evidence": [
+        {
+          "kind": "repository",
+          "url": "https://github.com/EVENTo0/3D-Al-Dhafra-V1/tree/0cab4ff882c168bd339e4d04664aac36f10075ea",
+          "ref": "0cab4ff882c168bd339e4d04664aac36f10075ea",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "workflow",
+          "url": "https://github.com/EVENTo0/3D-Al-Dhafra-V1/actions/runs/37522573101",
+          "ref": "0cab4ff882c168bd339e4d04664aac36f10075ea",
+          "verdict": "cancelled",
+          "name": "Dhafra 3D checks",
+          "run_id": 37522573101,
+          "created_at": "2026-10-06T19:55:48Z",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        },
+        {
+          "kind": "manifest",
+          "url": "https://github.com/EVENTo0/3D-Al-Dhafra-V1/blob/1e3029ca26ba81713c31d43e37096d138f4c140a/.evento/product-manifest.v1.json",
+          "ref": "1e3029ca26ba81713c31d43e37096d138f4c140a",
+          "verdict": "SOURCE_REPORTED",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": []
+    },
+    {
+      "id": "al-dhafra-reference",
+      "name": "مرجع الظفرة / محاكاة الإبل",
+      "repository": null,
+      "role": "SHARED_DATA",
+      "category": "TRUE_ASSET_PRODUCTION",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Unity OVERALL=PASS للمها",
+        "Reem/Ghaf/Ghada P0 validation",
+        "Qasr Al Sarab vertical slice"
+      ],
+      "next_action": "تثبيت مصدر V8.8.4 ومواصفات بقية P0 دون تجاوز اختبار المها.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "library-source",
+          "library_file_id": "libfile_ccbba60fda0481919da7967caecd91ca",
+          "name": "EVENTO_Al_Dhafra_Master_Project_Pack_2026-10-06.zip",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": [
+        "libfile_ccbba60fda0481919da7967caecd91ca"
+      ]
+    },
+    {
+      "id": "athar-tayyib",
+      "name": "أثر طيب",
+      "repository": null,
+      "role": "CONTENT_VENTURE",
+      "category": "PROTOTYPE_VERIFICATION_GATES",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Live Web Preview",
+        "Unity compile/play/Arabic RTL proof",
+        "Windows/Android artifacts",
+        "iOS Xcode build/signing",
+        "OpenUSD validation"
+      ],
+      "next_action": "تحسين الكاتلوج والمصادر وتجهيز اختبار V0.1.2 مع طبقة V0.2 دون ادعاء تشغيله.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "library-source",
+          "library_file_id": "libfile_d942a56f28f48191872dc0425ce0740e",
+          "name": "athar_tayyib_execution_master_pack_v1.zip",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": [
+        "libfile_d942a56f28f48191872dc0425ce0740e"
+      ]
+    },
+    {
+      "id": "fashion-atelier",
+      "name": "EVENTO أتيليه الأزياء",
+      "repository": null,
+      "role": "DESIGN_VENTURE",
+      "category": "WEB_CATALOG_AND_DESIGN",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "PARTIALLY VERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Web color/configuration acceptance",
+        "15 designs per category",
+        "Order persistence/customer isolation",
+        "3D held until later request"
+      ],
+      "next_action": "إكمال المصمم والكاتلوج 2D واختبار تغير اللون والتفاصيل في الموقع.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [
+        {
+          "kind": "library-source",
+          "library_file_id": "libfile_8ce8a27e8d5c8191ae0f993af8b7c520",
+          "name": "EVENTO-Fashion-V7-Construction-Draft.zip",
+          "verdict": "SOURCE_READ",
+          "observed_at": "2026-10-07T10:07:54.672867+00:00"
+        }
+      ],
+      "source_pack_ids": [
+        "libfile_8ce8a27e8d5c8191ae0f993af8b7c520"
+      ]
+    },
+    {
+      "id": "earth-smart-mud",
+      "name": "MODURA / Smart Mud",
+      "repository": null,
+      "role": "PHYSICAL_DIGITAL_VENTURE",
+      "category": "CONCEPT_AND_CATALOG",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "UNVERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Licensed engineering/fabrication acceptance",
+        "Customer estimate disclaimer and scope",
+        "Repeatable sales/handoff pack"
+      ],
+      "next_action": "تثبيت الكاتلوج والكميات والمراجع وحدود اعتماد المهندس المرخّص.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [],
+      "source_pack_ids": []
+    },
+    {
+      "id": "signal-radar",
+      "name": "EVENTO Signal Radar",
+      "repository": null,
+      "role": "WEB_VENTURE",
+      "category": "WEB_CATALOG",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "UNVERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Source freshness and citations",
+        "Live app/source binding",
+        "Productization and customer handoff"
+      ],
+      "next_action": "تحسين عرض الأخبار والترند ومصادرها وتاريخها دون إعادة إنشاء منصة ثانية.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [],
+      "source_pack_ids": []
+    },
+    {
+      "id": "octapos",
+      "name": "OCTAPOS / أجهزة المستقبل",
+      "repository": null,
+      "role": "IDEA",
+      "category": "CONCEPT",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "UNVERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Hardware feasibility",
+        "BOM/prototype evidence",
+        "Power/thermal/ergonomics",
+        "No working hologram claim"
+      ],
+      "next_action": "توحيد مفهوم الجهاز والنسخ المصغّرة والمتطلبات والميزانية في brief واحد.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [],
+      "source_pack_ids": []
+    },
+    {
+      "id": "nano-lab",
+      "name": "EVENTO Nano Lab",
+      "repository": null,
+      "role": "IDEA",
+      "category": "CONCEPT",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "UNVERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Measured experiment before promotion"
+      ],
+      "next_action": "تسجيل الأفكار والحقوق ومسار تجربة واحدة منخفضة التكلفة دون إدخالها إلى Core.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [],
+      "source_pack_ids": []
+    },
+    {
+      "id": "octa-boo",
+      "name": "OCTA Boo / الهوية الإعلامية",
+      "repository": null,
+      "role": "MEDIA_VENTURE",
+      "category": "VOICE_AND_CONTENT_BRIEF",
+      "branch": null,
+      "source_ref": null,
+      "observed_at": "2026-10-07T10:07:54.672867+00:00",
+      "evidence_state": "UNVERIFIED",
+      "ci": "NOT_APPLICABLE",
+      "sale_state": "HOLD",
+      "sellable": false,
+      "catalog_published": false,
+      "score": null,
+      "score_ref": null,
+      "score_origin": null,
+      "p0": [],
+      "p1": [],
+      "gates": {},
+      "open_gates": [
+        "Voice/identity rights",
+        "One verified episode/pipeline",
+        "Family-friendly editorial review"
+      ],
+      "next_action": "ربط الهوية وحقوق الصوت وbrief الحلقة بـOCTA Voice دون إنشاء نظام تشغيل جديد.",
+      "can_do_now": [
+        "تنظيم المصدر ومواصفات الأصول",
+        "تطوير JSON والكاتلوج والتسليم",
+        "تجهيز اختبارات القبول"
+      ],
+      "deferred": [
+        "Engine/editor/device/signing evidence as required"
+      ],
+      "contract_pr": null,
+      "contract_ref": null,
+      "evidence": [],
+      "source_pack_ids": []
+    }
+  ],
+  "sources": [
+    {
+      "id": "libfile_9dad9eaeda38819182208cf48da924bc",
+      "name": "EVENTO-Admin-release-channel-v0.1.0-debug.apk",
+      "path": "06_SOURCE_PACKS/EVENTO-Admin-release-channel-v0.1.0-debug.apk",
+      "sha256": "bf01eb226a22a1c7b402e755498de29ab2755eb9555a81cbf1867221fa92aeea",
+      "bytes": 6437386,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-04T20:33:38.664770Z"
+    },
+    {
+      "id": "libfile_dcfe877068e881919317dc425f07627e",
+      "name": "EVENTO-Fashion-V6-Configuration-Kit.zip",
+      "path": "06_SOURCE_PACKS/EVENTO-Fashion-V6-Configuration-Kit.zip",
+      "sha256": "b48a2850f00cc386cac2bf46657af121a93c7b181febf62c65c06fb4c135a11b",
+      "bytes": 24282554,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-05T05:48:31.614487Z"
+    },
+    {
+      "id": "libfile_8ce8a27e8d5c8191ae0f993af8b7c520",
+      "name": "EVENTO-Fashion-V7-Construction-Draft.zip",
+      "path": "06_SOURCE_PACKS/EVENTO-Fashion-V7-Construction-Draft.zip",
+      "sha256": "42bf32ec722a832c92423a63e992e2f44aa21b85da07361ae1a869566f13474f",
+      "bytes": 3621110,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-05T08:10:44.263520Z"
+    },
+    {
+      "id": "libfile_ccbba60fda0481919da7967caecd91ca",
+      "name": "EVENTO_Al_Dhafra_Master_Project_Pack_2026-10-06.zip",
+      "path": "06_SOURCE_PACKS/EVENTO_Al_Dhafra_Master_Project_Pack_2026-10-06.zip",
+      "sha256": "51fc67d51683a25ac26e1cb0a7d0c17cc22f62f2e0b7fd2b691639f2350acfb7",
+      "bytes": 7079059,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-06T02:44:03.836756Z"
+    },
+    {
+      "id": "libfile_dd05df2192d081919a96104b8b1384de",
+      "name": "EVENTO_Al_Dhafra_Project_Concept_Catalog_V1_Preview.docx",
+      "path": "06_SOURCE_PACKS/EVENTO_Al_Dhafra_Project_Concept_Catalog_V1_Preview.docx",
+      "sha256": "7cb4856e8c6d94734e2c386ca3bd4346aea881087e6cdee6d5a2426a9134e116",
+      "bytes": 574150,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-05T08:39:06.167535Z"
+    },
+    {
+      "id": "libfile_cf210c07f868819195b7ee3312c7aff5",
+      "name": "EVENTO_Al_Dhafra_Project_Concept_Catalog_V1_Preview.pdf",
+      "path": "06_SOURCE_PACKS/EVENTO_Al_Dhafra_Project_Concept_Catalog_V1_Preview.pdf",
+      "sha256": "77a383f6a888c4dcde4bbcedac1a3c7aa05531850f0b72b2efa59a6afcf12fc2",
+      "bytes": 690279,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-05T08:39:02.655546Z"
+    },
+    {
+      "id": "libfile_9c4df733865081918641985dd5b14e5b",
+      "name": "EVENTO_Al_Dhafra_V8_8_4_OneClick_Unity_Project.zip",
+      "path": "06_SOURCE_PACKS/EVENTO_Al_Dhafra_V8_8_4_OneClick_Unity_Project.zip",
+      "sha256": "282a5a63318b1dd5f662c1ecda076431861b76de2b467deb2a79853b130761de",
+      "bytes": 79443,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-06T00:52:52.788652Z"
+    },
+    {
+      "id": "libfile_0dbd7112640481918a5a441f5f8c33c4",
+      "name": "EVENTO_EARTH_Project_Package.zip",
+      "path": "06_SOURCE_PACKS/EVENTO_EARTH_Project_Package.zip",
+      "sha256": "fb23b0cb079edbba4730a100f1d7d14912160b09a004ccb3108973dfab49fba5",
+      "bytes": 2098574,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": null
+    },
+    {
+      "id": "libfile_2caff749e1f08191b34320874274a5a7",
+      "name": "EVENTO_Productization_Governor_v1_Source.zip",
+      "path": "06_SOURCE_PACKS/EVENTO_Productization_Governor_v1_Source.zip",
+      "sha256": "60b2320f33063a2bad563d75c7e0455f072f43e735578937b4df7a0377a654a1",
+      "bytes": 11839,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-06T19:35:12.056426Z"
+    },
+    {
+      "id": "libfile_3bdf5ab5215c8191b98a1768848cd953",
+      "name": "OCTA_RECOVERY_CHECKPOINT_2026-09-26.zip",
+      "path": "06_SOURCE_PACKS/OCTA_RECOVERY_CHECKPOINT_2026-09-26.zip",
+      "sha256": "86e04c171e99dc448bb472aec7684d62ff2b3dc37f228b66134f633140d937ab",
+      "bytes": 5578,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": null
+    },
+    {
+      "id": "libfile_d942a56f28f48191872dc0425ce0740e",
+      "name": "athar_tayyib_execution_master_pack_v1.zip",
+      "path": "06_SOURCE_PACKS/athar_tayyib_execution_master_pack_v1.zip",
+      "sha256": "d244f5f3fcafb3eeefb403d39e339ab3d07e0157fdad0daff3ca1b2a3e011ab5",
+      "bytes": 165942,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-07T09:48:44.120759Z"
+    },
+    {
+      "id": "libfile_75bc78a65e98819191ea36b66a278e56",
+      "name": "athar_tayyib_nvidia_execution_v0_2.zip",
+      "path": "06_SOURCE_PACKS/athar_tayyib_nvidia_execution_v0_2.zip",
+      "sha256": "2e047ca2c31e9fc0533e3bd3aeca6eb7bf42d2fa93b4bea6f2dafdbac1d19ffb",
+      "bytes": 4440,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-05T08:30:57.406966Z"
+    },
+    {
+      "id": "libfile_886537533e3c819185ad8c53a33ba08b",
+      "name": "athar_tayyib_nvidia_openusd_readiness_v0_1.zip",
+      "path": "06_SOURCE_PACKS/athar_tayyib_nvidia_openusd_readiness_v0_1.zip",
+      "sha256": "15c2e7993b3ef60e031de4f920064fb84d06bc1ce2450e01c97ebd2b530784a8",
+      "bytes": 6056,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-05T07:59:55.814081Z"
+    },
+    {
+      "id": "libfile_676c3c24d774819197f73d99fab8eef1",
+      "name": "athar_tayyib_unity_project_v0_1_2_tmp_rtl.zip",
+      "path": "06_SOURCE_PACKS/athar_tayyib_unity_project_v0_1_2_tmp_rtl.zip",
+      "sha256": "5aae1b1a0360254cb8baa008e17cd9e9d7849daae5d2773525bbf7f756816b0e",
+      "bytes": 61036,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-06T06:26:51.792158Z"
+    },
+    {
+      "id": "libfile_2dbbcc0c49048191a2330f478a3217bc",
+      "name": "athar_tayyib_unity_v0_2_release_gate.zip",
+      "path": "06_SOURCE_PACKS/athar_tayyib_unity_v0_2_release_gate.zip",
+      "sha256": "8f822eff356ef6ae3cadc515b5933b6d53f4736b7f8059b82062df610996602c",
+      "bytes": 5513,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-05T07:23:40.167724Z"
+    },
+    {
+      "id": "libfile_d60d1c3883248191bb74c3c857bac6c4",
+      "name": "EVENTO_Future_Lab_Web_Page_Package.zip",
+      "path": "06_SOURCE_PACKS/EVENTO_Future_Lab_Web_Page_Package.zip",
+      "sha256": "fbabc1160e909ca4ac573116fdb1da5d80fa957a74b8dcaa2a8349c92a07e3e8",
+      "bytes": 2084276,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": null
+    },
+    {
+      "id": "libfile_a9803e2e74008191a1726b9075f86f88",
+      "name": "OCTA800_v10_G4_9_First_Measured_Provider_Run.zip",
+      "path": "06_SOURCE_PACKS/OCTA800_v10_G4_9_First_Measured_Provider_Run.zip",
+      "sha256": "0340e8354a3071ab8f5b5cb54ed45625e52b247580abf41a6f93cdc99710f929",
+      "bytes": 386909,
+      "source_kind": "library",
+      "verified_bytes": true,
+      "modified_at": "2026-10-02T15:31:05.342222Z"
+    }
+  ],
+  "global_next_action": "مراجعة وإدخال حزمة Continuity في اللوحة الحالية، ثم Hosted customer-isolated External Paper E2E لـEv-Bot."
+}
