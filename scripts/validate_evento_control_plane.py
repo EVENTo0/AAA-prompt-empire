@@ -29,6 +29,7 @@ REQUIRED = [
     "registry/evento-release-evidence.json",
     "docs/release/EVENTO_RELEASE_EVIDENCE_V1.md",
     "registry/evento-release-channels.json",
+    "registry/evento-release-channel-evidence.json",
     "docs/architecture/EVENTO_RELEASE_CHANNEL_V1.md",
     "schemas/evento-signing-evidence.schema.json",
     "scripts/release/build_signing_evidence.py",
@@ -295,17 +296,38 @@ def validate_release_channels(errors: list[str]) -> None:
         fail(errors, "desktop signing secret contract drifted")
 
     projects = channels.get("projects", {})
+    channel_evidence = load("registry/evento-release-channel-evidence.json")
+    evidence_by_id = {item.get("id"): item for item in channel_evidence.get("evidence", [])}
+
     for project_id, project in projects.items():
         if project.get("enabled") is not False:
             fail(errors, f"{project_id}: project release channel must remain disabled")
-        if project.get("binding_verified") is not False:
-            fail(errors, f"{project_id}: binding cannot be verified without external evidence")
         channel_id = project.get("channel_id")
         descriptor = project.get("binding_descriptor", {})
         if channel_id is not None and not isinstance(channel_id, str):
             fail(errors, f"{project_id}: channel_id must be null or a string")
         if channel_id and not descriptor:
             fail(errors, f"{project_id}: configured channel_id requires a binding descriptor")
+
+        if project.get("binding_verified") is True:
+            evidence_id = project.get("binding_evidence_id")
+            evidence = evidence_by_id.get(evidence_id)
+            if not evidence or evidence.get("verified") is not True:
+                fail(errors, f"{project_id}: verified binding requires verified evidence")
+            elif evidence.get("release_authority") is not False:
+                fail(errors, f"{project_id}: binding evidence must not grant release authority")
+            elif project_id == "evento-one":
+                expected = {
+                    "team_id": "team_vZEWFqCEnXIaNzJl22F0lkG8",
+                    "vercel_project_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
+                    "vercel_project_name": "evento-one-web",
+                    "repository": "EVENTo0/Evento-One",
+                }
+                for key, value in expected.items():
+                    if evidence.get(key) != value:
+                        fail(errors, f"evento-one: binding evidence mismatch for {key}")
+        elif project.get("binding_evidence_id"):
+            fail(errors, f"{project_id}: unverified binding must not reference verified evidence")
 
     known = {
         "evento-one": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
