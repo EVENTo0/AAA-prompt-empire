@@ -80,7 +80,7 @@
     "evento-one": {
       "channel_type": "web-production",
       "channel_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
-      "binding_verified": false,
+      "binding_verified": true,
       "enabled": false,
       "binding_descriptor": {
         "provider": "vercel",
@@ -88,7 +88,8 @@
         "project_id": "prj_15JeGkRMsh6pvc2OAE902mkAB3Z6",
         "project_name": "evento-one-web",
         "production_target": "stable"
-      }
+      },
+      "binding_evidence_id": "evento-one-vercel-binding-2026-10-07"
     },
     "evento-acquisition": {
       "channel_type": "web-production",
