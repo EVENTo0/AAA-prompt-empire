@@ -309,19 +309,25 @@
     },
     {
       "repository": "EVENTo0/Game-1-Saeed-octa",
-      "audited_ref": "acfd9fcd127c5b02e1101d8372a7816063c2b02e",
+      "audited_ref": "c70c43c641565253e68b3a8a2382efb92c840695",
       "role": "SELLABLE_CANDIDATE",
       "category": "GAME_WEB_PACKAGE",
       "initial_score": 82,
-      "next_gate": "PASS_FINAL_COMMERCIAL_HANDOFF_VERIFIER_THEN_PROMOTE",
+      "next_gate": "LIST_IN_EVENTO_CATALOG_AND_SELL_PER_CUSTOM_QUOTE",
       "manifest_applied": true,
       "manifest_path": ".evento/product-manifest.v1.json",
-      "manifest_ref": "productization/evento-package-v1 / PR #1",
-      "sellable": false,
-      "lifecycle_state": "PRODUCTIZED",
-      "current_score": 90,
+      "manifest_ref": "claude/saeed-royale-mobile-mvp-tmtzxi@c70c43c641565253e68b3a8a2382efb92c840695",
+      "sellable": true,
+      "lifecycle_state": "SELLABLE",
+      "current_score": 96,
       "p0_count": 0,
-      "p1_count": 1
+      "p1_count": 0,
+      "production_deployment": {
+        "provider": "Vercel",
+        "deployment_id": "dpl_B9BxVztMK9Wfco2j4rhDoKyguHCS",
+        "status": "READY",
+        "url": "https://saeed-royale.vercel.app"
+      }
     },
     {
       "repository": "EVENTo0/AithenaX",
@@ -416,15 +422,15 @@
     "total_repositories": 34,
     "sellable_candidates": 17,
     "manifests_applied": 17,
-    "sellable_now": 0,
+    "sellable_now": 1,
     "rule": "No candidate is SELLABLE while any P0/mandatory-gate/evidence gap remains.",
     "highest_readiness": {
-      "repository": "EVENTo0/Ev-Bot",
-      "score": 90,
-      "lifecycle_state": "BLOCKED_P0",
-      "p0": 1,
+      "repository": "EVENTo0/Game-1-Saeed-octa",
+      "score": 96,
+      "lifecycle_state": "SELLABLE",
+      "p0": 0,
       "p1": 0,
-      "canonical_ref": "5eb4acb2fa14786977351bb20287324b04102a66"
+      "canonical_ref": "c70c43c641565253e68b3a8a2382efb92c840695"
     }
   }
 }
