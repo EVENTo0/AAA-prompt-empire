@@ -229,14 +229,14 @@
     },
     {
       "repository": "EVENTo0/Ev-Bot",
-      "audited_ref": "756c4b700af163252af75f29b6a4fe28a28fbe0f",
+      "audited_ref": "5eb4acb2fa14786977351bb20287324b04102a66",
       "role": "SELLABLE_CANDIDATE",
       "category": "AI_BOT_PLATFORM",
       "initial_score": 84,
-      "next_gate": "RUN_REAL_CUSTOMER_OWNED_GATE11H_EXTERNAL_PAPER_E2E",
+      "next_gate": "WAIT_FOR_REAL_CUSTOMER_OWNED_GATE11H_EXTERNAL_PAPER_E2E",
       "manifest_applied": true,
       "manifest_path": ".evento/product-manifest.v1.json",
-      "manifest_ref": "ui/sellable-console-v1 / PR #16",
+      "manifest_ref": "release/v1.0-rc1@5eb4acb2fa14786977351bb20287324b04102a66",
       "sellable": false,
       "lifecycle_state": "BLOCKED_P0",
       "current_score": 90,
@@ -423,7 +423,8 @@
       "score": 90,
       "lifecycle_state": "BLOCKED_P0",
       "p0": 1,
-      "p1": 0
+      "p1": 0,
+      "canonical_ref": "5eb4acb2fa14786977351bb20287324b04102a66"
     }
   }
 }
