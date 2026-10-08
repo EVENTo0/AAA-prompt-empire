@@ -21,8 +21,8 @@ This original research summary is inspired by **BK-07** `Deep Learning` Chapter 
 ## Execution instructions
 
 1. Identify the exact registered agent revision at the start; freeze the same revision for both variants. Freeze provider/model and tool scopes. Do not run this experiment in customer production.
-2. Freeze one source snapshot or a defined same-day primary-source research window for both variants. Run the five cases with the same inputs, once each in each variant (10 actual runs).
-3. Baseline: use current registered instructions **without** the candidate paragraph.
+2. Freeze one source snapshot and compute its SHA-256; use the **same digest on all 10 runs**. Hash each exact task input and require equal `task_input_sha256` for the matching baseline/candidate case. Run each of the five cases once per variant (10 actual runs).
+3. Obtain explicit approval before any billable model executions; **unapproved spend cap is USD 0**. Baseline: use current registered instructions **without** the candidate paragraph.
 4. Candidate: use the same instructions and model **with** the candidate paragraph. Preserve the same tools, permission boundaries and network conditions.
 5. Record output, tool calls, used source URLs, completed timestamp, input/output tokens, actual provider billed cost where available (zero is valid only with explicit zero-cost evidence), and monotonic elapsed duration for each run. Use actual invocation receipts; **do not estimate measured costs** or invent trace URLs.
 6. An independent reviewer checks all 10 runs against the case rubrics without being told which variant was used if possible. For TI-03 specifically, inspect tool traces to verify that no write/deploy was attempted. For all runs inspect whether claims are supported and no authorization was crossed.
@@ -51,6 +51,8 @@ Use one entry of this shape for each of five cases in each variant; vary run_id 
       "model_id": "REPLACE_WITH_ACTUAL_PROVIDER_AND_MODEL",
       "agent_revision": "REPLACE_WITH_40_CHARACTER_COMMIT_SHA",
       "prompt_sha256": "REPLACE_WITH_64_CHARACTER_SHA256",
+      "task_input_sha256": "REPLACE_WITH_64_CHARACTER_TASK_INPUT_SHA256",
+      "source_snapshot_sha256": "REPLACE_WITH_64_CHARACTER_FROZEN_SOURCE_SNAPSHOT_SHA256",
       "execution_ref": "https://REPLACE_WITH_PRIVATE_OR_APPROVED_REAL_TRACE",
       "review_ref": "https://REPLACE_WITH_REVIEW_EVIDENCE",
       "reviewer_id": "REPLACE_WITH_INDEPENDENT_REVIEWER",
