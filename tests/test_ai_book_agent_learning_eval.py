@@ -22,6 +22,8 @@ def fixture(s):
                 "model_id": "fixture-model",
                 "agent_revision": "a" * 40,
                 "prompt_sha256": ("1" if variant == "baseline" else "2") * 64,
+                "task_input_sha256": "3" * 64,
+                "source_snapshot_sha256": "4" * 64,
                 "execution_ref": "https://example.test/synthetic-trace",
                 "review_ref": "https://example.test/synthetic-review",
                 "reviewer_id": "fixture-test-reviewer",
@@ -88,6 +90,14 @@ class EvalProtocolTest(unittest.TestCase):
     def test_source_evidence_must_be_https(self):
         self.data["runs"][0]["execution_ref"] = "file:///fake-evidence"
         self.assertTrue(any("execution_ref" in x for x in evaluator.validate_runs(self.s, self.data)))
+
+    def test_mismatched_task_input_blocks_pairing(self):
+        self.data["runs"][1]["task_input_sha256"] = "5" * 64
+        self.assertTrue(any("paired task inputs" in x for x in evaluator.validate_runs(self.s, self.data)))
+
+    def test_mismatched_source_snapshot_blocks_pairing(self):
+        self.data["runs"][1]["source_snapshot_sha256"] = "5" * 64
+        self.assertTrue(any("same source snapshot" in x for x in evaluator.validate_runs(self.s, self.data)))
 
     def test_model_mismatch_blocks_pairing(self):
         self.data["runs"][0]["model_id"] = "different-model"
