@@ -34,13 +34,17 @@ test('draft provider calls use only the dedicated credential', async () => {
     fetchImpl: async (url, init) => {
       calls.push(init)
       if (url.endsWith('/repos/' + repository)) return Response.json({ private: true, full_name: repository })
+      if (url.endsWith('/issues/8')) {
+        const handoff = (await import('../lib/continuity-handoff.mjs')).createContinuityHandoff(snapshot, 'ev-bot', 'codex', 'CONT-isolation-12345678')
+        return Response.json({ number: 8, title: '[EVENTO CONTINUITY][DRAFT] CONT-isolation-12345678', body: JSON.stringify({ evento_continuity_draft_version: 1, state: 'planning', ...handoff }) })
+      }
       if (init.method === 'GET') return Response.json([])
       return Response.json({ number: 8 }, { status: 201 })
     },
   })
   const response = await handle(post())
   assert.equal(response.status, 201)
-  assert.equal(calls.length, 3)
+  assert.equal(calls.length, 4)
   for (const call of calls) {
     assert.equal(new Headers(call.headers).get('authorization'), 'Bearer draft-secret')
     assert.ok(!JSON.stringify(call).includes('dashboard-secret'))
