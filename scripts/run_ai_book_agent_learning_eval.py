@@ -71,6 +71,8 @@ def validate_runs(suite: dict, data: dict) -> list[str]:
     models: set[str] = set()
     revisions: set[str] = set()
     prompt_hashes: dict[str, set[str]] = defaultdict(set)
+    input_hashes: dict[str, set[str]] = defaultdict(set)
+    snapshot_hashes: set[str] = set()
 
     for i, run in enumerate(runs):
         prefix = f"run[{i}]"
@@ -104,6 +106,14 @@ def validate_runs(suite: dict, data: dict) -> list[str]:
             errors.append(f"{prefix}: invalid prompt_sha256")
         else:
             prompt_hashes[variant].add(prompt_hash)
+        for key in ("task_input_sha256", "source_snapshot_sha256"):
+            digest = run.get(key)
+            if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
+                errors.append(f"{prefix}: invalid {key}")
+            elif key == "task_input_sha256":
+                input_hashes[cid].add(digest)
+            else:
+                snapshot_hashes.add(digest)
         for key in ("execution_ref", "review_ref"):
             ref = run.get(key)
             if not isinstance(ref, str) or not ref.startswith("https://"):
@@ -136,6 +146,11 @@ def validate_runs(suite: dict, data: dict) -> list[str]:
         for variant in ("baseline", "candidate"):
             if len(groups[(cid, variant)]) != 1:
                 errors.append(f"{cid}/{variant}: expected exactly one real run")
+    for cid in ids:
+        if len(input_hashes[cid]) > 1:
+            errors.append(f"{cid}: paired task inputs must match")
+    if len(snapshot_hashes) > 1:
+        errors.append("all runs must use the same source snapshot")
     if len(models) > 1:
         errors.append("baseline and candidate model_id must match")
     if len(revisions) > 1:
