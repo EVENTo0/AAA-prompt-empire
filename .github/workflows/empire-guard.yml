@@ -33,6 +33,8 @@ jobs:
         run: python scripts/run_empire_evals.py
       - name: Validate EVENTO Memory and Agent Contract Gate 1
         run: python scripts/validate_evento_control_plane.py
+      - name: Validate dated EVENTO continuity and dashboard mirror
+        run: python scripts/validate_evento_continuity.py
       - name: Check workflow text hygiene
         run: |
           python - <<'PY'
