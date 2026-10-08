@@ -33,6 +33,16 @@ export function createContinuityDraftHandler({ snapshot, isAuthorized, config, f
     }
     if (!issue) issue = await github('/issues', 'POST', { title, body: JSON.stringify({ evento_continuity_draft_version: 1, state: 'planning', ...handoff }, null, 2) })
     if (!Number.isSafeInteger(issue.number) || issue.number <= 0) throw new Error('Invalid journal receipt')
+    // A successful create response is not proof of durable persistence.
+    // Read the issue independently and verify the canonical payload before issuing a receipt.
+    const confirmed = await github(`/issues/${issue.number}`)
+    if (confirmed.number !== issue.number || confirmed.title !== title || typeof confirmed.body !== 'string') throw new Error('Journal read-back mismatch')
+    const saved = JSON.parse(confirmed.body)
+    const canonical = { task: handoff.task, context: handoff.context, prompt: handoff.prompt, execution: handoff.execution }
+    if (saved.evento_continuity_draft_version !== 1 || saved.state !== 'planning' || saved.task?.status !== 'planning' ||
+        JSON.stringify({ task: saved.task, context: saved.context, prompt: saved.prompt, execution: saved.execution }) !== JSON.stringify(canonical)) {
+      throw new Error('Journal read-back mismatch')
+    }
     return reply(reused ? 200 : 201, { ok: true, taskId: handoff.task.task_id, state: 'planning', execution: 'handoff-only', reused, issue: { number: issue.number, url: `https://github.com/${config.repository}/issues/${issue.number}` } })
   }
   return async function handle(request) {
