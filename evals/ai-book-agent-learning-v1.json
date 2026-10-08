@@ -26,9 +26,12 @@
     "agent_revision_must_match": true,
     "run_artifact_and_independent_review_required": true,
     "same_source_snapshot_and_scoring_rubric": true,
-    "max_projected_new_cost_usd": 0,
     "promotion_policy": "NEVER_AUTOMATIC; review after paired REAL runs and checks",
-    "copyright": "Never reproduce full books, scrape copyrighted pages for bulk ingestion or train on copyrighted content without rights."
+    "copyright": "Never reproduce full books, scrape copyrighted pages for bulk ingestion or train on copyrighted content without rights.",
+    "max_unapproved_spend_usd": 0,
+    "spending_authorization": "Explicit approval required before billable provider runs; no unattended paid API calls",
+    "same_task_input_sha256_per_pair_required": true,
+    "same_source_snapshot_sha256_all_runs_required": true
   },
   "cases": [
     {
