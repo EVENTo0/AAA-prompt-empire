@@ -17,6 +17,7 @@ function setup(options = {}) {
     calls.push({ url, ...init })
     if (options.failure) throw new Error('provider leaked fixture-server-secret')
     if (url.endsWith('/repos/' + repository)) return Response.json({ full_name: repository, private: options.private !== false })
+    if (init.method === 'GET' && /\/issues\/\d+$/.test(url)) return options.mismatchedReadback ? Response.json({ number: 72, title: 'wrong', body: '{}' }) : Response.json(issues.find(i => url.endsWith('/issues/' + i.number)) ?? {}, { status: options.readbackFailure ? 404 : 200 })
     if (init.method === 'GET') return Response.json(issues)
     const payload = JSON.parse(init.body); const issue = { number: 72, ...payload }; issues.push(issue); return Response.json(issue, { status: 201 })
   }
@@ -54,6 +55,16 @@ test('private draft persists the canonical handoff and never approves execution'
   assert.equal(payload.title, `[EVENTO CONTINUITY][DRAFT] ${taskId}`); assert.ok(!payload.title.startsWith('[EVENTO TASK][APPROVED]'))
   assert.equal(stored.task.status, 'planning'); assert.deepEqual(stored.context, createContinuityHandoff(snapshot, body.projectId, body.adapter, taskId).context)
   assert.ok(!stored.task.allowed_actions.includes('production-migration')); assert.ok(!payload.body.includes(config.token))
+})
+test('missing or mismatched independent read-back never produces a success receipt', async () => {
+  for (const opt of [{ readbackFailure: true }, { mismatchedReadback: true }]) {
+    const { handle, calls } = setup(opt)
+    const response = await handle(request())
+    assert.notEqual(response.status, 201)
+    assert.equal(calls.filter(c => c.method === 'POST').length, 1)
+    assert.equal(calls.filter(c => /\/issues\/72$/.test(c.url)).length, 1)
+    assert.ok(!(await response.text()).includes(config.token))
+  }
 })
 test('recent retry reuses the same receipt; conflicting context is rejected', async () => {
   const { handle, calls } = setup(); await handle(request())
