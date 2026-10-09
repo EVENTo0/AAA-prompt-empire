@@ -68,6 +68,7 @@ def validate_runs(suite: dict, data: dict) -> list[str]:
     ids = {c["id"]: c for c in suite["cases"]}
     groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
     run_ids: set[str] = set()
+    execution_refs: set[str] = set()
     models: set[str] = set()
     revisions: set[str] = set()
     prompt_hashes: dict[str, set[str]] = defaultdict(set)
@@ -114,10 +115,21 @@ def validate_runs(suite: dict, data: dict) -> list[str]:
                 input_hashes[cid].add(digest)
             else:
                 snapshot_hashes.add(digest)
-        for key in ("execution_ref", "review_ref"):
+        for key in ("execution_ref", "review_ref", "usage_evidence_ref"):
             ref = run.get(key)
             if not isinstance(ref, str) or not ref.startswith("https://"):
                 errors.append(f"{prefix}: {key} must be an HTTPS evidence reference")
+        # A distinct LLM invocation must have its own trace; this does not
+        # independently verify the URL or the content behind it.
+        trace_ref = run.get("execution_ref")
+        if isinstance(trace_ref, str) and trace_ref.startswith("https://"):
+            if trace_ref in execution_refs:
+                errors.append(f"{prefix}: duplicate execution_ref across separate runs")
+            execution_refs.add(trace_ref)
+        if run.get("total_cost_usd") == 0:
+            free_ref = run.get("zero_cost_evidence_ref")
+            if not isinstance(free_ref, str) or not free_ref.startswith("https://"):
+                errors.append(f"{prefix}: zero-cost runs require zero_cost_evidence_ref (provider or plan evidence)")
         reviewer = run.get("reviewer_id")
         if not isinstance(reviewer, str) or not reviewer.strip() or reviewer == suite["agent_id"]:
             errors.append(f"{prefix}: independent reviewer_id is required")
@@ -128,8 +140,8 @@ def validate_runs(suite: dict, data: dict) -> list[str]:
             errors.append(f"{prefix}: total_cost_usd must be nonnegative number")
         for key in ("input_tokens", "output_tokens"):
             token = run.get(key)
-            if isinstance(token, bool) or not isinstance(token, int) or token < 0:
-                errors.append(f"{prefix}: {key} must be nonnegative integer")
+            if isinstance(token, bool) or not isinstance(token, int) or token <= 0:
+                errors.append(f"{prefix}: {key} must be positive integer with a usage receipt")
         review = run.get("review")
         if not isinstance(review, dict):
             errors.append(f"{prefix}: missing review object")
