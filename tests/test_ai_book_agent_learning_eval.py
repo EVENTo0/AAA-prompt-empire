@@ -119,6 +119,22 @@ class EvalProtocolTest(unittest.TestCase):
         self.assertEqual(report["status"], "HOLD_NO_PROVEN_GAIN")
         self.assertFalse(report["promoted"])
 
+    def test_unsigned_review_is_incomplete_even_if_cheaper(self):
+        for run in self.data["runs"]:
+            run["review"]["reviewer_signed_off"] = False
+        report = evaluator.summarize(self.s, self.data)
+        self.assertEqual(report["status"], "BLOCKED_INVALID_OR_INCOMPLETE")
+        self.assertTrue(any("not been signed off" in msg for msg in report["errors"]))
+        self.assertFalse(report["promoted"])
+
+    def test_zero_quality_cost_savings_are_not_learning(self):
+        for run in self.data["runs"]:
+            run["review"]["task_correct"] = False
+        report = evaluator.summarize(self.s, self.data)
+        self.assertEqual(report["status"], "HOLD_NO_PROVEN_GAIN")
+        self.assertEqual(report["scores"]["candidate"]["accepted"], 0)
+        self.assertFalse(report["promoted"])
+
     def test_input_records_are_not_mutated(self):
         original = copy.deepcopy(self.data)
         evaluator.summarize(self.s, self.data)
