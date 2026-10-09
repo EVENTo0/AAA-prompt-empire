@@ -300,7 +300,7 @@ def validate_frozen_comparison(suite: dict, data: dict,
             if (entry.get("external_source_snapshot_sha256") != target_hash
                     or not SHA256_RE.fullmatch(str(entry.get("source_snapshot_sha256", "")))
                     or not SHA256_RE.fullmatch(str(entry.get("task_input_sha256", "")))
-                    or not SHA256_RE.fullmatch(str(entry.get("prompt_sha256", ""))):
+                    or not SHA256_RE.fullmatch(str(entry.get("prompt_sha256", "")))):
                 raise ValueError("incomplete prepared source/task/prompt hashes")
             if cid == "TI-02":
                 expected_block = frozen.shared_prompt_evidence(pack_dir / "external-snapshot", copied)
