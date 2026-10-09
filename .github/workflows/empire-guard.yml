@@ -36,6 +36,7 @@ jobs:
           python scripts/run_ai_book_agent_learning_eval.py
           python -m unittest discover -s tests -p 'test_ai_book_agent_learning_eval.py' -v
           python -m unittest discover -s tests -p 'test_prepare_ai_book_agent_runs.py' -v
+          python -m unittest discover -s tests -p 'test_ai_book_external_snapshot.py' -v
       - name: Validate EVENTO Memory and Agent Contract Gate 1
         run: python scripts/validate_evento_control_plane.py
       - name: Check workflow text hygiene
