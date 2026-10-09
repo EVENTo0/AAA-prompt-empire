@@ -2,9 +2,10 @@
 
 **Research-only status:** primary-source URLs and release/advisory dates reviewed and pinned in
 [the TI-02 source catalog](../../evals/ai-book-ti02-official-source-catalog.v1.json).
-**Full external page bytes and their SHA-256 are NOT yet captured in this Git revision.**
-Do not set external source freeze to PROVEN until the separate offline snapshot
-directory has been created and checked by the capture/verify utility.
+**Capture evidence now exists as a separately archived GitHub Actions artifact, not as raw HTML committed to this Git revision.**
+On 2026-10-09 18:48 UTC the frozen eight-source bundle was captured, independently verified and packaged in [Actions run 37975760943](https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/37975760943).
+Canonical snapshot SHA-256: **caad79b34e9dcea0c99a2f6cadee38ee2487ad7c75ec3258c846108eeddbda97**.
+[Artifact 11639435163](https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/37975760943/artifacts/11639435163) expires 2026-11-08 UTC; export/archive it before expiration. See [capture provenance](TI02_NEXTJS_CAPTURE_PROVENANCE_2026-10-09.json) for ZIP SHA and capture details.
 No real baseline/candidate inference, no performance improvement claim, no product release.
 
 ## Primary sources established as of 9 October 2026
@@ -85,8 +86,7 @@ use synthetic fabricated records and **never prove LLM improvement**.
   image remote rules, server/edge configuration, and customer exposure of
   any specific EVENTO product.
 - Deployment-specific or hosted security proof, including tenant isolation.
-- **Raw official response snapshots remain NOT CAPTURED** until a completed
-  external capture and offline verification. The catalog alone is not a proof.
+- **Raw official source snapshot CAPTURED AND VERIFIED on 2026-10-09:** it is stored in an expiring Actions artifact, not embedded in Git. The catalog by itself is still not frozen proof; operators must download and verify the actual snapshot before running a comparison.
 - **Zero** baseline/candidate live inference runs, **zero** performance
   gain evidence, no actual LLM cost or timing receipts, no reviewer decision.
 - No agent permission changes, automatic promotion, deployment or release.
