@@ -12,8 +12,8 @@
       "vercelProject": "evento-empire",
       "supabaseProjectRef": "jaxhaiaftpegcodkzaus",
       "platforms": ["web", "pwa"],
-      "workflows": [],
-      "notes": "Primary legal company platform. Verified Supabase backend: Evento project 1. Keep the public web/PWA surface separate from the private mobile product repository and from the internal Control Plane."
+      "workflows": ["evento-web.yml"],
+      "notes": "Primary legal company platform. Verified Supabase backend: Evento project 1. Public web/PWA surface, client accounts and the request portal are implemented in EVENTo0/AAA-prompt-empire at apps/evento-web; contracts, typecheck and production build pass and the account journey is verified against a protocol stub. Not deployed, and the project_requests migration is source-controlled but deliberately unapplied because the Supabase project is shared with EVENTO Mobile. Keep this surface separate from the private mobile product repository and from the internal Control Plane."
     },
     {
       "id": "evento-mobile",

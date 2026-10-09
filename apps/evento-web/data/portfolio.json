@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "note": "Public projection only. Every entry mirrors a project tracked in the internal registry and carries an explicit evidence state. Nothing here may claim a stage the internal verification record does not support.",
+  "projects": [
+    {
+      "id": "evento-core",
+      "registryId": "evento-core",
+      "name": { "ar": "منصة إيفينتو", "en": "EVENTO Platform" },
+      "kind": { "ar": "منصة الشركة الأم", "en": "Parent company platform" },
+      "summary": {
+        "ar": "الموقع الرسمي وتطبيق الويب القابل للتثبيت وحسابات العملاء وبوابة متابعة الطلبات.",
+        "en": "The official website, the installable web app, client accounts and the request tracking portal."
+      },
+      "platforms": ["web", "pwa"],
+      "stage": "build",
+      "evidence": "PARTIALLY VERIFIED",
+      "evidenceNote": {
+        "ar": "الواجهة والاختبارات التعاقدية تعمل محلياً. النشر وحسابات الإنتاج لم يُفعّلا بعد.",
+        "en": "Interface and contract tests pass locally. Deployment and production accounts are not yet enabled."
+      },
+      "link": null
+    },
+    {
+      "id": "evento-mobile",
+      "registryId": "evento-mobile",
+      "name": { "ar": "تطبيق إيفينتو للهاتف", "en": "EVENTO Mobile" },
+      "kind": { "ar": "تطبيق الشركة", "en": "Company application" },
+      "summary": {
+        "ar": "تطبيق الهاتف الأصلي للشركة، يُبنى ويُوزَّع تجريبياً عبر خط بناء سحابي مع أدلة توقيع وتثبيت.",
+        "en": "The company's native mobile application, built and distributed for testing through a cloud build line with signing and install evidence."
+      },
+      "platforms": ["android", "ios"],
+      "stage": "preview",
+      "evidence": "PARTIALLY VERIFIED",
+      "evidenceNote": {
+        "ar": "نسخة تطوير أندرويد اجتازت التحليل الساكن والاختبارات والتوقيع ورفع الحزمة. القبول على الأجهزة والنشر في المتاجر بوابتان منفصلتان لم تُغلقا بعد.",
+        "en": "The Android development build passed static analysis, tests, signing and artifact upload. Device acceptance and store publication are separate gates that are not yet closed."
+      },
+      "link": null
+    },
+    {
+      "id": "octorimal",
+      "registryId": "octorimal",
+      "name": { "ar": "أوكتوريمال: رمال المدّ الأول", "en": "OCTORIMAL: Sands of the First Tide" },
+      "kind": { "ar": "لعبة تجارية", "en": "Commercial game" },
+      "summary": {
+        "ar": "مشروع لعبة تجاري مستقل بعالم وسرد أصليين، يستهدف الحاسب ومنصات الواقع الممتد والهاتف.",
+        "en": "An independent commercial game project with an original world and narrative, targeting desktop, XR and mobile."
+      },
+      "platforms": ["windows", "xr", "android", "ios", "web"],
+      "stage": "build",
+      "evidence": "PARTIALLY VERIFIED",
+      "evidenceNote": {
+        "ar": "حوكمة المستودع مكتملة ومدموجة. أساس زمن التشغيل قيد التنفيذ ولا يوجد بناء قابل للعب معلَن.",
+        "en": "Repository governance is complete and merged. The runtime foundation is in progress and no playable build is announced."
+      },
+      "link": null
+    },
+    {
+      "id": "evex-official",
+      "registryId": "evex-official",
+      "name": { "ar": "إيفكس", "en": "EVEX Official" },
+      "kind": { "ar": "منتج ضمن المحفظة", "en": "Portfolio product" },
+      "summary": {
+        "ar": "منتج قائم بنظام خلفي نشط، يُدار كمشروع مستقل ببيانات معزولة عن باقي المشاريع.",
+        "en": "An existing product with an active backend, operated as an independent project with data isolated from other projects."
+      },
+      "platforms": ["web", "mobile"],
+      "stage": "operate",
+      "evidence": "UNVERIFIED",
+      "evidenceNote": {
+        "ar": "النظام الخلفي نشط، لكن لا يوجد سجل تحقق حديث منشور لهذا المنتج.",
+        "en": "The backend is active, but no current published verification record exists for this product."
+      },
+      "link": null
+    },
+    {
+      "id": "aithenax",
+      "registryId": "aithenax",
+      "name": { "ar": "أثيناكس", "en": "AithenaX" },
+      "kind": { "ar": "منتج ضمن المحفظة", "en": "Portfolio product" },
+      "summary": {
+        "ar": "مشروع متوقف مؤقتاً محفوظ ضمن المحفظة مع بياناته، بانتظار قرار استئناف.",
+        "en": "A paused project preserved in the portfolio together with its data, awaiting a decision to resume."
+      },
+      "platforms": ["web", "mobile"],
+      "stage": "intake",
+      "evidence": "UNVERIFIED",
+      "evidenceNote": {
+        "ar": "المشروع متوقف والنظام الخلفي غير نشط حالياً.",
+        "en": "The project is paused and its backend is currently inactive."
+      },
+      "link": null
+    }
+  ]
+}

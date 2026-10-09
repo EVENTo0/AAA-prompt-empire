@@ -1,0 +1,1056 @@
+@import './tokens.css';
+
+/* EVENTO Project Development — stylesheet.
+ *
+ * Two rules govern everything here:
+ *
+ * 1. Every value comes from a token. No raw colour, size, or spacing.
+ * 2. Layout uses logical properties only, so one stylesheet serves Arabic
+ *    (RTL) and English (LTR) without a mirrored override sheet.
+ *
+ * On letter-spacing: Arabic script is cursive and joined — tracking breaks the
+ * joins and is a defect, not a style. Tracking is therefore applied only under
+ * `:lang(en)` or to the Latin-only ledger face, never globally.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  min-height: 100dvh;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: var(--leading-tight);
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+  letter-spacing: normal;
+  text-wrap: balance;
+}
+
+/* Latin sets tighter; Arabic must not be tracked at all. */
+:lang(en) h1,
+:lang(en) h2,
+:lang(en) h3 {
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+}
+h2 {
+  font-size: var(--text-2xl);
+}
+h3 {
+  font-size: var(--text-lg);
+}
+
+p {
+  margin: 0 0 var(--space-4);
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+ul {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- the ledger ---------- */
+
+/* Anything that is a record rather than a claim: stage numbers, reference
+   codes, states, platforms, dates, counts. */
+.ledger {
+  font-family: var(--font-ledger);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-ledger);
+  font-size: var(--text-2xs);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* Arabic in an eyebrow keeps the ledger's smallness and colour but drops the
+   tracking and the meaningless uppercase. */
+:lang(ar) .eyebrow {
+  font-family: var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+/* ---------- layout primitives ---------- */
+
+.shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: clamp(var(--space-4), 4vw, var(--space-8));
+}
+
+.section {
+  padding-block: var(--section-y);
+  border-block-start: 1px solid var(--line);
+}
+
+.section:first-of-type {
+  border-block-start: none;
+}
+
+.sectionHead {
+  max-width: var(--measure);
+  margin-block-end: var(--space-8);
+}
+
+.lead {
+  color: var(--muted);
+  font-size: var(--text-md);
+  margin: 0;
+  max-width: var(--measure);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 620px) {
+  .grid.cols2,
+  .grid.cols3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 940px) {
+  .grid.cols3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Vertical rather than a large inline offset: off-canvas horizontal offsets
+   become visible page overflow once the document is RTL. */
+.skipLink {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  top: 0;
+  z-index: 100;
+  background: var(--accent);
+  color: var(--ink);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 700;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  transform: translateY(-150%);
+  transition: transform 0.15s ease;
+}
+
+.skipLink:focus {
+  transform: translateY(0);
+}
+
+.srOnly {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- header ---------- */
+
+.siteHeader {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--ink-glass);
+  backdrop-filter: blur(10px);
+  border-block-end: 1px solid var(--line);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 60px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  margin-inline-end: auto;
+  min-inline-size: 0;
+}
+
+.brandMark {
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--ink);
+  font-family: var(--font-ledger);
+  font-weight: 700;
+  font-size: var(--text-2xs);
+  flex: none;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The wordmark is Latin in both languages; isolating keeps it intact inside
+   the RTL header instead of clipping from the wrong edge. */
+.brandName {
+  direction: ltr;
+  unicode-bidi: isolate;
+  flex: none;
+  font-size: var(--text-md);
+}
+
+.brandText small {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: var(--text-2xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:lang(en) .brandText small {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Icon-only on phones: a labelled hamburger plus the language switch does not
+   fit beside the brand at 360–390px. */
+.navToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--raised);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  min-inline-size: 44px;
+  min-block-size: 40px;
+  padding: var(--space-1) var(--space-2);
+  font: inherit;
+  cursor: pointer;
+  flex: none;
+}
+
+.primaryNav {
+  display: none;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.primaryNav a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.primaryNav a:hover {
+  color: var(--text);
+  background: var(--raised);
+}
+
+.primaryNav a[aria-current='page'] {
+  color: var(--text);
+  background: var(--accent-wash);
+}
+
+.mobileNav {
+  border-block-start: 1px solid var(--line);
+  padding-block: var(--space-3);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.mobileNav a {
+  color: var(--text);
+  text-decoration: none;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.mobileNav a[aria-current='page'] {
+  background: var(--accent-wash);
+}
+
+/* Scoped so it outranks the generic `.button { display: inline-flex }` rule
+   declared later in this file. */
+.siteHeader .headerCta {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .navToggle,
+  .mobileNav {
+    display: none;
+  }
+  .primaryNav {
+    display: flex;
+  }
+  .siteHeader .headerCta {
+    display: inline-flex;
+    min-height: 36px;
+    padding: var(--space-1) var(--space-4);
+    font-size: var(--text-sm);
+  }
+}
+
+.localeSwitch {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  min-block-size: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.localeSwitch:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  padding-block: clamp(var(--space-10), 9vw, var(--space-24));
+  border-block-end: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+
+/* A single ruled hairline behind the hero, echoing the ledger. Not a gradient
+   blob: a measured rule. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 100%;
+  block-size: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent 55%);
+}
+
+.hero h1 {
+  max-width: 22ch;
+}
+
+.heroLead {
+  max-width: 58ch;
+  color: var(--muted);
+  font-size: var(--text-lg);
+  margin-block-start: var(--space-4);
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-8);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 46px;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.button.primary {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.button.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.button.secondary {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.button.secondary:hover {
+  border-color: var(--accent);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ---------- cards ---------- */
+
+.card {
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.card h3 {
+  margin: 0;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.cardIcon {
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-size: var(--text-md);
+  margin-block-end: var(--space-1);
+}
+
+.deliverables {
+  margin: var(--space-1) 0 0;
+  padding-inline-start: var(--space-5);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+}
+
+/* Platforms are records, so they are set in the ledger face. */
+.tag {
+  font-family: var(--font-ledger);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.fieldLabel {
+  font-family: var(--font-ledger);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+:lang(ar) .fieldLabel {
+  font-family: var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: var(--text-xs);
+}
+
+/* ---------- the stage rail ---------- */
+
+/* The delivery pipeline is a genuine ordered sequence, so it earns numbering
+   and a connecting rule. Nothing else on the site is numbered. */
+.stageList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.stage {
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-2);
+  position: relative;
+}
+
+.stageTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stageNumber {
+  inline-size: 30px;
+  block-size: 30px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-edge);
+  color: var(--accent);
+  font-family: var(--font-ledger);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+}
+
+.stage h3 {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.stage p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.stageMeta {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.stageMeta dt {
+  font-family: var(--font-ledger);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+:lang(ar) .stageMeta dt {
+  font-family: var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.stageMeta dd {
+  margin: 0 0 var(--space-2);
+  color: var(--text);
+}
+
+/* ---------- evidence states ---------- */
+
+.evidence {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-ledger);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+:lang(ar) .evidence {
+  font-family: var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.evidence::before {
+  content: '';
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 1px;
+  background: currentColor;
+  flex: none;
+}
+
+.evidence.verified {
+  color: var(--accent);
+  border-color: var(--accent-edge);
+  background: var(--accent-wash);
+}
+
+.evidence.partial {
+  color: var(--state-warn);
+  border-color: var(--warn-edge);
+  background: var(--warn-wash);
+}
+
+.evidence.unverified {
+  color: var(--state-off);
+  border-color: var(--line-strong);
+  background: transparent;
+}
+
+.evidence.blocked {
+  color: var(--state-warn);
+  border-color: var(--warn-edge);
+  background: var(--warn-wash);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* ---------- forms ---------- */
+
+.formCard {
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  max-width: 640px;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-end: var(--space-4);
+}
+
+.field label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.field .hint {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  font-size: var(--text-base);
+  color: var(--text);
+  background: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  min-height: 46px;
+  width: 100%;
+}
+
+textarea {
+  min-height: 150px;
+  resize: vertical;
+  line-height: var(--leading-body);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+.fieldRow {
+  display: grid;
+  gap: 0 var(--space-4);
+}
+
+@media (min-width: 620px) {
+  .fieldRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.notice {
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  border: 1px solid;
+  margin-block-end: var(--space-4);
+}
+
+.notice.error {
+  color: var(--state-warn);
+  border-color: var(--warn-edge);
+  background: var(--warn-wash);
+}
+
+.notice.info {
+  color: var(--muted);
+  border-color: var(--line-strong);
+  background: var(--ink);
+}
+
+.notice.success {
+  color: var(--accent);
+  border-color: var(--accent-edge);
+  background: var(--accent-wash);
+}
+
+.notice p:last-child {
+  margin-block-end: 0;
+}
+
+.notice strong {
+  color: var(--text);
+}
+
+/* A reference number is the purest record on the site. */
+.reference {
+  font-family: var(--font-ledger);
+  font-size: var(--text-lg);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- account ---------- */
+
+.authShell {
+  min-height: 78dvh;
+  display: grid;
+  place-items: center;
+  padding-block: var(--section-y);
+}
+
+.requestRow {
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.requestRow header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.summaryText {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* ---------- footer ---------- */
+
+.siteFooter {
+  border-block-start: 1px solid var(--line);
+  padding-block: var(--space-10);
+  margin-block-start: var(--section-y);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.footerGrid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 720px) {
+  .footerGrid {
+    grid-template-columns: 1.4fr 1fr 1fr;
+  }
+}
+
+.footerGrid h4 {
+  color: var(--text);
+  font-family: var(--font-ledger);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-3);
+}
+
+:lang(ar) .footerGrid h4 {
+  font-family: var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: var(--text-sm);
+}
+
+.footerLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.footerLinks a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  color: var(--accent);
+}
+
+.footerBase {
+  margin-block-start: var(--space-8);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  justify-content: space-between;
+  font-size: var(--text-xs);
+}
+
+/* ---------- install offer ---------- */
+
+.installBanner {
+  position: fixed;
+  inset-inline: var(--space-3);
+  bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  z-index: 60;
+  max-inline-size: 34rem;
+  margin-inline: auto;
+  background: var(--raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-2);
+}
+
+.installText {
+  min-inline-size: 12rem;
+  flex: 1 1 14rem;
+}
+
+.installText strong {
+  display: block;
+  font-size: var(--text-sm);
+}
+
+.installText p {
+  margin: var(--space-1) 0 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.installActions {
+  display: flex;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+.installActions .button {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+}
+
+/* ---------- installed-app mode ---------- */
+
+/* Hidden for ordinary browser visits. The bottom bar exists only once the site
+   is installed, where browser chrome no longer provides navigation. */
+.appNav {
+  display: none;
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  .appNav {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 50;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    background: var(--ink-glass);
+    backdrop-filter: blur(12px);
+    border-block-start: 1px solid var(--line);
+    padding-block: var(--space-1);
+    padding-block-end: calc(var(--space-1) + env(safe-area-inset-bottom));
+  }
+
+  .appNav a {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: var(--space-1);
+    color: var(--muted);
+    text-decoration: none;
+    font-size: var(--text-2xs);
+    min-block-size: 48px;
+  }
+
+  .appNav a[aria-current='page'] {
+    color: var(--accent);
+  }
+
+  .appNavIcon {
+    font-size: var(--text-md);
+    line-height: 1;
+  }
+
+  body {
+    padding-block-end: var(--space-16);
+  }
+
+  /* An installed app has no address bar to scroll away. */
+  .siteHeader {
+    position: static;
+  }
+
+  .installBanner {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Pushes a card's final action to the bottom so cards in a row align. */
+.autoTop {
+  margin-block-start: auto;
+}
+
+/* A definition list used inside a card, where the card border already
+   provides the separation the stage rule gives elsewhere. */
+.stageMeta.plain {
+  border-block-start: none;
+  padding-block-start: 0;
+}
+
+/* ---------- small utilities, all token-valued ---------- */
+
+.measured {
+  max-width: 640px;
+}
+
+.breakAnywhere {
+  overflow-wrap: anywhere;
+}
+
+.tightTop {
+  margin-block-start: 0;
+}
+
+.gapBelow {
+  margin-block-end: var(--space-6);
+}
+
+.gapAbove {
+  margin-block-start: var(--space-4);
+}
+
+.blockGroup {
+  margin-block-end: var(--space-8);
+}

@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "note": "Client-facing projection of the AAA+ Engineering Empire execution lifecycle (AGENTS.md section 9). Stage ids are stable and are also used as the status vocabulary for project requests.",
+  "stages": [
+    {
+      "id": "intake",
+      "order": 1,
+      "name": { "ar": "استلام الطلب", "en": "Intake" },
+      "body": {
+        "ar": "يصل الطلب عبر نموذج الموقع أو حساب العميل. نسجّل الهدف والجمهور والمنصات والقيود والميزانية والمدة.",
+        "en": "The request arrives through the site form or the client account. We record the outcome, audience, platforms, constraints, budget and timeline."
+      },
+      "clientEvidence": {
+        "ar": "رقم طلب ونسخة من الملخص المسجَّل.",
+        "en": "A request reference and a copy of the recorded brief."
+      },
+      "gate": null
+    },
+    {
+      "id": "discovery",
+      "order": 2,
+      "name": { "ar": "الاستكشاف والموجز", "en": "Discovery and brief" },
+      "body": {
+        "ar": "نفحص الوضع الحالي والمستودعات والأنظمة القائمة، ونحدد معايير القبول وما هو خارج النطاق والمخاطر المعروفة.",
+        "en": "We inspect the current state, repositories and existing systems, then fix acceptance criteria, non-goals and known risks."
+      },
+      "clientEvidence": {
+        "ar": "موجز مشروع بمعايير قبول قابلة للقياس.",
+        "en": "A project brief with measurable acceptance criteria."
+      },
+      "gate": { "ar": "موافقة العميل على معايير القبول", "en": "Client approval of acceptance criteria" }
+    },
+    {
+      "id": "architecture",
+      "order": 3,
+      "name": { "ar": "المعمارية والتوجيه", "en": "Architecture and routing" },
+      "body": {
+        "ar": "نختار التقنية والمنصات وحدود الأنظمة وتدفق البيانات والثقة، ونسجّل القرارات المؤثرة كسجلات قرار معماري.",
+        "en": "We select the stack, platforms, system boundaries, data and trust flow, and record material choices as architecture decision records."
+      },
+      "clientEvidence": {
+        "ar": "مخطط معماري وسجل قرارات مبررة.",
+        "en": "An architecture outline and justified decision records."
+      },
+      "gate": { "ar": "مراجعة معمارية", "en": "Architecture review" }
+    },
+    {
+      "id": "build",
+      "order": 4,
+      "name": { "ar": "بناء الشريحة الكاملة", "en": "Vertical slice build" },
+      "body": {
+        "ar": "ننفّذ أصغر شريحة كاملة تعمل من الواجهة حتى البيانات، بدلاً من واجهات صورية غير موصولة.",
+        "en": "We implement the smallest complete slice that works from interface to data, instead of disconnected mockups."
+      },
+      "clientEvidence": {
+        "ar": "فروع ومراجعات شيفرة قابلة للتتبع.",
+        "en": "Traceable branches and code reviews."
+      },
+      "gate": null
+    },
+    {
+      "id": "verification",
+      "order": 5,
+      "name": { "ar": "التحقق المستقل", "en": "Independent verification" },
+      "body": {
+        "ar": "اختبارات وحدات وتكامل ونهاية إلى نهاية، ومراجعة أمنية وخصوصية، وفحوص وصولية وأداء بحسب المخاطر.",
+        "en": "Unit, integration and end-to-end tests, a security and privacy review, plus risk-based accessibility and performance checks."
+      },
+      "clientEvidence": {
+        "ar": "سجل تحقق يذكر ما تم إثباته وما لم يُثبت بعد.",
+        "en": "A verification record naming what is proven and what is not yet proven."
+      },
+      "gate": { "ar": "بوابة جودة", "en": "Quality gate" }
+    },
+    {
+      "id": "preview",
+      "order": 6,
+      "name": { "ar": "المعاينة والتوزيع التجريبي", "en": "Preview and prerelease" },
+      "body": {
+        "ar": "نُصدر رابط معاينة محمي أو نسخة تجريبية للتثبيت على الهاتف، منفصلة تماماً عن قناة الإنتاج.",
+        "en": "We publish a protected preview URL or a phone-installable test build, fully separated from the production channel."
+      },
+      "clientEvidence": {
+        "ar": "رابط أو نسخة تُفتح وتُقبل من الهاتف.",
+        "en": "A link or build you open and accept from your phone."
+      },
+      "gate": { "ar": "قبول العميل على جهاز حقيقي", "en": "Client acceptance on a real device" }
+    },
+    {
+      "id": "release",
+      "order": 7,
+      "name": { "ar": "الإصدار", "en": "Release" },
+      "body": {
+        "ar": "نشر مُتحكَّم به مع ترحيلات ومراقبة وملاحظات إصدار وإجراء تراجع مُختبر ومالك تشغيلي محدد.",
+        "en": "A controlled rollout with migrations, monitoring, release notes, a tested rollback procedure and a named operational owner."
+      },
+      "clientEvidence": {
+        "ar": "ملاحظات إصدار وخطة تراجع.",
+        "en": "Release notes and a rollback plan."
+      },
+      "gate": { "ar": "موافقة إصدار محمية", "en": "Protected release approval" }
+    },
+    {
+      "id": "operate",
+      "order": 8,
+      "name": { "ar": "التشغيل والتعلّم", "en": "Operate and learn" },
+      "body": {
+        "ar": "متابعة الأداء والأعطال، وتحويل كل عطل متكرر إلى اختبار انحدار دائم يمنع تكراره.",
+        "en": "We track performance and incidents, and convert every recurring defect into a permanent regression test that prevents its return."
+      },
+      "clientEvidence": {
+        "ar": "تقرير تشغيل دوري واختبارات انحدار مضافة.",
+        "en": "A periodic operations report and the regression tests that were added."
+      },
+      "gate": null
+    }
+  ]
+}

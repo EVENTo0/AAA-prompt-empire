@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "services": [
+    {
+      "id": "web-platform",
+      "icon": "◈",
+      "name": { "ar": "منصات ويب وتطبيقات PWA", "en": "Web platforms and PWAs" },
+      "summary": {
+        "ar": "مواقع شركات ولوحات تحكم ومتاجر وتطبيقات ويب قابلة للتثبيت تعمل دون اتصال.",
+        "en": "Company sites, dashboards, storefronts and installable web apps that keep working offline."
+      },
+      "deliverables": {
+        "ar": ["واجهة متجاوبة تدعم العربية والإنجليزية", "معاينة على رابط محمي", "اختبارات وصولية وأداء", "توثيق تشغيل ونشر"],
+        "en": ["Responsive Arabic/English interface", "Protected preview URL", "Accessibility and performance checks", "Operations and deployment docs"]
+      },
+      "platforms": ["web", "pwa"],
+      "routeSkill": "web-delivery"
+    },
+    {
+      "id": "mobile-app",
+      "icon": "▤",
+      "name": { "ar": "تطبيقات الهاتف", "en": "Mobile applications" },
+      "summary": {
+        "ar": "تطبيقات أندرويد و iOS مع دورة بناء سحابية وتوزيع تجريبي محمي للمختبرين.",
+        "en": "Android and iOS apps with a cloud build loop and protected prerelease distribution for testers."
+      },
+      "deliverables": {
+        "ar": ["نسخة تطوير قابلة للتثبيت", "قناة توزيع تجريبية منفصلة عن الإنتاج", "دليل قبول على جهاز حقيقي", "خطة توقيع وإصدار"],
+        "en": ["Installable development build", "Prerelease channel separated from production", "Physical-device acceptance evidence", "Signing and release plan"]
+      },
+      "platforms": ["android", "ios"],
+      "routeSkill": "mobile-delivery"
+    },
+    {
+      "id": "backend-cloud",
+      "icon": "▥",
+      "name": { "ar": "أنظمة خلفية وبيانات وسحابة", "en": "Backend, data and cloud" },
+      "summary": {
+        "ar": "واجهات برمجية وقواعد بيانات وصلاحيات وتخزين وطوابير وأنظمة لحظية مع ترحيلات آمنة.",
+        "en": "APIs, databases, authorization, storage, queues and realtime systems with safe migrations."
+      },
+      "deliverables": {
+        "ar": ["مخطط بيانات وسياسات وصول", "واجهات موثقة", "ترحيلات قابلة للتراجع", "مراقبة وتنبيهات"],
+        "en": ["Data model and access policies", "Documented interfaces", "Reversible migrations", "Monitoring and alerts"]
+      },
+      "platforms": ["cloud"],
+      "routeSkill": "backend-data-cloud"
+    },
+    {
+      "id": "ai-systems",
+      "icon": "◇",
+      "name": { "ar": "أنظمة ذكاء اصطناعي ووكلاء", "en": "AI systems and agents" },
+      "summary": {
+        "ar": "مساعدون ووكلاء واسترجاع معرفي ومخرجات منظمة، مع تقييمات وحدود أمان وتكلفة محسوبة.",
+        "en": "Assistants, agents, retrieval and structured outputs, with evaluations, safety boundaries and controlled cost."
+      },
+      "deliverables": {
+        "ar": ["مجموعة تقييم قابلة للتكرار", "حدود صلاحيات للأدوات", "حماية من حقن التعليمات", "قياس زمن استجابة وتكلفة"],
+        "en": ["Repeatable evaluation suite", "Least-privilege tool boundaries", "Prompt-injection defenses", "Latency and cost measurement"]
+      },
+      "platforms": ["cloud", "web", "mobile"],
+      "routeSkill": "ai-agent-engineering"
+    },
+    {
+      "id": "game-xr",
+      "icon": "◆",
+      "name": { "ar": "ألعاب ومحاكاة وواقع ممتد", "en": "Games, simulation and XR" },
+      "summary": {
+        "ar": "ألعاب ومحاكاة ثلاثية الأبعاد وتجارب واقع ممتد مع أداء لحظي مُقاس وخط إنتاج محتوى.",
+        "en": "Games, 3D simulation and XR experiences with measured realtime performance and a content pipeline."
+      },
+      "deliverables": {
+        "ar": ["نموذج لعب قابل للتشغيل", "ميزانية أداء وإطارات", "خط إنتاج أصول", "بناء قابل للتوزيع"],
+        "en": ["Playable prototype", "Frame and performance budget", "Asset pipeline", "Distributable build"]
+      },
+      "platforms": ["windows", "android", "ios", "web", "xr"],
+      "routeSkill": "game-xr-simulation"
+    },
+    {
+      "id": "design-prototype",
+      "icon": "○",
+      "name": { "ar": "تصميم ونماذج أولية", "en": "Design and prototyping" },
+      "summary": {
+        "ar": "تحويل الفكرة إلى موجز تصميم قابل للقياس ونموذج أولي وتسليم جاهز للتنفيذ الهندسي.",
+        "en": "Turning a concept into a measurable design brief, a prototype and an engineering-ready handoff."
+      },
+      "deliverables": {
+        "ar": ["موجز تصميم بمعايير قبول", "نموذج تفاعلي", "نظام مكونات", "حزمة تسليم للمطورين"],
+        "en": ["Design brief with acceptance criteria", "Interactive prototype", "Component system", "Developer handoff package"]
+      },
+      "platforms": ["web", "mobile"],
+      "routeSkill": "design-prototype-production"
+    },
+    {
+      "id": "delivery-ops",
+      "icon": "▦",
+      "name": { "ar": "تشغيل التسليم والإصدار", "en": "Delivery and release operations" },
+      "summary": {
+        "ar": "خطوط تكامل مستمر ومعاينات سحابية وبيئات وإصدارات ومراقبة وخطط تراجع.",
+        "en": "CI pipelines, cloud previews, environments, releases, monitoring and rollback plans."
+      },
+      "deliverables": {
+        "ar": ["خط فحص آلي", "بيئات معزولة", "ملاحظات إصدار", "إجراء تراجع مُختبر"],
+        "en": ["Automated check pipeline", "Isolated environments", "Release notes", "Tested rollback procedure"]
+      },
+      "platforms": ["cloud"],
+      "routeSkill": "qa-release-readiness"
+    }
+  ],
+  "engagements": [
+    {
+      "id": "assessment",
+      "name": { "ar": "تقييم ومراجعة", "en": "Assessment and review" },
+      "duration": { "ar": "من ٣ إلى ٧ أيام", "en": "3 to 7 days" },
+      "outcome": {
+        "ar": "تقرير حالة موثّق بالمخاطر والفجوات والخطوة التالية، بدون التزام تنفيذ.",
+        "en": "A documented state report with risks, gaps and the next step, with no build commitment."
+      }
+    },
+    {
+      "id": "vertical-slice",
+      "name": { "ar": "شريحة عمل كاملة", "en": "Vertical slice" },
+      "duration": { "ar": "من أسبوعين إلى أربعة", "en": "2 to 4 weeks" },
+      "outcome": {
+        "ar": "ميزة واحدة كاملة من الواجهة حتى البيانات، مع اختبارات ومعاينة ووثائق.",
+        "en": "One complete feature from interface to data, with tests, a preview and documentation."
+      }
+    },
+    {
+      "id": "product-build",
+      "name": { "ar": "بناء منتج", "en": "Product build" },
+      "duration": { "ar": "من شهرين فأكثر", "en": "2 months and up" },
+      "outcome": {
+        "ar": "منتج قابل للإصدار مع بنية تحتية ومراقبة وتسليم ملكية كاملة.",
+        "en": "A releasable product with infrastructure, monitoring and full ownership handover."
+      }
+    },
+    {
+      "id": "operate",
+      "name": { "ar": "تشغيل ومتابعة", "en": "Operate and maintain" },
+      "duration": { "ar": "شهري متجدد", "en": "Monthly, renewable" },
+      "outcome": {
+        "ar": "تحديثات أمنية ومتابعة أداء ومعالجة أعطال ضمن أهداف استجابة متفق عليها.",
+        "en": "Security updates, performance tracking and incident handling within agreed response targets."
+      }
+    }
+  ]
+}

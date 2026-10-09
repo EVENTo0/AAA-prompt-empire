@@ -1,0 +1,15 @@
+# Dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Local environment files — never commit a filled-in copy
+.env
+.env.local
+.env.*.local
+
+# Tooling caches
+*.tsbuildinfo
+.DS_Store

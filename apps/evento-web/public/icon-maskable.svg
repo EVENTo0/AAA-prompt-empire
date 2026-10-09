@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="EVENTO">
+  <defs>
+    <linearGradient id="eventoMask" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2fd4a7" />
+      <stop offset="1" stop-color="#6c8cff" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#05070d" />
+  <path d="M196 186h136v40H236v34h88v40h-88v40h100v40H196z" fill="url(#eventoMask)" />
+</svg>
