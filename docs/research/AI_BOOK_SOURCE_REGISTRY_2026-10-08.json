@@ -1,0 +1,164 @@
+{
+  "schema_version": "evento-research-sources-v1",
+  "created_date": "2026-10-08",
+  "review_status": "proposed",
+  "injection_policy": "NOT_AUTHORITATIVE_UNTIL_INDEPENDENTLY_VERIFIED",
+  "copyright_policy": "Only source links, bibliographic metadata and independently written annotations. No whole-book copies, bulk scraping, third-party unauthorized PDFs, or model-training rights implied.",
+  "evidence_pack": "docs/research/AI_BOOKS_AGENT_LEARNING_2026-10-08.md",
+  "sources": [
+    {
+      "id": "BK-01",
+      "title": "Co-Intelligence: Living and Working with AI",
+      "authors": [
+        "Ethan Mollick"
+      ],
+      "year": 2024,
+      "access": "publisher_description_and_excerpt",
+      "read_scope": "official description, publisher excerpt, author companion article",
+      "source_urls": [
+        "https://www.penguinrandomhouse.com/books/741805/co-intelligence-by-ethan-mollick/",
+        "https://penguinrandomhousehighereducation.com/2024/05/21/an-excerpt-from-co-intelligence/",
+        "https://www.oneusefulthing.org/p/doing-stuff-with-ai-opinionated-midyear"
+      ],
+      "application_candidates": [
+        "human_in_loop",
+        "paired_task_eval"
+      ],
+      "claim_status": "proposed"
+    },
+    {
+      "id": "BK-02",
+      "title": "AI Superpowers",
+      "authors": [
+        "Kai-Fu Lee"
+      ],
+      "year": 2018,
+      "access": "author_overview_and_published_excerpt",
+      "read_scope": "author overview and published excerpt summary",
+      "source_urls": [
+        "https://www.aisuperpowers.com/about-the-book",
+        "https://www.wired.com/story/why-china-can-do-ai-more-quickly-and-effectively-than-the-us"
+      ],
+      "application_candidates": [
+        "fast_pilots",
+        "localization"
+      ],
+      "temporal_warning": "Do not treat 2018 forecasts as 2026 facts",
+      "claim_status": "proposed"
+    },
+    {
+      "id": "BK-03",
+      "title": "The Coming Wave",
+      "authors": [
+        "Mustafa Suleyman",
+        "Michael Bhaskar"
+      ],
+      "year": 2023,
+      "access": "publisher_description_and_sample_entry",
+      "read_scope": "description; sample availability noted, not represented as full sample reading",
+      "source_urls": [
+        "https://www.penguinrandomhouse.com/books/722674/the-coming-wave-by-mustafa-suleyman-with-michael-bhaskar/9780593593967/"
+      ],
+      "application_candidates": [
+        "permission_boundaries",
+        "rollback_tests"
+      ],
+      "claim_status": "proposed"
+    },
+    {
+      "id": "BK-04",
+      "title": "Life 3.0",
+      "authors": [
+        "Max Tegmark"
+      ],
+      "year": 2017,
+      "access": "publisher_description_and_sample_entry",
+      "read_scope": "description; sample availability noted, not represented as full sample reading",
+      "source_urls": [
+        "https://www.penguinrandomhouse.com/books/530584/life-30-by-max-tegmark/9781101970317/"
+      ],
+      "application_candidates": [
+        "scenario_planning",
+        "resilience_audits"
+      ],
+      "claim_status": "proposed"
+    },
+    {
+      "id": "BK-05",
+      "title": "The Alignment Problem",
+      "authors": [
+        "Brian Christian"
+      ],
+      "year": 2020,
+      "access": "author_overview",
+      "read_scope": "author's official description and example cases",
+      "source_urls": [
+        "https://brianchristian.org/the-alignment-problem/"
+      ],
+      "application_candidates": [
+        "proxy_failure_tests",
+        "agent_intent_vs_reward"
+      ],
+      "claim_status": "proposed"
+    },
+    {
+      "id": "BK-06",
+      "title": "Prediction Machines",
+      "authors": [
+        "Ajay Agrawal",
+        "Joshua Gans",
+        "Avi Goldfarb"
+      ],
+      "year": 2018,
+      "revised_year": 2022,
+      "access": "author_and_publisher_overview_plus_related_article",
+      "read_scope": "author and publisher summaries plus related HBR article",
+      "source_urls": [
+        "https://www.predictionmachines.ai/",
+        "https://store.hbr.org/product/prediction-machines-updated-and-expanded-the-simple-economics-of-artificial-intelligence/10598",
+        "https://hbr.org/2023/06/how-large-language-models-reflect-human-judgment"
+      ],
+      "application_candidates": [
+        "separate_prediction_from_authorization",
+        "cost_of_decision"
+      ],
+      "claim_status": "proposed"
+    },
+    {
+      "id": "BK-07",
+      "title": "Deep Learning",
+      "authors": [
+        "Ian Goodfellow",
+        "Yoshua Bengio",
+        "Aaron Courville"
+      ],
+      "year": 2016,
+      "access": "official_free_to_read_html",
+      "read_scope": "full-book online access checked; chapter 11 text inspected, entire book not yet read",
+      "source_urls": [
+        "https://www.deeplearningbook.org/",
+        "https://www.deeplearningbook.org/contents/TOC.html",
+        "https://www.deeplearningbook.org/contents/guidelines.html"
+      ],
+      "redistribution_warning": "Authors' publisher agreement prohibits easily copied full-book electronic formats",
+      "application_candidates": [
+        "measurable_baselines",
+        "error_and_coverage_metrics",
+        "incremental_experiments"
+      ],
+      "claim_status": "proposed"
+    }
+  ],
+  "target_evaluation_ids": [
+    "EVT-LIT-01",
+    "EVT-LIT-02",
+    "EVT-LIT-03",
+    "EVT-LIT-04",
+    "EVT-LIT-05",
+    "EVT-LIT-06",
+    "EVT-LIT-07"
+  ],
+  "runtime_changes": false,
+  "ci_tests_executed": false,
+  "permission_changes": false
+}
