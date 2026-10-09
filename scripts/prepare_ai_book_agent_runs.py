@@ -124,9 +124,14 @@ def prepare(root: Path, out: Path, external_snapshot: Path | None = None) -> dic
             # Expected/rubric text is intentionally NOT supplied to agents.
             prompt = (system_text
                 + "\nFROZEN SOURCE PACK IDENTIFIER: " + source_snapshot_sha256
-                + "\nExternal fast-moving advisories are NOT frozen by this pack. "
-                  "For time-sensitive claims, verify and cite a dated primary source "
-                  "or explicitly mark the claim unverified.\n"
+                + ("\nTI-02 CONTROLLED MODE: Use ONLY the attached SHA-verified archived "
+                   "primary-source excerpts and their cited URLs for source-backed claims. "
+                   "Do NOT browse or request live sources; for any missing fact say UNKNOWN. "
+                   "The evidence is as-of the listed capture date, not proof of production safety.\n"
+                   if cid == "TI-02" and frozen_snapshot is not None else
+                   "\nExternal fast-moving advisories are NOT frozen by this pack. "
+                   "For time-sensitive claims, verify and cite a dated primary source "
+                   "or explicitly mark the claim unverified.\n")
                 + "\nTASK:\n" + task
                 + "\nRESPONSE REQUIREMENTS:\n"
                   "Separate VERIFIED, INFERRED and UNKNOWN. Include dates and source URLs "
