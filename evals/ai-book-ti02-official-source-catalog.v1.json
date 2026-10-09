@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "case_id": "TI-02",
+  "observed_as_of": "2026-10-09",
+  "status": "CATALOG_ONLY_NOT_A_FETCHED_SNAPSHOT",
+  "interpretation": "Published versions and known advisories are separate from unannounced vulnerabilities. Canary != stable or a proof of safety. The Oct 14 update has not shipped as of Oct 9.",
+  "sources": [
+    {
+      "id": "next-security-notice-20261008",
+      "url": "https://nextjs.org/blog/upcoming-nextjs-security-update-october-2026",
+      "publisher": "Next.js",
+      "published_date": "2026-10-08",
+      "release_channel": "security-notice",
+      "version": "not-yet-released",
+      "markers": [
+        "Upcoming Next.js Security Update",
+        "October 14, 2026"
+      ],
+      "observation": "Two Critical and one High upstream issues; out-of-band update planned October 14, not a delivered fix."
+    },
+    {
+      "id": "next-stable-16-4-0",
+      "url": "https://github.com/vercel/next.js/releases/tag/v16.4.0",
+      "publisher": "vercel/next.js",
+      "published_date": "2026-10-07",
+      "release_channel": "stable",
+      "version": "16.4.0",
+      "markers": [
+        "v16.4.0"
+      ],
+      "observation": "Stable release; existence alone does not prove safe for a particular deployment."
+    },
+    {
+      "id": "next-maintenance-16-3-8",
+      "url": "https://github.com/vercel/next.js/releases/tag/v16.3.8",
+      "publisher": "vercel/next.js",
+      "published_date": "2026-09-30",
+      "release_channel": "stable-patch",
+      "version": "16.3.8",
+      "markers": [
+        "v16.3.8",
+        "Server-Side Request Forgery"
+      ],
+      "observation": "Security fix release including image optimization SSRF and cache issues; assess deployed config."
+    },
+    {
+      "id": "next-maintenance-15-5-27",
+      "url": "https://github.com/vercel/next.js/releases/tag/v15.5.27",
+      "publisher": "vercel/next.js",
+      "published_date": "2026-09-30",
+      "release_channel": "maintenance-patch",
+      "version": "15.5.27",
+      "markers": [
+        "v15.5.27"
+      ],
+      "observation": "Maintenance release security fixes; not a blanket safe status for all versions."
+    },
+    {
+      "id": "next-canary-16-5-0-6",
+      "url": "https://github.com/vercel/next.js/releases/tag/v16.5.0-canary.6",
+      "publisher": "vercel/next.js",
+      "published_date": "2026-10-09",
+      "release_channel": "canary-pre-release",
+      "version": "16.5.0-canary.6",
+      "markers": [
+        "v16.5.0-canary.6"
+      ],
+      "observation": "Experimental/pre-release; never use Canary chronology as evidence of stable security."
+    },
+    {
+      "id": "next-advisory-image-ssrf",
+      "url": "https://github.com/vercel/next.js/security/advisories/GHSA-cjq9-62q9-8jv4",
+      "publisher": "vercel/next.js",
+      "published_date": "2026-09-30",
+      "release_channel": "security-advisory",
+      "version": "GHSA-cjq9-62q9-8jv4",
+      "markers": [
+        "GHSA-cjq9-62q9-8jv4",
+        "Image Optimization"
+      ],
+      "observation": "Image optimization SSRF; versions/configuration must be checked."
+    },
+    {
+      "id": "next-advisory-image-rce",
+      "url": "https://github.com/vercel/next.js/security/advisories/GHSA-vcvr-r3jv-pc5j",
+      "publisher": "vercel/next.js",
+      "published_date": "2026-09-22",
+      "release_channel": "security-advisory",
+      "version": "GHSA-vcvr-r3jv-pc5j",
+      "markers": [
+        "GHSA-vcvr-r3jv-pc5j",
+        "ImageResponse"
+      ],
+      "observation": "next/og ImageResponse Node.js issue; advisory identifies 16.3.6 patch for a specific affected range."
+    },
+    {
+      "id": "next-advisory-cache-poison",
+      "url": "https://github.com/vercel/next.js/security/advisories/GHSA-mcj8-r9mp-w47p",
+      "publisher": "vercel/next.js",
+      "published_date": "2026-09-30",
+      "release_channel": "security-advisory",
+      "version": "GHSA-mcj8-r9mp-w47p",
+      "markers": [
+        "GHSA-mcj8-r9mp-w47p",
+        "Cache poisoning"
+      ],
+      "observation": "Specific SSG/ISR configuration affects cache poisoning; do not infer universal vulnerability."
+    }
+  ]
+}
