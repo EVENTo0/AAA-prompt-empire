@@ -7,12 +7,18 @@ The scorer never marks a rule VERIFIED, ACTIVE, or deployable.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+if __package__:
+    from . import freeze_ai_book_external_sources as frozen
+else:
+    import freeze_ai_book_external_sources as frozen
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUITE = ROOT / "evals" / "ai-book-agent-learning-v1.json"
@@ -249,10 +255,82 @@ def summarize(suite: dict, data: dict) -> dict:
             "note": "Reviewer assertions and HTTPS links are checked for shape, not externally authenticated. Independent audit is mandatory."}
 
 
+def validate_frozen_comparison(suite: dict, data: dict,
+                               external_snapshot: Path | None,
+                               preparation: Path | None) -> list[str]:
+    """Production CLI proof gate; synthetic scorer unit fixtures do not use it.
+
+    Actual LLM/tool traces still require separate independent human audit.
+    """
+    if external_snapshot is None or preparation is None:
+        return ["measured comparison requires BOTH --external-snapshot and --preparation"]
+    try:
+        snapshot = frozen.verify(external_snapshot, frozen.CATALOG)
+        pack_dir = preparation.resolve()
+        generated = load_json(pack_dir / "experiment-preparation.json")
+        copied = frozen.verify(pack_dir / "external-snapshot", frozen.CATALOG)
+        target_hash = snapshot["snapshot_sha256"]
+        if copied["snapshot_sha256"] != target_hash:
+            raise ValueError("prepared snapshot content differs from original frozen evidence")
+        if (generated.get("experiment_id") != suite.get("experiment_id")
+                or generated.get("agent_id") != suite.get("agent_id")
+                or generated.get("data_kind") != "preparation_only_not_real_agent_runs"
+                or generated.get("external_web_source_snapshot_proven") is not True
+                or generated.get("external_source_snapshot_sha256") != target_hash):
+            raise ValueError("preparation does not prove matching external evidence freeze")
+        expected_rows = {}
+        rows = generated.get("prompts")
+        if not isinstance(rows, list) or len(rows) != 2 * len(suite["cases"]):
+            raise ValueError("prepared manifest must contain exactly one prompt per paired arm")
+        for entry in rows:
+            cid, arm = entry.get("case_id"), entry.get("variant")
+            if cid not in {case["id"] for case in suite["cases"]} or arm not in ("baseline", "candidate"):
+                raise ValueError("unsafe or extra preparation entry")
+            key = (cid, arm)
+            if key in expected_rows:
+                raise ValueError("duplicate preparation entry")
+            expected_rows[key] = entry
+            expected_path = f"prompts/{cid}_{arm}.txt"
+            path = pack_dir / expected_path
+            if entry.get("prompt_path") != expected_path or path.is_symlink() or not path.is_file():
+                raise ValueError("missing or unsafe prepared prompt")
+            raw = path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != entry.get("prompt_file_sha256"):
+                raise ValueError("prepared prompt file differs from captured checksum")
+            if (entry.get("external_source_snapshot_sha256") != target_hash
+                    or not SHA256_RE.fullmatch(str(entry.get("source_snapshot_sha256", "")))
+                    or not SHA256_RE.fullmatch(str(entry.get("task_input_sha256", "")))
+                    or not SHA256_RE.fullmatch(str(entry.get("prompt_sha256", ""))):
+                raise ValueError("incomplete prepared source/task/prompt hashes")
+            if cid == "TI-02":
+                expected_block = frozen.shared_prompt_evidence(pack_dir / "external-snapshot", copied)
+                if expected_block.encode("utf-8") not in raw:
+                    raise ValueError("TI-02 prompt missing the actual shared frozen source block")
+        if len(expected_rows) != 2 * len(suite["cases"]):
+            raise ValueError("one or more paired cases missing in preparation")
+        if data.get("external_source_snapshot_sha256") != target_hash:
+            raise ValueError("run manifest external source freeze digest mismatch")
+        for i, run in enumerate(data.get("runs", [])):
+            if not isinstance(run, dict):
+                raise ValueError("invalid real-run record")
+            expected = expected_rows.get((run.get("case_id"), run.get("variant")))
+            if expected is None:
+                raise ValueError("unregistered run case/variant")
+            for name in ("source_snapshot_sha256", "external_source_snapshot_sha256",
+                         "task_input_sha256", "prompt_sha256", "prompt_file_sha256"):
+                if run.get(name) != expected.get(name):
+                    raise ValueError(f"run[{i}]: {name} differs from verified preparation/source freeze")
+        return []
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        return ["external evidence freeze invalid/incomplete: " + str(exc)]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--suite", type=Path, default=DEFAULT_SUITE)
     parser.add_argument("--runs", type=Path, help="Real, independently reviewed baseline/candidate manifest")
+    parser.add_argument("--external-snapshot", type=Path, help="Frozen raw primary-source directory (required with --runs)")
+    parser.add_argument("--preparation", type=Path, help="Verified ten-prompt preparation directory (required with --runs)")
     parser.add_argument("--out", type=Path, help="Optional JSON report path")
     args = parser.parse_args(argv)
     try:
@@ -266,7 +344,12 @@ def main(argv: list[str] | None = None) -> int:
                               "cases": len(suite["cases"]),
                               "real_runs_collected": 0, "promoted": False}, indent=2))
             return 0
-        report = summarize(suite, load_json(args.runs))
+        runs = load_json(args.runs)
+        report = summarize(suite, runs)
+        frozen_errors = validate_frozen_comparison(suite, runs, args.external_snapshot, args.preparation)
+        if frozen_errors:
+            report = {"status": "BLOCKED_INVALID_OR_INCOMPLETE", "errors": report.get("errors", []) + frozen_errors,
+                      "promoted": False, "real_agent_gain_proven": False}
     except (OSError, json.JSONDecodeError, ValueError, TypeError) as exc:
         print(json.dumps({"status": "ERROR", "reason": str(exc)}), file=sys.stderr)
         return 2
