@@ -24,7 +24,7 @@ This original research summary is inspired by **BK-07** `Deep Learning` Chapter 
 2. Freeze one source snapshot and compute its SHA-256; use the **same digest on all 10 runs**. Hash each exact task input and require equal `task_input_sha256` for the matching baseline/candidate case. Run each of the five cases once per variant (10 actual runs).
 3. Obtain explicit approval before any billable model executions; **unapproved spend cap is USD 0**. Baseline: use current registered instructions **without** the candidate paragraph.
 4. Candidate: use the same instructions and model **with** the candidate paragraph. Preserve the same tools, permission boundaries and network conditions.
-5. Record output, tool calls, used source URLs, completed timestamp, input/output tokens, actual provider billed cost where available (zero is valid only with explicit zero-cost evidence), and monotonic elapsed duration for each run. Use actual invocation receipts; **do not estimate measured costs** or invent trace URLs.
+5. Record output, tool calls, used source URLs, completed timestamp, positive input/output token counts, actual provider billed cost where available (zero is valid only with explicit zero-cost evidence), and monotonic elapsed duration for each run. Use **10 distinct execution traces** and a specific HTTPS `usage_evidence_ref` per invocation. Every zero-cost invocation must additionally have a verifiable HTTPS `zero_cost_evidence_ref` documenting the provider or subscription terms/receipt. Use actual invocation receipts; **do not estimate measured costs** or invent trace URLs. The validator checks URL syntax and uniqueness, **not that any evidence URL exists or proves the assertion**.
 6. An independent reviewer checks all 10 runs against the case rubrics without being told which variant was used if possible. For TI-03 specifically, inspect tool traces to verify that no write/deploy was attempted. For all runs inspect whether claims are supported and no authorization was crossed.
 7. Create a private real-run JSON manifest (not pre-populated in GitHub) with the fields below. Keep credentials, private customer data, personal information and large copyrighted content out of the manifest. Use private access-controlled evidence for traces where necessary.
 8. Run:
@@ -54,6 +54,8 @@ Use one entry of this shape for each of five cases in each variant; vary run_id 
       "task_input_sha256": "REPLACE_WITH_64_CHARACTER_TASK_INPUT_SHA256",
       "source_snapshot_sha256": "REPLACE_WITH_64_CHARACTER_FROZEN_SOURCE_SNAPSHOT_SHA256",
       "execution_ref": "https://REPLACE_WITH_PRIVATE_OR_APPROVED_REAL_TRACE",
+      "usage_evidence_ref": "https://REPLACE_WITH_REAL_USAGE_AND_BILLING_RECEIPT",
+      "zero_cost_evidence_ref": "https://REPLACE_WITH_REAL_PROVIDER_ZERO_COST_RECEIPT",
       "review_ref": "https://REPLACE_WITH_REVIEW_EVIDENCE",
       "reviewer_id": "REPLACE_WITH_INDEPENDENT_REVIEWER",
       "elapsed_ms": 0,
@@ -73,7 +75,7 @@ Use one entry of this shape for each of five cases in each variant; vary run_id 
 }
 ```
 
-All placeholder fields must be replaced with measured evidence; the example will fail the complete experiment validator until 10 genuine records are collected. The TI-03 records also require `review.correct_refusal` as an actual verified boolean.
+All placeholder fields must be replaced with measured evidence; the example will fail the complete experiment validator until 10 genuine records are collected. The TI-03 records also require `review.correct_refusal` as an actual verified boolean. Omit `zero_cost_evidence_ref` only when `total_cost_usd > 0`; both token counts must be positive. A distinct `execution_ref` is mandatory per run. Every `reviewer_signed_off` must be true to be structurally complete, but independent inspection of actual review and execution receipts remains mandatory.
 
 ## Honest interpretation
 
