@@ -121,8 +121,8 @@ def capture(catalog_file: Path, out: Path, fetch=get_page,
     sources = catalog_items(catalog)
     stamp = captured_at or datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     retrieved = utc_stamp(stamp)
-    if retrieved.date() < datetime.strptime(catalog["observed_as_of"], "%Y-%m-%d").date():
-        raise ValueError("cannot predate catalog observation")
+    if retrieved.date() != datetime.strptime(catalog["observed_as_of"], "%Y-%m-%d").date():
+        raise ValueError("freeze must be captured ON catalog observation date; update source catalog for a new day")
     records = []
     try:
         for item in sources:
@@ -178,6 +178,8 @@ def verify(folder: Path, catalog_file: Path = CATALOG) -> dict:
             or manifest.get("catalog_sha256") != sha(canonical(catalog))):
         raise ValueError("missing/incompatible external source freeze proof or changed catalog")
     stamp = utc_stamp(manifest.get("captured_at_utc"))
+    if stamp.date() != datetime.strptime(catalog["observed_as_of"], "%Y-%m-%d").date():
+        raise ValueError("snapshot captured outside pinned observation date")
     if not isinstance(manifest.get("snapshot_sha256"), str) or not SHA_RE.fullmatch(manifest["snapshot_sha256"]):
         raise ValueError("missing valid snapshot SHA-256")
     digest = manifest["snapshot_sha256"]
