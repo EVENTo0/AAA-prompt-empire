@@ -9,8 +9,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import tomllib
 from pathlib import Path
+
+if __package__:
+    from . import freeze_ai_book_external_sources as frozen
+else:
+    import freeze_ai_book_external_sources as frozen
 
 ROOT = Path(__file__).resolve().parents[1]
 SUITE = "evals/ai-book-agent-learning-v1.json"
@@ -31,7 +37,7 @@ def canonical(value: object) -> bytes:
     return (json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
 
 
-def prepare(root: Path, out: Path) -> dict:
+def prepare(root: Path, out: Path, external_snapshot: Path | None = None) -> dict:
     """Return a receipt-free execution pack. Out directory must not be inside repo source tree."""
     root = root.resolve()
     out = out.resolve()
@@ -68,6 +74,17 @@ def prepare(root: Path, out: Path) -> dict:
         name: digest((root / name).read_bytes()) for name in source_files
     }
     source_snapshot_sha256 = digest(canonical(source_manifest))
+    frozen_snapshot = None
+    shared_frozen_evidence = ""
+    if external_snapshot is not None:
+        # Captured once, then copied and checked again to avoid post-prepare drift.
+        original_freeze = frozen.verify(external_snapshot, root / "evals/ai-book-ti02-official-source-catalog.v1.json")
+        dest = out / "external-snapshot"
+        shutil.copytree(external_snapshot, dest)
+        frozen_snapshot = frozen.verify(dest, root / "evals/ai-book-ti02-official-source-catalog.v1.json")
+        if frozen_snapshot["snapshot_sha256"] != original_freeze["snapshot_sha256"]:
+            raise ValueError("external evidence changed during frozen snapshot copy")
+        shared_frozen_evidence = frozen.shared_prompt_evidence(dest, frozen_snapshot)
     # The agent must keep the same registered rules in both conditions.
     baseline = (
         "ROLE: EVENTO technology_intelligence, READ ONLY.\n"
@@ -114,14 +131,19 @@ def prepare(root: Path, out: Path) -> dict:
                 + "\nRESPONSE REQUIREMENTS:\n"
                   "Separate VERIFIED, INFERRED and UNKNOWN. Include dates and source URLs "
                   "if verified. Do not claim any external action was taken unless evidenced.\n")
+            if cid == "TI-02" and frozen_snapshot is not None:
+                prompt += "\n" + shared_frozen_evidence
             file_name = f"{cid}_{variant}.txt"
-            (target / file_name).write_text(prompt, encoding="utf-8")
+            prompt_bytes = prompt.encode("utf-8")
+            (target / file_name).write_bytes(prompt_bytes)
             records.append({
                 "case_id": cid,
                 "variant": variant,
                 "task_input_sha256": task_sha,
                 "prompt_sha256": system_sha,
                 "source_snapshot_sha256": source_snapshot_sha256,
+                "external_source_snapshot_sha256": frozen_snapshot["snapshot_sha256"] if frozen_snapshot else None,
+                "prompt_file_sha256": digest(prompt_bytes),
                 "prompt_path": f"prompts/{file_name}",
                 "status": "NOT_EXECUTED",
             })
@@ -133,7 +155,8 @@ def prepare(root: Path, out: Path) -> dict:
         "data_kind": "preparation_only_not_real_agent_runs",
         "required_real_runs": 10,
         "real_runs_collected": 0,
-        "external_web_source_snapshot_proven": False,
+        "external_web_source_snapshot_proven": frozen_snapshot is not None,
+        "external_source_snapshot_sha256": frozen_snapshot["snapshot_sha256"] if frozen_snapshot else None,
         "provider_model_pinned": False,
         "provider_billing_authorized": False,
         "unapproved_spend_limit_usd": 0,
@@ -143,7 +166,8 @@ def prepare(root: Path, out: Path) -> dict:
         "notes": [
             "This file is NOT a valid run manifest and must never be passed as real_agent_runs.",
             "No agent invoked. No cost, time, token or correctness metrics measured.",
-            "A timestamp-free source pack does not establish freshness of external advisories.",
+            "Repo source hashes are not external evidence: only a verified --external-snapshot is frozen.",
+            "External snapshot verification proves bytes and metadata consistency, not a safe Next.js deployment.",
             "Use one provider/model, identical task inputs, source conditions and independent reviews.",
             "A zero-cost claim requires provider/plan usage evidence for EACH invocation.",
             "Do not run billable CLI/API operations without explicit operator approval.",
@@ -157,9 +181,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--external-snapshot", type=Path, help="Existing verified frozen TI-02 evidence directory; no fetch")
     args = parser.parse_args()
     try:
-        result = prepare(args.root, args.out)
+        result = prepare(args.root, args.out, args.external_snapshot)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         parser.error(str(exc))
     print(json.dumps({
@@ -167,6 +192,8 @@ def main() -> int:
         "prompts_prepared": len(result["prompts"]),
         "real_runs_collected": 0,
         "source_snapshot_sha256": result["source_snapshot_sha256"],
+        "external_source_snapshot_sha256": result["external_source_snapshot_sha256"],
+        "external_web_source_snapshot_proven": result["external_web_source_snapshot_proven"],
         "output": str(args.out.resolve()),
     }, indent=2))
     return 0
