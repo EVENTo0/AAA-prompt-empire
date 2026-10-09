@@ -62,8 +62,13 @@ external_source_snapshot_sha256 equal to the frozen snapshot digest. Every
 record must match the prepared baseline/candidate row on
 external_source_snapshot_sha256, source_snapshot_sha256,
 task_input_sha256, prompt_sha256, and prompt_file_sha256.
-Preserve individual trace receipts, provider usage/billing evidence and
-independent reviews.
+The top-level manifest and each of its ten run records also need
+source_access_mode = offline_frozen_only; every run review must contain
+source_access_trace_reviewed = true after an independent reviewer has actually
+inspected the tool trace for forbidden live browsing or external requests.
+These are recorded reviewer claims: the scorer cannot independently prove the
+absence of hidden live browsing from a fake trace URL. Preserve individual
+trace receipts, provider usage/billing evidence and independent reviews.
 
 ~~~bash
 python scripts/run_ai_book_agent_learning_eval.py \
