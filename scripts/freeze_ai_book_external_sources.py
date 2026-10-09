@@ -96,9 +96,28 @@ def catalog_items(catalog: dict) -> list[dict]:
     return items
 
 
+class SameOriginHTTPSRedirect(urllib.request.HTTPRedirectHandler):
+    """Validate redirect targets BEFORE requesting them, not after fetch."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        original = urlsplit(req.full_url)
+        destination = urlsplit(newurl)
+        if (original.scheme != "https"
+                or destination.scheme != "https"
+                or destination.hostname != original.hostname
+                or destination.port != original.port
+                or destination.username or destination.password):
+            raise ValueError("blocked cross-origin, non-HTTPS, or port-changing redirect before request")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def get_page(url: str) -> tuple[bytes, str, dict]:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html"})
-    with urllib.request.urlopen(req, timeout=18) as r:
+    # urllib's default urlopen follows redirects prior to our final-URL check;
+    # guard the redirect handler so a pinned official URL cannot route to an
+    # attacker-controlled domain or internal service before we inspect it.
+    opener = urllib.request.build_opener(SameOriginHTTPSRedirect())
+    with opener.open(req, timeout=18) as r:
         final = r.geturl()
         size = r.headers.get("Content-Length")
         if size and int(size) > MAX_SOURCE_BYTES:
@@ -130,7 +149,7 @@ def capture(catalog_file: Path, out: Path, fetch=get_page,
             original = urlsplit(item["url"])
             actual = urlsplit(final)
             if (actual.scheme != "https" or actual.hostname != original.hostname
-                    or actual.username or actual.password):
+                    or actual.port != original.port or actual.username or actual.password):
                 raise ValueError("redirect to a different or non-HTTPS origin")
             if not isinstance(raw, bytes) or not 150 <= len(raw) <= MAX_SOURCE_BYTES:
                 raise ValueError("source body missing, non-byte or oversize")
@@ -197,7 +216,8 @@ def verify(folder: Path, catalog_file: Path = CATALOG) -> dict:
         if stamp.date() < datetime.strptime(item["published_date"], "%Y-%m-%d").date():
             raise ValueError("source retrieved before publication")
         parts = urlsplit(item.get("final_url", ""))
-        if parts.scheme != "https" or parts.hostname != urlsplit(item["url"]).hostname:
+        if (parts.scheme != "https" or parts.hostname != urlsplit(item["url"]).hostname
+                or parts.port != urlsplit(item["url"]).port or parts.username or parts.password):
             raise ValueError("untrusted source redirect")
         for field, path_key in (("raw_sha256", "raw_path"), ("text_sha256", "text_path")):
             suffix = ".html" if field == "raw_sha256" else ".txt"
