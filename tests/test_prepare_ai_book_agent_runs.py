@@ -50,6 +50,49 @@ class TestPreparedPilot(unittest.TestCase):
                         "PROPOSED RESEARCH EXPERIMENTAL GUIDANCE", text
                     )
 
+    def test_complete_agent_contract_is_embedded_and_hashed(self):
+        with tempfile.TemporaryDirectory() as td:
+            pack = packer.prepare(ROOT, Path(td) / "pack")
+            for name in (packer.ROOT_CONTRACT, packer.AGENT_REGISTRY, packer.EVERGREEN_SKILL):
+                self.assertIn(name, pack["source_files_sha256"])
+                self.assertEqual(len(pack["source_files_sha256"][name]), 64)
+            content = (Path(td) / "pack" / "prompts" / "TI-01_baseline.txt").read_text(encoding="utf-8")
+            self.assertIn("GOVERNING REPOSITORY CONTRACT", content)
+            self.assertIn("CANONICAL EVERGREEN TECHNOLOGY SKILL", content)
+            self.assertIn("# Evergreen Technology Intelligence", content)
+
+    def test_evergreen_skill_drift_changes_snapshot_hash(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "source"
+            files = [packer.SUITE, packer.AGENT, packer.SKILL, packer.EVERGREEN_SKILL,
+                     packer.ROOT_CONTRACT, packer.AGENT_REGISTRY,
+                     packer.SOURCES, packer.GOVERNANCE]
+            for name in files:
+                (repo / name).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / name, repo / name)
+            original = packer.prepare(repo, Path(td) / "pack1")
+            skill_file = repo / packer.EVERGREEN_SKILL
+            skill_file.write_text(skill_file.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+            changed = packer.prepare(repo, Path(td) / "pack2")
+            self.assertNotEqual(original["source_snapshot_sha256"], changed["source_snapshot_sha256"])
+
+    def test_fails_closed_on_permission_drift(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td) / "source"
+            files = [packer.SUITE, packer.AGENT, packer.SKILL, packer.EVERGREEN_SKILL,
+                     packer.ROOT_CONTRACT, packer.AGENT_REGISTRY,
+                     packer.SOURCES, packer.GOVERNANCE]
+            for name in files:
+                (repo / name).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / name, repo / name)
+            registry_file = repo / packer.AGENT_REGISTRY
+            registry = json.loads(registry_file.read_text(encoding="utf-8"))
+            agent = next(x for x in registry["agents"] if x["id"] == "technology_intelligence")
+            agent["permissions"] = ["read", "write_branch"]
+            registry_file.write_text(json.dumps(registry), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "permissions/skills mismatch"):
+                packer.prepare(repo, Path(td) / "unsafe")
+
     def test_repeat_build_is_deterministic(self):
         with tempfile.TemporaryDirectory() as td:
             a, b = Path(td) / "a", Path(td) / "b"
@@ -74,7 +117,9 @@ class TestPreparedPilot(unittest.TestCase):
     def test_source_change_changes_snapshot_hash(self):
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td) / "source"
-            files = [packer.SUITE, packer.AGENT, packer.SKILL, packer.SOURCES, packer.GOVERNANCE]
+            files = [packer.SUITE, packer.AGENT, packer.SKILL, packer.EVERGREEN_SKILL,
+                     packer.ROOT_CONTRACT, packer.AGENT_REGISTRY,
+                     packer.SOURCES, packer.GOVERNANCE]
             for name in files:
                 (repo / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / name, repo / name)
