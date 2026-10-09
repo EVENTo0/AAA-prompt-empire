@@ -18,6 +18,18 @@ Use the same original registered `technology_intelligence` instructions in both 
 
 This original research summary is inspired by **BK-07** `Deep Learning` Chapter 11's measurable methodology and **BK-05** `The Alignment Problem` themes; it is a hypothesis, not a validated performance upgrade. Never inject full copyrighted book chapters.
 
+## Prepare the ten prompts offline (no LLM calls)
+
+From a checkout of this **exact** PR head, run:
+
+```bash
+python scripts/prepare_ai_book_agent_runs.py --out ../evento-learning-private-pilot
+```
+
+The output directory must be outside the repository checkout and empty. This operation prepares ten `NOT_EXECUTED` task prompts and one `experiment-preparation.json` manifest; it does **not** invoke a model, bill a provider, collect token usage, or count as a scored run. The baseline and candidate share the same full root `AGENTS.md`, registered read-only agent contract, both canonical skills (`evidence-research-synthesis` and `evergreen-technology-intelligence`), and frozen repository source hashes. The candidate alone receives proposed research guidance.
+
+Before sending **any** prepared prompts to an execution platform, establish a verified and authorized, fixed provider/model ID, exact agent commit, read-only tools, a dated external source snapshot, and a way to export unique execution and token/usage receipts. `model = "inherit"` in the registered agent definition is **not** itself a pinned model identity. External URLs in the research registry are metadata, not downloaded or frozen web-page evidence. Do not use the preparation manifest as proof of real agent runs or expose private prompt/trace files in public GitHub artifacts. The unapproved inference budget remains USD 0.
+
 ## Execution instructions
 
 1. Identify the exact registered agent revision at the start; freeze the same revision for both variants. Freeze provider/model and tool scopes. Do not run this experiment in customer production.
