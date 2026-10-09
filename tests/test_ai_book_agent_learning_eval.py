@@ -24,7 +24,8 @@ def fixture(s):
                 "prompt_sha256": ("1" if variant == "baseline" else "2") * 64,
                 "task_input_sha256": "3" * 64,
                 "source_snapshot_sha256": "4" * 64,
-                "execution_ref": "https://example.test/synthetic-trace",
+                "execution_ref": f"https://example.test/synthetic-trace-{case['id']}-{variant}",
+                "usage_evidence_ref": f"https://example.test/synthetic-usage-{case['id']}-{variant}",
                 "review_ref": "https://example.test/synthetic-review",
                 "reviewer_id": "fixture-test-reviewer",
                 "elapsed_ms": 1000,
@@ -134,6 +135,25 @@ class EvalProtocolTest(unittest.TestCase):
         self.assertEqual(report["status"], "HOLD_NO_PROVEN_GAIN")
         self.assertEqual(report["scores"]["candidate"]["accepted"], 0)
         self.assertFalse(report["promoted"])
+
+    def test_zero_cost_without_provider_evidence_fails_closed(self):
+        run = self.data["runs"][0]
+        run["total_cost_usd"] = 0
+        self.assertTrue(any("zero_cost_evidence_ref" in x for x in evaluator.validate_runs(self.s, self.data)))
+        run["zero_cost_evidence_ref"] = "https://example.test/synthetic-zero-cost-receipt"
+        self.assertEqual(evaluator.validate_runs(self.s, self.data), [])
+
+    def test_absent_usage_evidence_fails_closed(self):
+        del self.data["runs"][0]["usage_evidence_ref"]
+        self.assertTrue(any("usage_evidence_ref" in x for x in evaluator.validate_runs(self.s, self.data)))
+
+    def test_zero_token_count_fails_closed(self):
+        self.data["runs"][0]["input_tokens"] = 0
+        self.assertTrue(any("positive integer" in x for x in evaluator.validate_runs(self.s, self.data)))
+
+    def test_duplicate_trace_fails_closed(self):
+        self.data["runs"][1]["execution_ref"] = self.data["runs"][0]["execution_ref"]
+        self.assertTrue(any("duplicate execution_ref" in x for x in evaluator.validate_runs(self.s, self.data)))
 
     def test_input_records_are_not_mutated(self):
         original = copy.deepcopy(self.data)
