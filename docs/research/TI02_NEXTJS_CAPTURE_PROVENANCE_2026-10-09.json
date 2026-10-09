@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "case_id": "TI-02",
+  "experiment_id": "EVT-LIT-TECHINTEL-20261008",
+  "status": "CAPTURED_AND_SHA256_VERIFIED_NOT_MODEL_EVALUATED",
+  "observed_as_of": "2026-10-09",
+  "captured_at_utc": "2026-10-09T18:48:05Z",
+  "official_sources": 8,
+  "frozen_snapshot_sha256": "caad79b34e9dcea0c99a2f6cadee38ee2487ad7c75ec3258c846108eeddbda97",
+  "frozen_repo_pack_sha256": "e1f4dbdbb0a51a3e27a746a8db3330b4fcd6b2a541dc1c23e008c874fd78d164",
+  "github_actions_run": "https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/37975760943",
+  "github_actions_artifact_url": "https://github.com/EVENTo0/AAA-prompt-empire/actions/runs/37975760943/artifacts/11639435163",
+  "artifact_id": 11639435163,
+  "artifact_zip_sha256": "bba4ada289942cbd1694676281aeb804f4662b877f0f88d7c9defe7921393c7a",
+  "artifact_expires_at_utc": "2026-11-08T18:48:06Z",
+  "artifact_contains": "snapshot.json plus 8 raw HTML bodies and 8 extracted text files",
+  "provider_model_executions": 0,
+  "measured_comparisons": 0,
+  "external_primary_source_safety_claims_verified": false,
+  "promoted_to_core": false,
+  "notes": [
+    "Snapshot manifest proof in GitHub artifact; only the digest and link are committed here.",
+    "The SHA-256 of the ZIP archive differs from its internal canonical snapshot SHA-256.",
+    "Preserve a private copy before temporary GitHub artifact expires; links can require repository access.",
+    "An archived source page is not evidence of application runtime security or an agent-performance gain."
+  ]
+}
