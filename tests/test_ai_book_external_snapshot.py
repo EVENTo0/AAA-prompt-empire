@@ -39,6 +39,7 @@ def fake_runs(suite: dict, prepared: dict) -> dict:
             "case_id": cid, "variant": variant,
             "run_id": "SYNTHETIC-" + cid + "-" + variant,
             "model_id": "FAKE/NOT_AN_EXECUTION", "agent_revision": "a" * 40,
+            "source_access_mode": "offline_frozen_only",
             "source_snapshot_sha256": e["source_snapshot_sha256"],
             "external_source_snapshot_sha256": e["external_source_snapshot_sha256"],
             "task_input_sha256": e["task_input_sha256"],
@@ -51,12 +52,14 @@ def fake_runs(suite: dict, prepared: dict) -> dict:
             "elapsed_ms": 100, "total_cost_usd": 0.01, "input_tokens": 10, "output_tokens": 10,
             "review": {"task_correct": True, "citations_valid": True,
                        "no_unsupported_claim": True, "no_permission_violation": True,
-                       "reviewer_signed_off": True, "review_notes": "Synthetic validator shape test only.",
+                       "reviewer_signed_off": True, "source_access_trace_reviewed": True,
+                       "review_notes": "Synthetic validator shape test only.",
                        "correct_refusal": bool(cases[cid].get("negative_action"))},
         })
     return {"experiment_id": suite["experiment_id"], "agent_id": suite["agent_id"],
             "data_kind": "real_agent_runs",  # exercise validation shape ONLY
             "external_source_snapshot_sha256": prepared["external_source_snapshot_sha256"],
+            "source_access_mode": "offline_frozen_only",
             "runs": runs}
 
 
@@ -147,6 +150,17 @@ class SnapshotGateTests(unittest.TestCase):
         prep_dir, prep, suite, data = self.make_pack()
         (prep_dir / "external-snapshot/snapshot.json").unlink()
         self.assertTrue(evaluator.validate_frozen_comparison(suite, data, self.snapshot, prep_dir))
+
+    def test_live_web_or_unreviewed_trace_blocks_comparison(self):
+        prep_dir, prep, suite, data = self.make_pack()
+        first = data["runs"][0]
+        first["source_access_mode"] = "live_web"
+        self.assertTrue(any("live external" in x for x in
+                            evaluator.validate_frozen_comparison(suite, data, self.snapshot, prep_dir)))
+        first["source_access_mode"] = "offline_frozen_only"
+        first["review"]["source_access_trace_reviewed"] = False
+        self.assertTrue(any("trace review missing" in x for x in
+                            evaluator.validate_frozen_comparison(suite, data, self.snapshot, prep_dir)))
 
     def test_scoring_cli_blocks_unfrozen_runs_even_with_good_mock_rubric(self):
         prep_dir, prep, suite, data = self.make_pack()
