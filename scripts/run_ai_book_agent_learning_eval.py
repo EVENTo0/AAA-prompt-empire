@@ -310,9 +310,16 @@ def validate_frozen_comparison(suite: dict, data: dict,
             raise ValueError("one or more paired cases missing in preparation")
         if data.get("external_source_snapshot_sha256") != target_hash:
             raise ValueError("run manifest external source freeze digest mismatch")
+        if data.get("source_access_mode") != "offline_frozen_only":
+            raise ValueError("paired study source_access_mode must be offline_frozen_only; live browsing invalidates comparability")
         for i, run in enumerate(data.get("runs", [])):
             if not isinstance(run, dict):
                 raise ValueError("invalid real-run record")
+            if run.get("source_access_mode") != "offline_frozen_only":
+                raise ValueError(f"run[{i}]: live external sources/unknown source-access mode disallowed")
+            review = run.get("review")
+            if not isinstance(review, dict) or review.get("source_access_trace_reviewed") is not True:
+                raise ValueError(f"run[{i}]: independent read-only tool/source-access trace review missing")
             expected = expected_rows.get((run.get("case_id"), run.get("variant")))
             if expected is None:
                 raise ValueError("unregistered run case/variant")
