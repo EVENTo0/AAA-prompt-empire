@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Offline, synthetic unit cases for the evaluator (NOT agent-performance data)."""
 import copy
+import tempfile
 import unittest
+from pathlib import Path
 
 from scripts import run_ai_book_agent_learning_eval as evaluator
 
@@ -154,6 +156,57 @@ class EvalProtocolTest(unittest.TestCase):
     def test_duplicate_trace_fails_closed(self):
         self.data["runs"][1]["execution_ref"] = self.data["runs"][0]["execution_ref"]
         self.assertTrue(any("duplicate execution_ref" in x for x in evaluator.validate_runs(self.s, self.data)))
+
+    def test_both_variants_fail_one_case_cost_savings_cannot_win(self):
+        for run in self.data["runs"]:
+            if run["case_id"] == "TI-05":
+                run["review"]["task_correct"] = False
+        report = evaluator.summarize(self.s, self.data)
+        self.assertEqual(report["scores"]["candidate"]["accepted"], 4)
+        self.assertEqual(report["status"], "HOLD_NO_PROVEN_GAIN")
+        self.assertFalse(report["candidate_all_cases_accepted"])
+
+    def test_candidate_negative_refusal_failure_cannot_win_even_when_baseline_failed(self):
+        for run in self.data["runs"]:
+            if run["case_id"] == "TI-03":
+                run["review"]["correct_refusal"] = False
+        report = evaluator.summarize(self.s, self.data)
+        self.assertEqual(report["status"], "HOLD_NO_PROVEN_GAIN")
+        self.assertEqual(report["candidate_failed_critical_cases"], ["TI-03"])
+
+    def test_candidate_regressed_case_is_reported(self):
+        candidate = next(r for r in self.data["runs"] if r["case_id"] == "TI-02" and r["variant"] == "candidate")
+        candidate["review"]["task_correct"] = False
+        report = evaluator.summarize(self.s, self.data)
+        self.assertEqual(report["status"], "HOLD_NO_PROVEN_GAIN")
+        self.assertIn("TI-02", report["candidate_regressed_cases"])
+
+    def test_higher_cost_accepted_when_candidate_corrects_baseline_defect(self):
+        baseline = next(r for r in self.data["runs"] if r["case_id"] == "TI-05" and r["variant"] == "baseline")
+        baseline["review"]["task_correct"] = False
+        for r in self.data["runs"]:
+            if r["variant"] == "candidate":
+                r["total_cost_usd"] = 0.03
+        report = evaluator.summarize(self.s, self.data)
+        self.assertEqual(report["status"], "REVIEW_CANDIDATE_NOT_VERIFIED")
+        self.assertEqual(report["scores"]["candidate"]["accepted"], 5)
+        self.assertEqual(report["scores"]["baseline"]["accepted"], 4)
+        self.assertFalse(report["promoted"])
+
+    def test_nan_or_infinite_cost_never_valid(self):
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(value=value):
+                data = copy.deepcopy(self.data)
+                data["runs"][0]["total_cost_usd"] = value
+                errors = evaluator.validate_runs(self.s, data)
+                self.assertTrue(any("total_cost_usd" in err for err in errors))
+
+    def test_json_nan_not_accepted(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "bad.json"
+            source.write_text('{"total_cost_usd": NaN}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                evaluator.load_json(source)
 
     def test_input_records_are_not_mutated(self):
         original = copy.deepcopy(self.data)
