@@ -86,3 +86,60 @@ All placeholder fields must be replaced with measured evidence; the example will
 - **Never** infer a model or agent improvement from CI green alone. Synthetic unit tests intentionally use fabricated values.
 - **Never** upgrade to `VERIFIED` or `ACTIVE` without actual independent proof and review under EVENTO Memory's lifecycle.
 - Real performance is stochastic: this five-case one-run-per-condition pilot is insufficient for broad claims. Replicate and expand before changing Core.
+
+## 2026-10-09: deterministic operator handoff (no invocation)
+
+A deterministic preparation script has been added to remove manual mismatched
+inputs and prompt hashes. It creates ten files in an **external, private output
+directory**, with identical baseline/candidate task SHA-256 and consistent
+system-prompt fingerprints. It does NOT run any language model or verify
+external web freshness.
+
+In a checkout of PR #33:
+
+```sh
+python scripts/prepare_ai_book_agent_runs.py --out /tmp/evento-ai-book-pilot-20261009
+```
+
+Expected: `PREPARED_NO_REAL_AGENT_RUNS` with ten prompt files, one
+`experiment-preparation.json` file, `real_runs_collected=0`, and
+`unapproved_spend_limit_usd=0`. Do not commit the private output folder or
+copy private run traces into the public repo.
+
+### Optional, explicitly approved operator run (example only; NOT executed)
+
+If the Codex CLI is installed and authenticated, and the operator has
+independently confirmed the provider account's **actual billing conditions**
+and approved the run, an example **single** read-only prompt invocation is:
+
+```sh
+# Model and billing mode MUST be selected and approved by the operator first.
+# Only in an isolated repository/sandbox WITHOUT customer secrets.
+codex exec --json --sandbox read-only --model "$APPROVED_MODEL" - \
+  < /tmp/evento-ai-book-pilot-20261009/prompts/TI-01_baseline.txt \
+  > /tmp/evento-ai-book-pilot-20261009/TI-01_baseline.jsonl
+```
+
+Never use `--full-auto`, permission bypass, production credentials, or an
+unreviewed API key for this experiment. CLI subscription access is **not proof
+of zero incremental billing**. If the provider cannot produce run receipts,
+model identification, usage information and attributable cost/plan evidence,
+do not mark any of the ten runs as verified or zero-cost.
+
+**Critical comparability requirement:** the generated frozen snapshot covers
+repository research metadata/instructions only. It explicitly **does not
+freeze external Next.js release/security advisories** or other mutable web
+pages. Before completing a scored ten-run experiment, independently preserve
+the official source content/version and SHA-256 for time-sensitive cases,
+feed the **same frozen external source evidence** to both variants, and record
+the source-availability conditions. Otherwise the experiment is exploratory
+and MUST NOT claim a controlled A/B performance result.
+
+The generator does not include expected answers in agent prompts. The
+independent reviewer must still verify citation truth, denied tool actions,
+elapsed time, cost and provider receipts. `experiment-preparation.json` is
+intentionally not accepted by the evaluator as a real-run manifest.
+
+Official operational references:
+- https://developers.openai.com/blog/eval-skills
+- https://developers.openai.com/cookbook/examples/codex/build_iterative_repair_loops_with_codex
