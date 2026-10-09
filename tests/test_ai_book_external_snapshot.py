@@ -8,6 +8,8 @@ import io
 import json
 import tempfile
 import unittest
+import urllib.request
+from unittest.mock import MagicMock, patch
 from pathlib import Path
 
 from scripts import freeze_ai_book_external_sources as frozen
@@ -76,6 +78,43 @@ class SnapshotGateTests(unittest.TestCase):
         prep = packer.prepare(ROOT, prep_dir, self.snapshot)
         suite = evaluator.load_json(evaluator.DEFAULT_SUITE)
         return prep_dir, prep, suite, fake_runs(suite, prep)
+
+    def test_redirect_guard_allows_pinned_same_origin_https(self):
+        handler = frozen.SameOriginHTTPSRedirect()
+        request = urllib.request.Request("https://nextjs.org/blog/notice")
+        follow = handler.redirect_request(
+            request, None, 302, "Found", {},
+            "https://nextjs.org/blog/new-location")
+        self.assertEqual(follow.full_url, "https://nextjs.org/blog/new-location")
+
+    def test_redirect_guard_blocks_cross_origin_and_private_host_before_fetch(self):
+        handler = frozen.SameOriginHTTPSRedirect()
+        request = urllib.request.Request("https://nextjs.org/blog/notice")
+        for destination in (
+            "https://attacker.example/phishing",
+            "http://nextjs.org/blog/notice",
+            "http://169.254.169.254/latest/meta-data/",
+            "https://nextjs.org:8443/blog/notice",
+            "https://user:pass@nextjs.org/blog/notice",
+        ):
+            with self.subTest(destination=destination):
+                with self.assertRaisesRegex(ValueError, "blocked cross-origin"):
+                    handler.redirect_request(request, None, 302, "Found", {}, destination)
+
+    def test_source_capture_get_page_installs_safe_redirect_opener(self):
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = "https://nextjs.org/blog/notice"
+        response.headers.get.return_value = None
+        response.read.return_value = b"<!doctype html><html><body>official mock</body></html>"
+        opener = MagicMock()
+        opener.open.return_value = response
+        with patch.object(urllib.request, "build_opener", return_value=opener) as build:
+            raw, final, metadata = frozen.get_page("https://nextjs.org/blog/notice")
+        self.assertIsInstance(build.call_args.args[0], frozen.SameOriginHTTPSRedirect)
+        self.assertEqual(final, "https://nextjs.org/blog/notice")
+        self.assertIn(b"official mock", raw)
+        opener.open.assert_called_once()
 
     def test_freeze_is_offline_verifiable(self):
         doc = frozen.verify(self.snapshot)
