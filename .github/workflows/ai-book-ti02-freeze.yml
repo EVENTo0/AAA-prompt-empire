@@ -1,0 +1,59 @@
+name: TI-02 Official Source Freeze (research only)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture-ti02-evidence:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 33
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check pinned observation day
+        id: date
+        shell: bash
+        run: |
+          if [ "$(date -u +%F)" = "2026-10-09" ]; then
+            echo "capture=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::TI-02 as-of 2026-10-09: capture skipped on different UTC day. Refresh official catalog first."
+            echo "capture=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Capture and independently verify eight dated official URLs
+        if: steps.date.outputs.capture == 'true'
+        run: |
+          python scripts/freeze_ai_book_external_sources.py --capture --out "$RUNNER_TEMP/ti02-evidence"
+          python scripts/freeze_ai_book_external_sources.py --verify --out "$RUNNER_TEMP/ti02-evidence"
+          python scripts/prepare_ai_book_agent_runs.py \
+            --external-snapshot "$RUNNER_TEMP/ti02-evidence" \
+            --out "$RUNNER_TEMP/ti02-preparation"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import os
+          snap = json.loads((Path(os.environ["RUNNER_TEMP"]) / "ti02-evidence/snapshot.json").read_text())
+          prep = json.loads((Path(os.environ["RUNNER_TEMP"]) / "ti02-preparation/experiment-preparation.json").read_text())
+          assert len(snap["sources"]) == 8
+          assert prep["external_web_source_snapshot_proven"] is True
+          assert snap["snapshot_sha256"] == prep["external_source_snapshot_sha256"]
+          assert prep["real_runs_collected"] == 0
+          print("TI02 official HTTP capture verified; NO LLM calls; snapshot:", snap["snapshot_sha256"])
+          PY
+      - name: Preserve frozen public sources as limited-retention artifact
+        if: steps.date.outputs.capture == 'true' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ti02-nextjs-primary-sources-20261009
+          path: ${{ runner.temp }}/ti02-evidence/
+          if-no-files-found: error
+          retention-days: 30
