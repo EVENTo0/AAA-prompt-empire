@@ -155,3 +155,55 @@ intentionally not accepted by the evaluator as a real-run manifest.
 Official operational references:
 - https://developers.openai.com/blog/eval-skills
 - https://developers.openai.com/cookbook/examples/codex/build_iterative_repair_loops_with_codex
+
+
+## 2026-10-09 — Mandatory external-source freeze for any measured comparison
+
+The 2026-10-09 official dated Next.js review is in
+[TI02_NEXTJS_OFFICIAL_EVIDENCE_2026-10-09.md](TI02_NEXTJS_OFFICIAL_EVIDENCE_2026-10-09.md).
+The catalog is a research reference and **NOT a fetched source snapshot**.
+
+The operator must first run the separate zero-inference source capture and
+verification before a comparable TI-02 A/B execution can be recognized:
+
+~~~sh
+python scripts/freeze_ai_book_external_sources.py --capture \
+  --out ../evento-ti02-snapshot-20261009
+python scripts/freeze_ai_book_external_sources.py --verify \
+  --out ../evento-ti02-snapshot-20261009
+python scripts/prepare_ai_book_agent_runs.py \
+  --external-snapshot ../evento-ti02-snapshot-20261009 \
+  --out ../evento-learning-private-pilot
+~~~
+
+The snapshot includes raw official HTML, reproducible normalized text, source
+URL, publication date, retrieval UTC timestamp, resolved URL, raw/text SHA-256
+and an overall canonical snapshot digest. It is dated **as of 2026-10-09**;
+after that day, update the catalog before taking a new source snapshot.
+The prepared prompts contain the exact same frozen source excerpt on TI-02
+for both conditions; candidate-specific guidance remains the only intended
+change. The collector does not invoke any LLM.
+
+For a measured manifest, in addition to existing mandatory evidence fields:
+
+- The manifest needs top-level external_source_snapshot_sha256.
+- Each of ten records needs external_source_snapshot_sha256 and
+  prompt_file_sha256 matching the corresponding prepared run.
+- The original internal source_snapshot_sha256, task_input_sha256 and
+  prompt_sha256 must also match the prepared source and task records.
+- The real-run scoring command **must** receive BOTH --external-snapshot
+  and --preparation, to independently verify source and prompt bytes:
+
+~~~sh
+python scripts/run_ai_book_agent_learning_eval.py \
+  --runs /private/real-ten-runs.json \
+  --external-snapshot ../evento-ti02-snapshot-20261009 \
+  --preparation ../evento-learning-private-pilot \
+  --out /private/score-report.json
+~~~
+
+Scoring-only synthetic unit tests remain isolated and must not be described
+as real model-performance evidence. Note that the old example record above
+is **incomplete for the new measured-run gate** until these new fields are
+added and actual receipts supplied. No provider/model run, cost, Core
+promotion or application rollout was authorized here.
